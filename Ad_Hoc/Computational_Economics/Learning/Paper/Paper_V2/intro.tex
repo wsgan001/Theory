@@ -1,0 +1,468 @@
+
+\section{Introduction}
+<<<<<<< HEAD
+General equilibrium theory is a crown jewel of economics. Many of its market models assumes consumer preference given as concave valuation function; here concavity captures decreasing marginal returns and also ensures existence of equilibrium prices.
+While in a real market one can only observe what buyers buy at the set prices. Samuelson started the theory of {\em revealed preferences} in 1944 \cite{} to facilitate mapping observed data to valuation functions. Extensive work within TCS approached this question with two primary goals: $(i)$ {\em learning} valuation functions from the revealed preferences \cite{}. $(ii)$ directly {\em learning} the prices that maximizeѕ social welfare or profit \cite{}.
+
+The later problem is of significant importance for the sellers in today's online economies where large amount of data about consumer's buying patterns are available. For a seller, profit maximization is the primary goal in general, while she may also want to maximize social welfare to increase her market share by building a ``goodwill''.\footnote{Recently, after aquiring {\em Whole Foods}, Amazon cut prices of a number of items by as much as 43\% \cite{boomberg,nytimes}. Here the goal seems to be improving social-welfare and not profit.} Initial work on {\em dynamic pricing}, also known as {\em learn-and-earn}, focused on profit maximization assuming certain properties of the demand functions, i.e., a function that specifieѕ preference of a buyer given prices. \alert{Most of these assumptions are to get rid of non-convexity inherent in the problem. (@Ziwei: we need to check this)} However, many of these properties may not be satisfied by demands that come from typical concave valuation functions, e.g., a buyer with linear valuation function may like multiple bundles at given prices and therefore her demand can not be represented by a function.
+
+This motivated a recent series of works \cite{roth papers} that makes no explicit assumption on the demand and rather assumes that they come from consumers who have concave valuation function unknown to the mechanism. These works mainly focused on designing efficient methods for social welfare maximization, and profit maximization for the case where it reduces to social welfare maximization. Our first set of results significantly simplifies and improves these result by giving a natural algorithm, based on interpreting the revealed preference feedback as subgradients of a dual optimization problem on price variables. %by obtaining an interpretation of the revealed preference feedback as subgradients of the dual optimization problem. giving a natural algorithm for the problem.
+The second set of results focus on profit maximization for the general case, where the problem {\em does not} reduce to welfare maximization. We obtain efficient algorithms with matching lower bounds for the separable case, while for the non-separable case we show that no PTAS exists. Third, for the online setting with random arrival we obtain a no-regret algorithm in expectation for the welfare maximization for arbitrary continuous (possibly non-convex) valuation functions. Next we describe the model under consideration, our results, and \alert{comparision with earlier works}.
+
+\subsection{Model and Our Contribution}
+=======
+\input{intro-main}
+\subsection{Our Model, Results, and Techniques}
+>>>>>>> ad20fa74c90ddd6bdadb67fde331cd0e73086d30
+Consider a producer (seller) who produces and sells a set of $n$ \emph{divisible} goods. There are $m$ consumers (buyers) in the market. %the consumer set may be fixed or drawn from an unknown distribution in each round.
+Preferences of consumer $i$ over bundles of goods is defined by a valuation function $v_i:\mathcal{C} \rightarrow \Real_+$ ($\mathcal{C}\subset \mathbb{R}^n$ is called the \emph{feasible set}) that is her private information and unknown to us -- at prices $\pp$ she demands bundle $\xx_i(\pp)$ that maximizes her (value - payment), i.e., {\em quasilinear utility}.
+\begin{equation}\label{eq:optbundle}
+\xx_i(\pp) \in \argmax_{\mathbf{x}\in \mathcal{C}} v_i(\xx) - \langle \pp, \xx\rangle.
+\end{equation}
+
+<<<<<<< HEAD
+Once seller posts prices $\pp$ she gets to see the \emph{revealed prefernce}, formally the purchased bundle $\xx_i(\pp)$ of each consumer in the market (\emph{demand oracle information}), or even only $\sum_{i=1}^{m}\mathbf{x}_i(\mathbf{p})$ (\emph{aggregate demand oracle information}), and gets no infomation about their values.
+Consumers' aggregate demand will induce production cost $c(\sum_{i=1}^{m}\mathbf{x}_i(\mathbf{p}))$ for the seller, where $c:\mCC\to \mathbb{R}$ is a cost function and $\mCC =\{\sum_{i=1}^{m}\mathbf{x}_i|\mathbf{x}_1,\ldots,\mathbf{x}_m\!\in\!\mathcal{C}\}$.
+
+We consider both \emph{social welfare maximization} and \emph{profit maximization}. Social welfare is defined for \emph{assignments of bundles} $(\mathbf{x}_1,\ldots,\mathbf{x}_m)\in \mathcal{C}^m$, formally,
+\begin{equation}\label{socWelf}
+    \sw(\xx_1,\ldots,\xx_m)=\sum_{i=1}^{m}v_i(\xx_i)-c\left(\sum_{i=1}^{m}\xx_i\right).
+\end{equation}
+Note that while social welfare is defined for assignments, we will try to induce a good social welfare by a single price vector. In fact we will show that the optimum social welfare can be induced by a single price vector, which justifies our choice.
+=======
+Once seller posts prices $\pp$ she gets to see the \emph{revealed prefernce}, formally the purchased bundle $\xx_i(\pp)$ of each consumer in the market (\emph{demand oracle information}), or even only $\sum_{i=1}^{m}\mathbf{x}_i(\mathbf{p})$ (\emph{aggregate demand oracle information}), and gets no infomation about their values. Producing the demanded goods incurs cost to the seller, which is represented by a convex, non-decreasing cost function $c$. %Consumers' aggregate demand will induce production cost for the seller represented by a cost function $c$, i.e., $c(\sum_{i=1}^{m}\mathbf{x}_i(\mathbf{p}))$.
+Social welfare at an allocation is total consumer-value minus production cost, i.e., %at allocation $(\xx_1,\dots,\xx_m)$ it is,
+    \begin{equation}\label{socWelf}
+        \sw(\xx_1,\ldots,\xx_m)=\textstyle\sum_{i=1}^{m}v_i(\xx_i)-c\left(\textstyle\sum_{i=1}^{m}\xx_i\right).
+    \end{equation}
+
+While the profit of the seller is revenue minus production cost, i.e., %at prices $\pp$,
+    \begin{equation}\label{eq:profit}
+    \profit(\pp) = \langle \pp, \textstyle\sum_{i=1}^m \xx_i(\pp)\rangle - c\left(\textstyle\sum_{i=1}^m \xx_i(\pp)\right).
+    \end{equation}
+
+\paragraph{Social welfare maximization.}
+Assuming valuation functions are concave, suppose the seller wishes to maximize social welfare, preferably by posting prices. Firstly, it is not clear if a single price exists such that induced demand bundles indeed maximize the social welfare. If we ignore this issue for the moment, then it is a convex optimization problem, however, revealed preference feedback does not seem to give any information to solve this problem. 
+
+The optimization literature provides an elegant solution.
+In a strong sense, the prices are \emph{dual} to the bundles.
+Concretely, for any valuation $v_i$, define its \emph{concave conjugate}
+as
+\[
+  v_i^*(\pp) := \inf_{\xx\in\CC} \ip{\pp}{\xx} - v_i(\xx),
+\]
+and for any production cost $c$ define its \emph{convex conjugate}
+\[
+  c^*(\pp) := \sup_{\xx\in\CC} \ip{\pp}{\xx} - c(\xx).
+\]
+Without requiring $v_i$ to be concave or $c$ to be convex,
+even so $v_i^*$ is concave and $c^*$ is convex.
+The beautiful Fenchel-Rockafellar duality theory grants us that the maximal social
+welfare is upper bounded by a \emph{dual problem} over prices,
+namely $\inf_{\pp} c^*(\pp) - \sum_i v_i^*(\pp)$.
+
+We have now identified that the problem can be translated into one over the space of
+prices, rather than bundles.  We can now construct a gradient method, but
+operating on the dual.  Indeed, the following fact establishes that the
+demand oracle is exactly what we need: The demand oracle provides supergradients to $v_i^*$;
+  that is, for any prices $\pp$ and bundle $\xx$,
+  \[
+    \xx \in \partial v_i^*(\pp) \quad \iff \quad \xx \in \aaargmin_{\xx'\in\CC} \ip{\xx'}{\pp} - v_i(\xx').
+  \]
+%\end{lemma}
+
+With this tool in hand, a basic mechanism is as follows: Let $\pp_t$ be the price posted in round $t$, and let the received preferenes be 
+$\xx_i(\pp_t) \in \partial v_i^*(\pp_t)$, and let $\supp(\pp_t) \in \partial c_i^*(\pp_t)$. Then the gradient step is, 
+$$ \pp_{t+1} := \pp_t - \supp(\pp_t) + \sum_i \xx_i(\pp_t).$$
+
+%\alert{@Matus??: The guarantee is that after polynomially many rounds social welfare at bundles $(\xx_1(\pp_T), \ldots, \xx_m(\pp_T))$ is very near to the maximum social welfare.} 
+
+Here, if we think of $\supp(\pp_t)$ as {\em supply} at prices $\pp_t$ then the gradient step is exactly the Tatonnement process -- increase prices if excess demand and decrease if excess supply. 
+
+As it turns out, direct application of gradient descent method is not very efficient, and instead we make use of the accelerated gradient descent method. It was first introduced by Nesterov in \cite{N83}, and the variant we use is called the {\em AGM algorithm} introduced in \cite{AO14}. Together with a strong concavity assumption on valuations to ensure strong duality, and a smoothing technique, we get obtain Algorithm \ref{offlineSWMaxAlg}. The guarantees of this algorithm are summaries in Table \ref{comparison}.
+
+The table also compares our result with the most relevant prior works, namely \cite{RUW16} and \cite{RSUW17}. 
+%The most related prior works to our first result, namely offline social welfare maximization result, are \cite{} and \cite{}. 
+We note that, \cite{RUW16} studies profit maximization with single consumer whose valuation function is homogeneous, however, under this assumption they observe that the problem reduces to welfare maximization. \cite{RSUW17} studies social welfare maximization under the stochastic setting of consumer valuation, while assuming linear cost function. % where a consumer valuation is sampled in every round from an unknown distribution (single consumer), and cost function is assumed to linear.
+In constrast we study the problem with many consumers and general concave valuation functions and convex cost function, where consumer set is fixed. %they are assumed to be fixed. 
+
+Both \cite{RUW16} and \cite{RSUW17} setup two-layer optimization problem, outer on allocation, and inner on prices. Building on their results, and interpreting revealed preference feedback as gradient of duals we are able to operate with single optimization problem. The resulting improvements are summaries in Table \ref{comparison}. We note that in case of linear cost function, i.e., $c(\xx)=\langle \cc, \xx\rangle$, posting prices $\pp=\cc$ maximizes the social welfare. %, where $c(\xx)=\langle \cc, \xx\rangle$
+
+\begin{table}
+\begin{tabular}{|c|c|c|c|} %c|}
+    \hline
+     & \cite{RUW16} Alg. 1 \& 2 & \cite{RSUW17} Alg. 2 \& 3 & Alg. \ref{offlineSWMaxAlg}\\ % & Alg. \ref{onlineSWMaxAlg} \\
+     \hline
+    Offline or online & Offline & Offline & Offline\\ % & Online \\
+    \hline
+    \# of consumers & 1 & 1 & m \\ % & m \\
+    \hline
+    \multirow{2}{*}{Oracle access} & \multirow{2}{*}{Demand oracle} & i.i.d. & Aggregate\\ % & Random arrival \\
+     & & demand oracle & demand oracle\\ % & demand oracle \\
+    \hline
+    \multirow{3}{*}{Val. assumption}  & H\"older cont. & H\"older cont. & Cont.\\ % & \multirow{3}{*}{Cont.} \\
+     & strongly concave & strongly concave & strongly concave\\ % & \\
+     & non-decreasing & supply-saturating & \\ %& \\
+    \hline
+    \multirow{2}{*}{Cost assumption} & Lipschitz cont. & Linear & Lipschitz cont.\\ % & Lipschitz cont. \\
+     & & non-decreasing & non-decreasing\\ % & non-decreasing \\
+    \hline
+    \multirow{4}{*}{Queries} & \multirow{2}{*}{$O(\frac{1}{\epsilon^4})\times$} & \multirow{4}{*}{$O(\frac{1}{\epsilon^4})$} & $O(\frac{m^2}{\epsilon^2})$, \\ % & \multirow{4}{*}{-} \\
+     & & & or $O(\frac{m}{\epsilon})$ for \\ %& \\
+     & \multirow{2}{*}{$T(0^{\mathrm{th}}\textrm{-order opt.})$} & & strongly conv. \\ %& \\
+     & & & cost \\ %& \\
+     \hline
+    %Alg. & \# of consumers & Oracle Access & Valuations \\ Assumption & Cost Assumption & Running time \\
+\end{tabular}
+\caption{Comparison of Works}
+\label{comparison}
+\end{table}
+
+
+%and its comparision with the most relevant prior results, namely \cite{RUW16} and \cite{RSUW17}, are presented in Table \ref{comparison} (see Section \ref{sec:relWork} for more details). 
+
+
+\paragraph{Online Case.}
+For online social welfare maximization, we consider the random arrival model, where an adversary choose $m$ valuations, that are presented to us in {\em random} order one-by-one. The seller can change prices between two arrivals. We assume valuation functions to be only continuous. Therefore, the above observations cannot be used directly. %however they still give a nice justification for price posting methods, which is further corroborated by our Algorithm \ref{onlineSWMaxAlg}. 
+In Algorithm \ref{onlineSWMaxAlg} we design a price posting mechanism with following guarantee:
+
+
+\begin{theorem}[Informal]
+Assuming convex compact consumption set $\mathcal{C}$, continuous valuation functions, and Lipchitz continuous non-decreasing convex cost, there exists an online algorithm whose average social welfare in expectation is within addtive factor of $O(1/\sqrt{m})$ from the average offline optimum social welfare. This algorithm can be seen as the natural price adjustment tatonnment process that requires knowledge of only demand vectors. %Furthermore, the only assumption needed on valuations is continuity.
+\end{theorem}
+
+Note that, as $m$ gets larger, the difference tends to $0$. We obtain this result by showing that the algorithm of \cite{AD15} has a number of nice properties when applied to the online social welfare maximization problem (which might not be meaningful in the original setting): $(i)$ it only requires revealed preferences, $(ii)$ it only needs continuity of valuations, $(iii)$ it still works if at each step the consumer only maximizes the quasi-linear utility approximately.
+Here too the algorithm can be interpreted as a Tatonnement process. We note that the random arrival model is stronger than iid model, in the sense that upper bounds of random arrival model also applies to the iid model.
+
+\alert{@Ziwei, Matus: I am unsure about what all to add from what is commented below in the tex file. This is the explanation Ziwei wrote.}
+\begin{comment}
+%%%%% Ziwei's version %%%%%
+\paragraph{Online model.}
+In the online model, consumers with unknown valuations come sequentially in one round, whose eventual aggregate demand gives the cost. Price change is allowed betwenn arrivals of different consumers. Here the difficulty lies on both ignorance of valuations and the natural restriction of the online setting. (It can be observed that in Table \ref{comparison} query complexity for Algorithm \ref{onlineSWMaxAlg} is missing, since in the online model the query complexity is always $m$.)
+
+Recall that in the offline setting, we basically minimize a convex function $f(\mathbf{p})=c^*(\mathbf{p})-\sum_{i=1}^{m}v_{i*}(\mathbf{p})$ over the dual space. In the online setting, it is natural to replace the previous convex optimization problem with an online convex optimization (OCO) problem over the dual space. Formally, at step $i$ (the arrival of consumer $i$), we decide prices $\mathbf{p}_i$, after which a convex $f_i$ is revealed and a loss of $f_i(\mathbf{p}_i)$ is suffered. We are interested in minimizing the \emph{regret}
+\[
+    \sum_{i=1}^{m}f_i(\mathbf{p}_i)-\min_{\mathbf{p}\ge \mathbf{0}}\sum_{i=1}^{m}f_i(\mathbf{p}).
+\]
+Inspired by the offline setting, it is natural to try the following algorithm:
+\begin{enumerate}
+    \item Let $\mathcal{A}$ be some gradient-based OCO algorithm, and $\mathbf{p}_1$ be the initial prices chosen by $\mathcal{A}$.
+
+    \item For $i=1,\ldots,m$:
+    \begin{enumerate}
+        \item Post $\mathbf{p}_i$.
+        \item Give $f_i(\mathbf{p})=\frac{1}{m}c^*(\mathbf{p})-\tilde{v}_{i*}(\mathbf{p})$ to $\mathcal{A}$.
+        \item Receive updated $\mathbf{p}_{i+1}$ from $\mathcal{A}$.
+    \end{enumerate}
+\end{enumerate}
+(The notation $\tilde{v}_i$, and $\tilde{\mathbf{x}}_i$ in the following, is for the sake of consistency; the reason of using it will become clear as soon as the formal model is introduced.) Note that as long as the OCO algorithm we use is gradient based, the ignorance of $v_{i*}$ will not affect us, since its gradient is given by the revealed preference.
+
+This algorithm is first introduced in \cite{AD15} to solve a general online stochastic convex programming problem. However, in the original setting, it is unclear how to compute the gradient of $v_{i*}$, which is exactly solved by the consumer demand oracle in our case. More nice properties include:
+\begin{itemize}
+    \item The average social welfare in expectation is within $O(1/\sqrt{m})$ from the average offline optimum social welfare, which tends to $0$ as $m$ gets larger (Theorem \ref{onlineSWMaxMain}).
+    \item No assumption on valuations other than continuity is needed.
+    \item The algorithm still works if at each step the consumer only maximizes the quasi-linear utility approximately.
+\end{itemize}
+
+(For the sake of analysis, we in fact use the following $f_i$ in each step
+\[
+    f_i(\mathbf{p})=\frac{1}{m}c^*(\mathbf{p})-\langle\tilde{\mathbf{x}}_i,\mathbf{p}\rangle.
+\]
+In other words, we just linearize $v_{i*}$. The result of the algorithm will not change, but analysis will become clearer.)
+
+%However, without concave valuations, and with restriction of the online model, we still design Algorithm \ref{onlineSWMaxAlg} whose average social welfare in expectation is within $O(1/\sqrt{m})$ from the average offline optimum social welfare. As $m$ gets larger, the difference tends to $0$. We obtain this result by showing that the algorithm of \cite{AD15} has a number of nice properties when applied to the online social welfare maximization problem (which might not be meaningful in the original setting): It only requires revealed preferences; it only needs continuity of valuations; it still works if at each step the consumer only maximizes the quasi-linear utility approximately.
+
+In our online model, a \emph{random arrival demand oracle} is considered. Here an adversary first choose $m$ valuations, which are then uniformly randomly permuted before giving to us. The expected social welfare w.r.t. all permutations is considered. We would like to point out that in the online setting, the random arrival model is stronger than the i.i.d. model, in the sense that upper bounds hold for the random arrival model also holds for the i.i.d. model.
+\end{comment}
+
+%Detailed comparision of above two results with the prior work is provided in Table \ref{comparison} in Section \ref{sec:relWork}.
+>>>>>>> ad20fa74c90ddd6bdadb67fde331cd0e73086d30
+
+Profit is defined for prices $\mathbf{p}\in \mathbb{R}_+^n$, formally,
+\begin{equation}\label{eq:profit}
+\profit(\pp) = \langle \pp, \sum_{i=1}^m \xx_i(\pp)\rangle - c\left(\sum_{i=1}^m \xx_i(\pp)\right).
+\end{equation}
+
+<<<<<<< HEAD
+\subsubsection{Social welfare maximization.}
+In social welfare maximization, the goal is to maximize $\sw$ of \eqref{socWelf}. We further distinguish between two settings, the offline setting and the online setting, which differ in how cost is generated. In our model, in one \emph{round} the aggregate demand gives the cost. In the coarser \emph{offline} model, there are many rounds, and the producer post prices at different rounds with only access to the aggregate demand oracle. In the finer \emph{online} model, there is only one round in which the consumer comes one by one. The producer is allowed to observe each consumer's choice and post prices between arrivals of different consumers, or different \emph{steps}. ``Round" and ``step" will be used in the above sense throughout the paper.
+=======
+\subsection{Related Work}\label{sec:relWork}
+In addition to the prior works discussed in the previous section, namely \cite{RUW16, RSUW17}, there is a long history of study of \emph{Revealed preferences}, starting from Samuelson \cite{S38}. 
+% are the most related to our work, which is discussed before.
+%\emph{Revealed preferences} has a long history, 
+The traditional focus is on learning utility functions which explain observed prices and revealed prices, see Afriat \cite{A67}. A more recent line of work considers learning valuations and making future predictions, such as Beigman and Vohra \cite{BV06}, Zadimoghaddam and Roth \cite{ZR12}, and Balcan et al. \cite{BDMUV14}. 
+
+Another related topic is \emph{dynamic pricing}, or \emph{learn-and-earn}, where a seller also faces consumers with unknown valuations. Please see den Boer \cite{dB15} for a survey. However, in those work typically assumptions on price response functions are made, while we make assumptions on valuation functions, which is more natural.
+
+\paragraph{Outline of the paper.}
+\begin{comment}
+The most related prior works to our first result, namely offline social welfare maximization result, are \cite{} and \cite{}. We note that, \cite{} studies profit maximization with single consumer whose valuation function is homogeneous, however, under this assumption they observe that the problem reduces to welfare maximization. \cite{} studies social welfare maximization under the stochastic setting of consumer valuation, while assuming linear cost function. % where a consumer valuation is sampled in every round from an unknown distribution (single consumer), and cost function is assumed to linear.
+In constrast we study the problem with many consumers and general concave valuation functions and convex cost function, where consumer set is fixed. %they are assumed to be fixed. 
+>>>>>>> ad20fa74c90ddd6bdadb67fde331cd0e73086d30
+
+Table \ref{comparison} consists of assumptions and results of our work and most related previous works, followed by further explanations and clarifications. Note that common assumptions, that the feasible set $\mathcal{C}$ is convex compact and has non-empty interior, and the cost function is convex, are not included in Table \ref{comparison}.
+
+\begin{table}
+\begin{tabular}{|c|c|c|c|} %c|}
+    \hline
+     & \cite{RUW16} Alg. 1 \& 2 & \cite{RSUW17} Alg. 2 \& 3 & Alg. \ref{offlineSWMaxAlg}\\ % & Alg. \ref{onlineSWMaxAlg} \\
+     \hline
+    Offline or online & Offline & Offline & Offline\\ % & Online \\
+    \hline
+    \# of consumers & 1 & 1 & m \\ % & m \\
+    \hline
+    \multirow{2}{*}{Oracle access} & \multirow{2}{*}{Demand oracle} & i.i.d. & Aggregate\\ % & Random arrival \\
+     & & demand oracle & demand oracle\\ % & demand oracle \\
+    \hline
+    \multirow{3}{*}{Val. assumption}  & H\"older cont. & H\"older cont. & Cont.\\ % & \multirow{3}{*}{Cont.} \\
+     & strongly concave & strongly concave & strongly concave\\ % & \\
+     & non-decreasing & supply-saturating & \\ %& \\
+    \hline
+    \multirow{2}{*}{Cost assumption} & Lipschitz cont. & Linear & Lipschitz cont.\\ % & Lipschitz cont. \\
+     & & non-decreasing & non-decreasing\\ % & non-decreasing \\
+    \hline
+    \multirow{4}{*}{Queries} & \multirow{2}{*}{$O(\frac{1}{\epsilon^4})\times$} & \multirow{4}{*}{$O(\frac{1}{\epsilon^4})$} & $O(\frac{m^2}{\epsilon^2})$, \\ % & \multirow{4}{*}{-} \\
+     & & & or $O(\frac{m}{\epsilon})$ for \\ %& \\
+     & \multirow{2}{*}{$T(0^{\mathrm{th}}\textrm{-order opt.})$} & & strongly conv. \\ %& \\
+     & & & cost \\ %& \\
+     \hline
+    %Alg. & \# of consumers & Oracle Access & Valuations \\ Assumption & Cost Assumption & Running time \\
+\end{tabular}
+\caption{Comparison of Works}
+\label{comparison}
+\end{table}
+<<<<<<< HEAD
+
+\paragraph{Offline model.}
+Since the goal is to find an assignment of bundles $(\xx_1,\ldots,\xx_m)$ to consumers which maximizes social welfare, the most natural approach is as follows: The mechanism suggests an assignment, the producers and consumers suggest an adjustment, and the procedure iterates until convergence. Indeed, following the many rich connections between the optimization and economics literature, one could even imagine applying a gradient-based procedure, where producers and consumers essentially provide gradient vectors in the space of bundle assignments.
+=======
+\end{comment}
+
+
+
+%##############################################
+%##############################################
+%##############################################
+%##############################################
+
+
+
+
+
+
+
+
+
+\begin{comment}
+that is her private information and unknown to us. at prices $\pp$ she demands bundle $\xx_i(\pp)$ that maximizes her (value - payment), i.e., {\em quasilinear utility}.
+\begin{equation}\label{eq:optbundle}
+\xx_i(\pp) \in \argmax_{\mathbf{x}\in \mathcal{C}} v_i(\xx) - \langle \pp, \xx\rangle
+\end{equation}
+
+Once seller posts prices $\pp$ she gets to see the \emph{revealed prefernce}, formally the purchased bundle $\xx_i(\pp)$ of each consumer in the market (\emph{demand oracle information}), or even only $\sum_{i=1}^{m}\mathbf{x}_i(\mathbf{p})$ (\emph{aggregate demand oracle information}), and gets no infomation about their values. Producing the demanded goods incurs cost to the seller, which is represented by a convex, non-decreasing cost function $c$. %Consumers' aggregate demand will induce production cost for the seller represented by a cost function $c$, i.e., $c(\sum_{i=1}^{m}\mathbf{x}_i(\mathbf{p}))$.
+
+>>>>>>> ad20fa74c90ddd6bdadb67fde331cd0e73086d30
+
+Unfortunately, \emph{the preceding model is unrealistic}: One cannot expect consumers and producers to accurately suggest how to adjust all quantities in a multi-item bundle. A more realistic model is for the mechanism to instead provide \emph{prices},
+and to treat consumers as demand oracles. This format is more comfortable for consumers; but how about mechanism designers?
+
+The optimization literature provides an elegant solution. In a strong sense, the prices are \emph{dual} to the bundles.
+Concretely, for any valuation $v_i$, define its \emph{concave conjugate}
+as
+\[
+  v_{i*}(\pp) = \inf_{\xx\in\CC} \ip{\pp}{\xx} - v_i(\xx),
+\]
+and for any production cost $c$ define its \emph{convex conjugate}
+\[
+  c^*(\pp) = \sup_{\xx\in\CC} \ip{\pp}{\xx} - c(\xx).
+\]
+Without requiring $v_i$ to be concave or $c$ to be convex, even so $v_{i*}$ is concave and $c^*$ is convex. The beautiful Fenchel-Rockafellar duality theory grants us that the maximal social welfare is upper bounded by a \emph{dual problem} over prices, namely $\inf_{\pp} c^*(\pp) - \sum_i v_{i*}(\pp)$.
+
+We have now identified that the problem can be translated into one over the space of prices, rather than bundles. We are now in position to construct a gradient method, but now operating on the dual. Indeed, Lemma \ref{conjgtSubgrad} establishes that the demand oracle is exactly what we need, formally
+\[
+  \xx \in \partial v_{i*}(\pp) \quad \iff \quad \xx \in \aaargmax_{\xx'\in\CC} v_i(\xx')-\ip{\xx'}{\pp}.
+\]
+
+With this tool in hand, a basic algorithm is as follows.
+\begin{enumerate}
+  \item
+    Pick initial prices $\pp_1$.
+  \item
+    For $t=1,\ldots,T-1$:
+    \begin{enumerate}
+      \item
+        Post prices $\pp_t$.
+      \item
+        Receive aggregate demand $\xx(\pp_t)=\sum_{i=1}^{m}\xx_i(\pp_t)$ where $\xx_i(\pp_t)\in \partial v_{i*}(\pp_t)$,
+        and $\mathbf{y} \in \partial c^*(\pp_t)$.
+      \item
+        Perform gradient step $\pp_{t+1} = \pp_t - \mathbf{y} + \xx$.
+    \end{enumerate}
+  \item
+    Output prices $\pp_T$.
+\end{enumerate}
+
+The above algorithm is clean, and as pointed out by Lemma \ref{conjgtSubgradInterp}, it resembles tatonnment process where prices are raised where demand is higher than supply, and are decreased otherwise. However, direct gradient descent is not very efficient, so instead we make use of the accelerated gradient descent method. It was first introduced by Nesterov in \cite{N83}, and the variant we use is called the AGM algorithm introduced in \cite{AO14}. Together with a strong concavity assumption on valuations to ensure strong duality and a smoothing technique, we get our Algorithm \ref{offlineSWMaxAlg}.
+
+Most related prior works consist of \cite{RUW16} and \cite{RSUW17}. Algorithms in both of them have a two-layer structure, which is a little confusing at a first glance. By contrast, our Algorithm \ref{offlineSWMaxAlg} is based on the natural idea of optimizing on the dual, which provides an algorithm which requires fewer queries and which is cleaner (with one layer).
+
+It should be clarified that in \cite{RUW16} the related profit maximization problem is considered. However, it is assumed in \cite{RUW16} that the valuation is homogeneous, in which case profit maximization can just be reduced to social welfare maximization. Also, an unknown cost function is assumed there, which requires a zeroth-order optimization method to deal with; we think it is unnecessary from the producer's perspective.
+
+In \cite{RSUW17}, an \emph{i.i.d. demand oracle} is assumed, which at each round samples a valuation from some unknown distribution, and the goal is to maximize expected social welfare. It is an interesting model; however in \cite{RSUW17} only linear cost $c(x)=\langle \mathbf{c},\mathbf{x}\rangle$ is considered, which is too restrictive, and can in fact be solved directly by posting $\mathbf{c}$ as the prices.
+
+%We wish to maximize $\sw$ of \eqref{socWelf}, however even if we manage to compute its maximum value and miximizing bundles of each agent, it is not clear how to implement them. Fortunately, in Lemma \ref{dualOpt} we show that:
+%\begin{itemize}
+%    \item For concave valuations, there exists a price $\pp^*$ such that $\sum_{i=1}^m v_i(\xx_i(\pp^*)) - c(\sum_{i=1}^m \xx_i(\pp^*)) = \max_{\xx_1,\dots,\xx_m\in \mathcal{C}} \sw(\xx_1,\dots,\xx_m)$.
+%    \item $\mathbf{p}^*$ is the solution of a dual optimization problem, where the dual function equals the conjugate of the cost minus the sum of conjugates of valuations.
+%    \item While applying first-order methods to this dual problem, the sum of (sub)gradients of conjugates of valuations is given by the aggregate demand, and the (sub)gradient of the dual function can be seen as supply minus aggregate demand.
+%\end{itemize}
+%This is not too difficult to see in some simple case. For example, if the cost $c=\langle \mathbf{c},\mathbf{x}\rangle$ is linear, then posting price $\mathbf{c}$ will maximize the social welfare. However, the same result still holds for general convex costs, and thus our goal is to find a good way to post prices, using only \emph{revealed preferences}, so that as much social welfare as possible can be achieved.
+
+%The above observations naturally leads us to optimize on a dual problem, which is essentially what our offline social welfare maximization Algorithm \ref{offlineSWMaxAlg} does, where we assume valuations are strongly concave. For the online case, we only assume continuous valuations, and thus the above observations cannot be used directly; however they still give a nice justification for price posting methods, which is further corroborated by our Algorithm \ref{onlineSWMaxAlg}. A more precise summary of assumptions and results of our work and most related previous work are in Table \ref{comparison}. Note that in all work presented here, the feasible set $\mathcal{C}$ is assumed to be convex compact and have non-empty interior, and the cost function is assumed to be convex. Those common assumptions are not included here. Below are remarks:
+
+\paragraph{Online model.}
+In the online model, consumers with unknown valuations come sequentially in one round, whose eventual aggregate demand gives the cost. Price change is allowed betwenn arrivals of different consumers. Here the difficulty lies on both ignorance of valuations and the natural restriction of the online setting. (It can be observed that in Table \ref{comparison} query complexity for Algorithm \ref{onlineSWMaxAlg} is missing, since in the online model the query complexity is always $m$.)
+
+Recall that in the offline setting, we basically minimize a convex function $f(\mathbf{p})=c^*(\mathbf{p})-\sum_{i=1}^{m}v_{i*}(\mathbf{p})$ over the dual space. In the online setting, it is natural to replace the previous convex optimization problem with an online convex optimization (OCO) problem over the dual space. Formally, at step $i$ (the arrival of consumer $i$), we decide prices $\mathbf{p}_i$, after which a convex $f_i$ is revealed and a loss of $f_i(\mathbf{p}_i)$ is suffered. We are interested in minimizing the \emph{regret}
+\[
+    \sum_{i=1}^{m}f_i(\mathbf{p}_i)-\min_{\mathbf{p}\ge \mathbf{0}}\sum_{i=1}^{m}f_i(\mathbf{p}).
+\]
+Inspired by the offline setting, it is natural to try the following algorithm:
+\begin{enumerate}
+    \item Let $\mathcal{A}$ be some gradient-based OCO algorithm, and $\mathbf{p}_1$ be the initial prices chosen by $\mathcal{A}$.
+
+    \item For $i=1,\ldots,m$:
+    \begin{enumerate}
+        \item Post $\mathbf{p}_i$.
+        \item Give $f_i(\mathbf{p})=\frac{1}{m}c^*(\mathbf{p})-\tilde{v}_{i*}(\mathbf{p})$ to $\mathcal{A}$.
+        \item Receive updated $\mathbf{p}_{i+1}$ from $\mathcal{A}$.
+    \end{enumerate}
+\end{enumerate}
+(The notation $\tilde{v}_i$, and $\tilde{\mathbf{x}}_i$ in the following, is for the sake of consistency; the reason of using it will become clear as soon as the formal model is introduced.) Note that as long as the OCO algorithm we use is gradient based, the ignorance of $v_{i*}$ will not affect us, since its gradient is given by the revealed preference.
+
+This algorithm is first introduced in \cite{AD15} to solve a general online stochastic convex programming problem. However, in the original setting, it is unclear how to compute the gradient of $v_{i*}$, which is exactly solved by the consumer demand oracle in our case. More nice properties include:
+\begin{itemize}
+    \item The average social welfare in expectation is within $O(1/\sqrt{m})$ from the average offline optimum social welfare, which tends to $0$ as $m$ gets larger (Theorem \ref{onlineSWMaxMain}).
+    \item No assumption on valuations other than continuity is needed.
+    \item The algorithm still works if at each step the consumer only maximizes the quasi-linear utility approximately.
+\end{itemize}
+
+(For the sake of analysis, we in fact use the following $f_i$ in each step
+\[
+    f_i(\mathbf{p})=\frac{1}{m}c^*(\mathbf{p})-\langle\tilde{\mathbf{x}}_i,\mathbf{p}\rangle.
+\]
+In other words, we just linearize $v_{i*}$. The result of the algorithm will not change, but analysis will become clearer.)
+
+%However, without concave valuations, and with restriction of the online model, we still design Algorithm \ref{onlineSWMaxAlg} whose average social welfare in expectation is within $O(1/\sqrt{m})$ from the average offline optimum social welfare. As $m$ gets larger, the difference tends to $0$. We obtain this result by showing that the algorithm of \cite{AD15} has a number of nice properties when applied to the online social welfare maximization problem (which might not be meaningful in the original setting): It only requires revealed preferences; it only needs continuity of valuations; it still works if at each step the consumer only maximizes the quasi-linear utility approximately.
+
+In our online model, a \emph{random arrival demand oracle} is considered. Here an adversary first choose $m$ valuations, which are then uniformly randomly permuted before giving to us. The expected social welfare w.r.t. all permutations is considered. We would like to point out that in the online setting, the random arrival model is stronger than the i.i.d. model, in the sense that upper bounds hold for the random arrival model also holds for the i.i.d. model.
+
+
+%The next difficulty is that $\sw$ as a function of price variables is non-convex. On the other hand, note that $\sw$ is a concave function in allocation variables $(\xx_1,\dots,\xx_m)$. Recall that seller can only set price and observe purchased bundle, which does not seem to give any information to make progress in this convex optimization problem.
+
+%\alert{Roth et. al.} \cite{} observed that although social welfare as a function of price variables is non-convex, it is a {\em convex optimization problem} as a function of allocation variables. However, at given prices $\pp$ we only get to see demand of consumers and nothing about their value at the purchased bundles. The purchased bundles seems to give no information to make progress in this convex optimization problem.
+
+%One relation that is easy to see is that $\pp$ is a subgradiant of $v_i$ at the purchased bundle $\xx_i(\pp)$. This together with conjugate duality implies that the dual of the social-welfare optimization problem operates on price variables. Furthermore the aggregate demand of consumers gives a subgradient of the dual cost function at point $\pp$. This observations equip us to design a natural gradient decent type algorithm for the dual directly. \alert{This algorithm resembles tatonnment process where prices are raised where demand is higher than supply, and are decreased otherwise. @Ziwei: please confirm this statement.}
+
+%\begin{theorem}[Informal]
+%There is a natural gradient decent algorithm to compute prices that approximates the optimum social welfare within an $\epsilon$ in $O(\frac{m^2}{\eps^2})$ rounds of consumers' aggregate demand queries, assuming valuation functions are strongly concave.
+%\end{theorem}
+%Here the big-$O$ notation is hiding Lipchitz-continuity and strong-concavity constants.
+
+%As mentioned above, this setting is studied in two previous papers. The first paper by Roth, Ullmand, and Wu \cite{} studied the case of single consumer with homogeneous valuation function, for profit maximization. In this case, profit maximization reduces to social welfare maximization. They design a two level optimixation method with the outer level doing zero$^{th}$ optimization. The latter is to handle unkown cost function, which is an unnecessary assumption from the producer's perspective. The query complexity of the inner level itself is $O(\frac{1}{\eps^4})$.
+
+%The second work by Roth, Slivkins, Ullman, and Wu \cite{} studied the stochastic setting, with arbitarary concave consumer valuation functions, and linear cost function. The goal is to find prices that maximize the expected social welfare. They obtain a method with polynomial query complexity and polynomial running time. \alert{@Ziwei: More about their algorithm?}. We observe that in this case optimal price vector is the cost vector itself. %setting price vector to the cost vector is optimal.
+
+
+%\alert{Ziwei: Comparision with the two papers of Roth}
+%In \cite{RSUW17}, a similar model is studied, where in each step consumer valuation is drawn from an unknown distribution independently and identically. The goal is to find prices that maximize the expected social welfare. In this stochastic setting, the task is to compute expected purchased bundle at given prices, which can be done by querying the same price repeatedly for polynomial number of rounds. \cite{} obtains $O()$ query complexity result for the case of linear cost function. While we observe that in this case the optimal prices vector is the cost vector itself. For the general convex cost functions, \cite{} obtains $O()$ query complexity.
+
+%\paragraph{Online social welfare maximization.}
+%In the online model, we allow valuation functions of the consumers to be arbitrary continuous functions chosen by an adversary. They arrive one by one to the market, and the seller can change prices between two arrivals. We consider the {\em random arrival} model where after the adversary selects valuation function of consumers, they are permuted uniformly randomly before shown to us.
+
+%Our benchmark is the offline maximum social welfare, where all valuations are {\em known in advance}, which may not be achievable by posting a single price.
+%Furthermore, the seller has no information about the valuation function of the next consumer while setting prices, and she only gets to observe the purchaised bundle at set prices of the current consumer. Although, this makes the benchmark difficult to achieve by posting prices, we show the following.
+
+
+%\begin{theorem}[Informal]
+%Assuming convex compact consumption set $\mathcal{C}$, continuous valuation functions, and Lipchitz continuous non-decreasing convex cost, there exists an online algorithm whose \alert{average social welfare in expectation is within $O(1+1/\sqrt{m})$ from the average offline optimum social welfare}. This algorithm can be seen as the natural price adjustment tatonnment process that requires knowledge of only demand vectors. %Furthermore, the only assumption needed on valuations is continuity.
+%\end{theorem}
+%Note that, as the number of consumers $m$ approaches infinity, the per-consumer regret of our algorithm approaches $0$.
+%We obtain this result by showing that the algorithm of \cite{AD15}
+%has a number of nice properties when applied to the online social welfare maximization problem (which might not be meaningful in the original setting). First, it does not require knowledge of valuation functions other than the point where it is optimized at given prices, i.e., revealed preferences. Second, it only needs continuity of valuations. And third, it still works if at each step the consumer only maximizes the quasi-linear utility approximately.
+
+%Note that the upper bound for the random arrival model also implies the same upper bound for the stochastic model where at each step a valuation is sampled independently and identically from an unknown distribution.
+
+
+\subsubsection{Profit maximization.}
+Although it is more reasonable for the producer to maximize the profit, the related optimization problem is in general non-convex in both price and assignment variables and thus hard to deal with (see Example \ref{eg}).
+First, we provide an algorithm and a matching lower bound for the case where %the valuations are strongly concave and
+both the valuations and the cost are separable.
+\begin{theorem}[Informal]
+    If the valuations are strongly concave, and
+    both the valuations and the cost are separable and Lipschitz continuous, then Algorithm \ref{profitMaxAlg} achieves an additive $\epsilon$ error from the optimum profit with $O(\frac{mn}{\epsilon})$ queries and $O(\frac{mn^2}{\epsilon})$ time. On the other hand, for separable and Lipschitz continuous valuation and cost, any such algorithm requires $\Omega(\frac{n}{\epsilon})$ queries to compute an approximate solution with an $\epsilon$ additive error.
+\end{theorem}
+This gives an FPTAS for the separable case.
+Next we present a hardness result for the general (non-separable) valuation which rules out possibility of a PTAS for this case. Basically, we reduce the maximum independent set problem to the profit maximization problem. %Recall that in this case, the consumer's choice might not be unique given a certain price. Therefore, our hardness result relies on an additional assumption on the consumer's behavior.
+\begin{theorem}[Informal]
+There exists a market with one consumer whose valuation function is linear, and a non-separable cost function, such that there is no algorithm which runs in $poly(n)$ time and approximates the optimum profit within a multiplicative factor of a fixed $\epsilon>0$.
+\end{theorem}
+%\alert{@Ziwei: There is some issue with the above theorem. is the hardness really for both additive and multiplicative?}
+
+\subsection{Related Work}
+\emph{Revealed preferences} has a long history, starting from Samuelson \cite{S38}. The traditional focus is on learning utility functions which explain observed prices and revealed prices, see Afriat \cite{A67}. A more recent line of work considers learning valuations and making future predictions, such as Beigman and Vohra \cite{BV06}, Zadimoghaddam and Roth \cite{ZR12}, and Balcan et al. \cite{BDMUV14}. Aaron et al. \cite{RUW16} and \cite{RSUW17} are the most related to our work, which is discussed before.
+
+Another related topic is \emph{dynamic pricing}, or \emph{learn-and-earn}, where a seller also faces consumers with unknown valuations. Please see den Boer \cite{dB15} for a survey. However, in those work typically assumptions on price response functions are made, while we make assumptions on valuation functions, which is more natural.
+
+\paragraph{Outline of the paper.}
+
+
+
+\begin{comment}
+
+
+\subsection{Our Contributions}
+Our model includes $n$ kinds of \emph{divisible} goods, one producer with the ability to set the price, and $m$ consumers whose valuations are unknown to us. Given a price, one consumer will select the bundle which maximizes the quasi-linear utility from some feasible set $\mathcal{C}$. The purchases of all consumers will induce a cost for the producer. Algorithms are designed to help the producer set prices in order to maximize a certain objective, which can be social welfare or profit in this paper.
+
+Social welfare refers to the difference between consumers' valuations and the producer's cost. We further consider an online model and an offline model in social welfare maximization, and give time efficient and query efficient algorithms for both of them. Profit is the difference between the producer's revenue and cost, which is a more reasonable objective for the producer to look at. However, it turns out that profit maximization is much harder. We give an algorithm and a matching query lower bound when all the valuations and the cost is separable, together with a hardness result on the running time when consumers are assumed to buy as much as possible.
+
+\paragraph{Online social welfare maximization.}
+In the online model, the consumers come one by one, and the producer is allowed to change the price vector between the arrival of two consumers. Note that there are two difficulties: First, we have no information of one consumer before he or she comes. Second, even after one consumer's arrival, the only information we have is his or her purchase.
+
+The benchmark we use is the offline optimum social welfare where all valuations are \emph{known}, \emph{in advance}. It is of course a very strong benchmark, and to approach this benchmark we have to consider the social welfare maximization problem in the \emph{random arrival} model. In this model, all the valuations are selected by an adversary in advance, and then permutated uniformly randomly before shown to us.
+
+\begin{theorem}[Informal]
+    Under the random arrival model, with known $m$, convex compact feasible set $\mathcal{C}$, and Lipschitz continuous non-decreasing convex cost, there exists an online algorithm whose social welfare on expectation is within $O(\sqrt{m})$ from the offline optimum social welfare. Furthermore, the only assumption needed on valuations is continuity.
+\end{theorem}
+In other words, as the number of consumers $m$ approaches infinity, the per-consumer regret of our algorithm approaches $0$.
+
+The algorithm was first introduced in \cite{AD15} to solve an online stochastic programming problem. This algorithm has many nice properties when applied to the online social welfare maximization problem, which might not be meaningful in the original setting. For example, it does not require knowledge of valuations other than revealed preferences, it only needs continuity of valuations, and it still works if at each step the consumer only maximizes the quasi-linear utility approximately.
+
+\paragraph{Offline social welfare maximization.}
+In the offline model, all the consumers are present in the market. If all the valuations are concave, then the optimum social welfare can be achieved by a single price vector. Our goal is thus to learn this price vector, or more precisely a price vector which can induce an approximately optimum social welfare.
+
+\begin{theorem}[Informal]
+    With known $m$, convex compact feasible set $\mathcal{C}$, strongly concave continuous valuations and Lipschitz continuous non-decreasing convex cost, there exists an algorithm such that after $T$ queries of consumers' aggregate demand, it can output a price vector whose social welfare is within $O(\frac{m}{\sqrt{T}})$ from the optimum social welfare.
+\end{theorem}
+In other words, to get a price which approximates the optimum social welfare within an $\epsilon$ error, we need $O(\frac{m^2}{\epsilon^2})$ queries.
+
+In \cite{RSUW17}, a similar model is introduced. At each step one valuation is drawn from some unknown distribution independently and identically, and the goal is to maximize the expected social welfare per step. In \cite{RSUW17}, only linear cost is considered, and in this case their model is equivalent to our offline model. However, if the cost is indeed linear, then optimum social welfare can be achieved by posting the cost vector directly. On the other hand, if the cost can be non-linear convex, then the two models are no longer equivalent, and the stochastic model will become harder.
+
+\paragraph{Profit maximization.}
+Although it is more reasonable for the producer to maximize the profit, the related optimization problem is usually non-convex and thus hard to deal with.
+
+First, we provide an algorithm and a matching lower bound for the case where the valuations are strongly concave and both the valuations and the cost are separable.
+\begin{theorem}[Informal]
+    If the valuations are strongly concave, the cost is convex and non-decreasing, and both the valuations and the cost are Lipshcitz continuous and separable, then there exists an algorithm achieving an additive $\epsilon$ error from the optimum profit with $O(\frac{mn}{\epsilon})$ queries and $O(\frac{mn^2}{\epsilon})$ time. On the other hand, any such algorithm requires $\Omega(\frac{1}{\epsilon})$ queries to compute an approximate solution with an $\epsilon$ additive or multiplicative error.
+\end{theorem}
+
+Next we present a hardness result for general, non-strongly-convex valuation. Recall that in this case, the consumer's choice might not be unique given a certain price. Therefore, our hardness result relies on an additional assumption on the consumer's behavior.
+\begin{theorem}[Informal]
+    If the consumer buys as much as possible when there is uncertainty, then for a fixed $\epsilon$, there is no algorithm which runs in $poly(n)$ time and approximates the optimum profit within an additive or multiplicative $\epsilon$ factor.
+\end{theorem}
+
+\subsection{Related Work}
+
+\subsection{Outline of the Paper}
+\end{comment}

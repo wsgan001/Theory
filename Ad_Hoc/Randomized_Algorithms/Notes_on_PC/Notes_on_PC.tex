@@ -1,0 +1,39 @@
+\documentclass[openany]{book}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\newtheorem{defn}{Definition}[chapter]
+\newtheorem{thm}{Theorem}[chapter]
+\newtheorem{lem}{Lemma}[chapter]
+\newtheorem{cor}{Corollary}[chapter]
+\newtheorem{exa}{Example}[chapter]
+% When giving labels for above environments or algorithm environments, use the initials.
+
+\author{Ziwei Ji}
+\title{Notes on Probability and Computing}
+
+\begin{document}
+\newcommand{\tbf}[1]{\textbf{#1}}
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mbb}[1]{\mathbb{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+
+\maketitle
+
+\setcounter{chapter}{12}
+
+\chapter{Pairwise Independence and Universal Hash Functions}
+\section{Pairwise Independence}
+Notions of $k$-wise independent and specifically pairwise independent could be given. What's more, one can construct $2^n-1$ pairwise independent uniform binary bits from $n$ mutually independent uniform binary bits. The idea is to take the $2^n-1$ non-empty subsets of $[n]$ and perform the exclusive-or operation.
+
+Pairwise independent random bits can be used to de-randomize a random algorithm for large cut. We assign each node independently to one side of the cut, and as a result, the expected cut size is $m/2$. Then we can use $\lceil\log_2{n+1}\rceil$ mutually independent uniform binary random bits to generate $n$ pairwise independent binary bits and assign them to the nodes. One may try all $O(n)$ possible assignments and find the cut whose size is at least $n/2$. The time complexity is $O(nm)$.
+
+
+\end{document}

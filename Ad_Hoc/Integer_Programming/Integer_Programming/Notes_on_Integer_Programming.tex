@@ -1,0 +1,95 @@
+\documentclass[openany]{book}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}{Lemma}[chapter]
+\newtheorem{corollary}{Corollary}[chapter]
+\newtheorem{example}{Example}[chapter]
+% Global consistency is subject to local consistency.
+
+% When giving labels for above environments or algorithm environments, use the initials.
+% For equations, do use the initial "e".
+% When labeling the same object more than once, include the chapter name.
+% Using camel case.
+
+% Do not using $rac$ in a super- or subscript with inline style. Otherwise do use it.
+% Use $\dfrac$ in arrays. Use $\frac$ inline.
+% Use $\left\right$ only with fractions. However, if fractions are far away from delimiters
+% , it is also possible to use normal delimiters, based on subjective choice.
+
+\author{Ziwei Ji}
+\title{Notes on Integer Programming}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter{Formulations}
+\section{Theoretical Model}
+Consider a general linear program
+\begin{equation}
+    \begin{array}{rl}
+        \max & c^{\mathrm{T}}x \\
+        \mathrm{s.t.} & Ax\le b, \\
+         & x\ge0.
+    \end{array}
+\end{equation}
+where by convention $A$ is an $m$-by-$n$ matrix.
+
+Now we want to further require some of the variables to be integer. If some but not all variables are integer, we get a \textbf{linear mixed integer program} (MIP):
+\begin{equation}
+    \begin{array}{rl}
+        \max & c^{\mathrm{T}}x+h^{\mathrm{T}}y \\
+        \mathrm{s.t.} & Ax+Gy\le b, \\
+         & x\ge0, \\
+         & y\ge0\textrm{ and integer}.
+    \end{array}
+\end{equation}
+where $G$ is an $m$-by-$p$ matrix. If all variables are integer, we get an \textbf{integer program} (IP):
+\begin{equation}
+    \begin{array}{rl}
+        \max & c^{\mathrm{T}}x \\
+        \mathrm{s.t.} & Ax\le b, \\
+         & x\ge0\textrm{ and integer}.
+    \end{array}
+\end{equation}
+If in an IP all variables are further restricted to $0$ or $1$, we have a \textbf{binary integer program} (BIP):
+\begin{equation}
+    \begin{array}{rl}
+        \max & c^{\mathrm{T}}x \\
+        \mathrm{s.t.} & Ax\le b, \\
+         & x\in\{0,1\}^n.
+    \end{array}
+\end{equation}
+Sometimes we will also face \textbf{combinatorial optimization problem} (COP), where we are given a finite set $N=\{1,2,\ldots,n\}$, weights $c_1,c_2,\ldots,c_n$, and a set $\mathcal{F}\subset 2^{N}$ of feasible subsets of $N$. Then COP is formulated as:
+\begin{equation}
+    \min_{S\in \mathcal{F}}^{}\sum_{j\in S}^{}c_j.
+\end{equation}
+
+\chapter{Optimality, Relaxation, and Bonuds}
+To check the optimality of a solution, we need to find close enough upper bound and lower bound. Usually lower bound is given by primal feasible solutions. Upper bound is given by relaxation and dual feasible solutions. To do relaxation, we enlarge the feasible set, or increase the objective function.
+
+\begin{example}[A Matching Dual]
+    Given a graph $G=(V,E)$, its node-edge incidence matrix is a $|V|$-by-$|E|$ $0-1$ matrix whose entry on the $i$-th row and $j$-th column is $1$ if and only if node $i$ is an endpoint of edge $j$.
+
+    The maximum cardinality matching problem can then be formulated as:
+    \begin{equation}
+        \max\{\mathbf{1}^{\mathrm{T}}x|Ax\le1,x\in \mathbb{Z}_+^m\},
+    \end{equation}
+    while the maximum cardinality node covering problem can be formulated as:
+    \begin{equation}
+        \max\{y^{\mathrm{T}}\mathbf{1}|y^{\mathrm{T}}A\ge1,y\in \mathbb{Z}_+^m\}.
+    \end{equation}
+\end{example}
+
+\end{document}

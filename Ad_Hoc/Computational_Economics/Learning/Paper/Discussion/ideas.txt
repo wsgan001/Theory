@@ -1,0 +1,4 @@
+Strong concavity gives bounded variables.
+Assume it? Get it manually?
+
+If only \alpha-strongly concave v, then the optimal p may be very large, not controlled by \alpha.

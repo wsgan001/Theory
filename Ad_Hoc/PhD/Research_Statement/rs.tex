@@ -1,0 +1,137 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{commath}
+\usepackage{dsfont}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage[margin=1.25in]{geometry}
+
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{theorem}{Theorem}[section]
+
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}{Example}[section]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+% Global consistency is subject to local consistency.
+
+% When giving labels for above environments or algorithm environments,
+% use def:, thm:, lemma:, cor:, prop:, e.g.:, asm:, alg:, etc., as the prefix.
+% When labeling the same object more than once, use     ag{}.
+% Use camel case.
+
+% Try to avoid sizes that are smaller than normal by at least two levels.
+% Use $\left\right$ only with fractions. However, if fractions are far away from
+% delimiters, it is also possible to use normal delimiters.
+
+\author{Ziwei Ji}
+\title{Research Statement}
+
+\begin{document}
+
+\maketitle
+
+My research interest lies in machine learning theory. Let me first describe some basic settings and notations. The format presented here comes from lecture notes of Prof. Matus Telgarsky \cite{T17}. We will focus on binary classification.
+\begin{itemize}
+    \item The input space is $\mathcal{X}\subset \mathbb{R}^d$ and the output space is $\mathcal{Y}=\{-1,+1\}$. We assume there is a probability distribution $P$ over $\mathcal{X}\times \mathcal{Y}$.
+
+    \item We want to learn a function from $\mathcal{X}$ to $\mathcal{Y}$. Typically we first learn an $f:\mathcal{X}\to \mathbb{R}$, coming from some function class $\mathcal{F}$ (usually linear predictors and neural nets), and then take the sign.
+
+    \item The loss function is $\ell:\mathcal{F}\times\left(\mathcal{X}\times \mathcal{Y}\right)\to \mathbb{R}_+$. In binary classification problem, usually the loss function has the following form (with a little abuse of notation):
+    \begin{equation*}
+        \ell\left(f,(x,y)\right)=\ell\left(-yf(x)\right).
+    \end{equation*}
+    Typical choices of $\ell$ include the logistic loss $\ell_{\mathrm{log}}(t)=\ln\left(1+\exp(t)\right)$, the exponential loss $\ell_{\mathrm{exp}}(t)=\exp(t)$, the hinge loss $\ell_{\mathrm{hinge}}(t)=\max\{0,1+t\}$, etc.
+\end{itemize}
+
+Given the above notations, we would like to find a function $f$ with small risk, defined as
+\begin{equation*}
+    R(f)=\mathbb{E}_{(x,y)\sim P}\left[\ell\left(f,(x,y)\right)\right].
+\end{equation*}
+However, in reality only the empirical risk can be calculated ($D$ contains $n$ i.i.d. samples):
+\begin{equation*}
+    R_D(f)=\frac{1}{n}\sum_{i=1}^{n}\ell\left(f,(x_i,y_i)\right).
+\end{equation*}
+Suppose our learning algorithm output $f_D$ given a data set $D$. Let $f^{\star}$ denote some benchmark predictor in $\mathcal{F}$, and $g^{\star}$ denote some benchmark predictor not necessarily in $\mathcal{F}$. Then our ultimate goal is to minimize
+\begin{align*}
+    R(f_D)-R(g^{\star}) & =R(f_D)-R_D(f_D) \\
+     & +R_D(f_D)-R_D(f^{\star}) \\
+     & +R_D(f^{\star})-R(f^{\star}) \\
+     & +R(f^{\star})-R(g^{\star}).
+\end{align*}
+
+Now we have decomposed the learning problem into four parts, let us look at them one by one.
+\begin{itemize}
+    \item Let us first look at the third part, which can be termed \emph{concentration}. Here $f^{\star}$ does not depend on $D$, and by the Strong Law of Large Number, this part converges to $0$ almost surely as $n\to\infty$. Moreover, many concentration inequalities can be used to bound the probability of large deviation.
+
+    \item The first part is \emph{generalization}. Since $f_D$ achieves low empirical risk, we want to know if it can also achieve low true risk, or if it generalizes well. However, here $f_D$ depends on $D$, and thus those laws of large numbers and concentration inequalities cannot be used directly. To handle this, people usually try to show that with high probability over $D$, the \emph{uniform deviation}
+    \begin{equation}\label{ud}
+        \sup_{f\in \mathcal{F}}\left(R(f)-R_D(f)\right)
+    \end{equation}
+    is small. More formally, we want to show the uniform deviation converges to $0$ in probability, with a clear convergence rate.
+
+    One typical way to enhance generalization is to control $\mathcal{F}$. This idea is echoed in \eqref{ud}: The uniform deviation gets larger as more functions are included in $\mathcal{F}$. Many \emph{capacity measures} have emerged to describe the ``size'' of $\mathcal{F}$, including covering numbers, Rademacher complexity, etc.
+
+    Generalization bounds for linear predictors are pretty well-known. Recently there have been many work on generalization of neural nets, such as \cite{BFT17, GRS17, AGNZ18}.
+
+    I did not do much research on generalization in the past, but I am very interested in this topics. Research I might do in the future include:
+    \begin{itemize}
+        \item Neural nets generalization. Even though neural nets usually have a large number of parameters, they also often generalize well. Using existing techniques and methods invented by ourselves, I would like to understand this phenomenon, and hence develop some principles to design well-generalized neural nets.
+
+        \item The uniform deviation \eqref{ud} does not depend on the learning algorithm and thus applies to all algorithms. However, we might be able to show better generalization bounds if we consider $\mathcal{F}$ and the algorithm together. Formally, we may analyze (thanks to Matus again)
+        \begin{equation*}
+            \sup_{f\in \mathcal{F}_{\mathrm{alg}}}\left(R(f)-R_D(f)\right),
+        \end{equation*}
+        where $\mathcal{F}_{\mathrm{alg}}$ is the function space explored by the algorithm. For example, it is well-known in practice that stochastic gradient descent has the \emph{implicit regularization} property, which means it favors predictor which is not very complex. Therefore $\mathcal{F}_{\mathrm{SGD}}$ might have much less complexity than $\mathcal{F}$. It is interesting and useful to formalize this property and prove it. We actually have an analysis for linear predictors, which is discussed below.
+    \end{itemize}
+
+    \item The third part is \emph{optimization}, where we try to minimize the empirical risk. My past research mainly focuses on optimization.
+    \begin{itemize}
+        \item Recently we had a submission to COLT analyzing gradient descent on logistic regression and linear predictors.
+        \begin{itemize}
+            \item Notice that the logistic loss $\ell_{\mathrm{log}}(t)=\ln\left(1+\exp(t)\right)$ has infimum $0$ but never achieves it. In some cases, for example, when the data set is well-separated, there will be no finite optimum solution, while in classical convex optimization, espeically smooth optimization, it is usually assumed that an optimum solution exists. We showed that the classical analysis can be adapted to this scenario, and gave a $\widetilde{O}(1/t)$ rate for well-separated data.
+
+            \item For a linear predictor $w$, if we use $\|w\|_2$ to describe its complexity, we showed that gradient descent gives predictor with low complexity. Furthermore, if data is well-separated, we showed that $w_t/\|w_t\|_2$ converges to the norm vector to the max-margin hyperplane.
+        \end{itemize}
+        For future work, it will be very interesting to refine current results and extend them to neural nets.
+
+        \item I learned a lot about classical convex analysis and convex optimization, and once applied them to an economic problem \cite{JRM17}. In economics, it is typically assumed that consumers make purchases based on a private valuation function describing his or her preferences. Classical results assume knowledge of this valuation function, which is of course not practical. What we can observe is what consumers buy, called the \emph{revealed preference}. We notice that revealed preference is actually just the subgradient of the dual function, and to maximize social welfare we can just optimize on the dual. An online version of the problem is also discussed, solved by online convex optimization methods.
+
+        For future work, it is also interesting to see how generic optimization methods can be applied to real-world problems.
+    \end{itemize}
+
+    \item The fourth part is \emph{representation}. I do not know too much about this area, but it should be interesting to explore it in the future.
+\end{itemize}
+
+To sum up, I did research on both general optimization and optimization and generalization properties of gradient descent for logistic regression. In the future, I will keep pursuing those lines and extend them to other settings like neural nets, and explore new problems such as representation.
+
+\bibliography{rs}
+\bibliographystyle{plainnat}
+
+\end{document}
+
+
+\begin{itemize}
+    \item Linear predictors, which is a special case of neural nets:
+    \begin{equation*}
+        \mathcal{F}_{\mathrm{lin}}=\left\{x\mapsto \langle w,x\rangle:w\in \mathbb{R}^d\right\}.
+    \end{equation*}
+    \item Neural nets:
+    \begin{equation*}
+        \mathcal{F}_{\mathrm{nn}}=\left\{x\mapsto W_L\sigma_{L-1}\left(W_{L-1}\sigma_{L-2}\left(\ldots\sigma_1(W_1x)\right)\right)\right\}.
+    \end{equation*}
+    $L$ is the number of layers, $\sigma_1,\ldots,\sigma_{L-1}$ are pointwise activation functions, $W_1,\ldots,W_L$ are matrices while in binary classification problem $W_L$ is a row vector.
+\end{itemize}

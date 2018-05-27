@@ -1,0 +1,2107 @@
+\documentclass[openany]{book}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{commath}
+\usepackage{dsfont}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{natbib}
+\usepackage{nicefrac}
+%\usepackage[margin=1.25in]{geometry}
+
+\newtheorem{corollary}{Corollary}[chapter]
+\newtheorem{lemma}{Lemma}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}[chapter]
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{example}{Example}[chapter]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{question}{Question}
+\newtheorem*{trick}{Trick}
+
+% Global consistency is subject to local consistency.
+
+% When giving labels for above environments or algorithm environments,
+% use def:, thm:, lemma:, cor:, prop:, e.g.:, asm:, alg:, etc., as the prefix.
+% When labeling the same object more than once, use \tag{}.
+% Use camel case.
+
+% Try to avoid sizes that are smaller than normal by at least two levels.
+% Use $\left\right$ only with fractions. However, if fractions are far away from
+% delimiters, it is also possible to use normal delimiters.
+
+\author{Ziwei Ji}
+\title{Notes on Probability}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\part{Basic Concepts}
+\chapter{Set Theory}
+In this chapter, we review basic notions in set theory and mathematical logic. I never have a complete understanding of notions and theorems presented here (i.e., the exact interpretation, the condition under which each theorem holds, etc.), but it seems safe to use those tools in common ways.
+
+\section{ZF Set Theory}
+ZF set theory constrains what kinds of operations can be used to form well-behaved sets.
+\begin{itemize}
+    \item Arbitrary union, arbitrary intersection, set difference, set power, and arbitrary Cartesian product are allowed. However, the non-emptiness of an arbitrary Cartesian product is guaranteed by the axiom of choice.
+    \item The existence of infinite set is guaranteed by the axiom of infinity.
+    \item The axiom schema of specification and replacement provide general frameworks to form sets using first-order logic.
+\end{itemize}
+
+Below are some variants of the axiom of choice:
+\begin{itemize}
+    \item Hausdorff's Maximal Principle: Every non-empty partially ordered set has a maximal linearly ordered subset.
+    \item Zorn's Lemma: If $X$ is a non-empty partially ordered set and every linearly ordered subset of $X$ has an upper bound, then $X$ has a maximal element.
+    \item Well-Ordering Theorem: Every non-empty set can be well-ordered.
+    \item Axiom of Choice: If $\{A_i\}_{i\in I}$ is a non-empty collection of non-empty sets, then $\prod_{i\in I}A_i$ is non-empty.
+\end{itemize}
+The axiom of choice is needed, since it is not always possible to write down the choice function using a finite description. It is also logically independent of the other ZF axioms.
+
+G\"{o}del's incomplete theorems indicate the limitation of formal systems, including the ZF system. Informally, the first incomplete theorem states that every consistent system which contains elementary arithmetic also contains statement which can neither be proved nor disproved. (This theorem kind of explains why proof by contradiction is sometimes not welcomed.) The second incomplete theorem states that every consistent system which contains elementary arithmetic cannot demonstate its own consistency.
+
+\section{Set-Theoretical Notations}
+We use $\mathbb{R}$, $\mathbb{R}_+$, and $\mathbb{R}_{++}$ to denote the set of real numbers, the set of non-negative real numbers, and the set of positive real numbers, respectively. $\mathbb{Q}$, $\mathbb{Q}_+$, and $\mathbb{Q}_{++}$ have similar meanings. We try not to use $\mathbb{N}$, since there is no consensus whether it should include $0$; we use $i\ge0$ or $i\ge1$ to be more specific.
+
+Given a sequence of sets $(A_i)_{i=1}^{\infty}$, define
+\begin{equation*}
+    \lim\sup A_i=\bigcap_{j\ge1}\bigcup_{i\ge j}A_i,\quad\lim\inf A_i=\bigcup_{j\ge1}\bigcap_{i\ge j}A_i.
+\end{equation*}
+One can verify that $x\in\lim\sup A_i$ iff $x\in A_i$ for infinitely many $i$, while $x\in\lim\inf A_i$ iff $x\in A_i$ for all but finitely many $i$.
+
+\chapter{Topology}
+In this chapter, we study properties of general topological spaces and the usually more well-behaved metric spaces.
+
+\section{Open Sets, Closed Sets, Bases, and Subbases}
+\begin{definition}
+    Let $X$ be a non-empty set. A \textbf{topology} $\mathcal{T}$ for $X$ is a collection of subsets of $X$, called \textbf{open sets}, satisfying
+    \begin{itemize}
+        \item $\emptyset,X\in \mathcal{T}$;
+        \item Finite intersection of open sets is open;
+        \item Arbitrary union of open sets is open.
+    \end{itemize}
+    $(X,\mathcal{T})$ is called a \textbf{topological space}. For $x\in X$, $O\in \mathcal{T}$ such that $x\in O$ is called a (open) neighborhood of $x$.
+\end{definition}
+\begin{example}
+    Here are the two simplest examples:
+    \begin{itemize}
+        \item Discrete topology: $\mathcal{T}=2^X$.
+        \item Trivial topology: $\mathcal{T}=\{\emptyset,X\}$.
+    \end{itemize}
+\end{example}
+\begin{definition}
+    Given a topological space $(X,\mathcal{T})$ and a subset $A\subset X$, $x\in X$ is a \textbf{point of closure} of $A$ if any neighborhood of $x$ contains a point of $A$. The set of all points of closure of $A$ is called the \textbf{closure} of $A$, denoted by $\overline{A}$. $A$ is called \textbf{closed} if $A=\overline{A}$.
+\end{definition}
+\begin{proposition}
+    Given a topological space $(X,\mathcal{T})$ and a subset $A\subset X$, $A$ is open iff $X-A$ is closed.
+\end{proposition}
+
+Since arbitrary intersection of a topology is still a topology, the topology generated by a collection of sets is well-defined. Moreover, the schema of generation is also given.
+\begin{definition}
+    Given a topological space $(X,\mathcal{T})$ and $x\in X$, a collection of neighborhoods of $x$, $\mathcal{B}_x$, is called a \textbf{base at} $x$ for $\mathcal{T}$ if for any neighborhood $U$ of $x$, there exists $B\in \mathcal{B}_x$ such that $B\subset U$. A collection of open sets $\mathcal{B}\subset \mathcal{T}$ is called a \textbf{base} for $\mathcal{T}$ if it contains a base at $x$ for all $x\in X$.
+\end{definition}
+\begin{proposition}
+    Given a non-empty set $X$ and a collection of subsets $\mathcal{B}\subset2^X$, $\mathcal{B}$ is a base for a topology iff
+    \begin{itemize}
+        \item $X=\bigcup_{B\in \mathcal{B}}B$;
+        \item Suppose $B_1,B_2\in \mathcal{B}$ and $x\in B_1\cap B_2$, then there exists $B\in \mathcal{B}$ such that $x\in B\subset B_1\cap B_2$.
+    \end{itemize}
+\end{proposition}
+\begin{remark}
+    A base generates the corresponding topology by taking unions of sets in the base. However, a topology may have many bases.
+\end{remark}
+\begin{definition}
+    Given a topological space $(X,\mathcal{T})$ and a collection of open sets $\mathcal{S}\subset \mathcal{T}$, $\mathcal{S}$ is a \textbf{subbase} for $\mathcal{T}$ if $\mathcal{S}$ covers $X$ and finite intersections of sets in $\mathcal{S}$ form a base for $\mathcal{T}$.
+\end{definition}
+\begin{proposition}
+    Given a non-empty set $X$ and a collection of subsets $\mathcal{B}\subset2^X$, $\mathcal{B}$ is a subbase for a topology iff $\mathcal{B}$ covers $X$.
+\end{proposition}
+\begin{remark}
+    A subbase generates a base by taking finite intersections, which then generates the corresponding topology. A base may correspond to many subbases.
+\end{remark}
+\begin{example}[Box Topology and Product Topology]
+    Let $\{(X_j,\mathcal{T}_j)\}_{j\in J}$ denote a non-empty collection of topological spaces, $X$ denote $\prod_{j\in J}X_j$, and $\pi_j:X\to X_j$ denote the coordinate maps. The \textbf{box topology} on $X$ is generated by the basis
+    \begin{equation*}
+        \left\{\prod_{j\in J}O_j\middle|O_j\in \mathcal{T}_j,j\in J\right\}.
+    \end{equation*}
+    The \textbf{product topology} is generated by the subbase
+    \begin{equation*}
+        \left\{\pi_j^{-1}(O_j)\middle|O_j\in \mathcal{T}_j,j\in J\right\}.
+    \end{equation*}
+    One can see that for finite products, those two notions coincide, and in general the box topology is larger.
+\end{example}
+
+Now let us consider metric spaces.
+\begin{definition}
+    Let $X$ be a non-empty set. A function $\rho:X\times X\to[0,+\infty)$ is called a \textbf{metric} if for any $x,y,z\in X$,
+    \begin{itemize}
+        \item $\rho(x,y)=0$ iff $x=y$;
+        \item $\rho(x,y)=\rho(y,x)$;
+        \item $\rho(x,z)\le\rho(x,y)+\rho(y,z)$.
+    \end{itemize}
+    $(X,\rho)$ is called a \textbf{metric space}.
+\end{definition}
+A metric space $(X,\rho)$ is implicitly endowed with a topology, by considering the base of open balls $B(x,r)=\{y\in X|\rho(x,y)<r\}$ for $r>0$. A topological space $(X,\mathcal{T})$ is \textbf{metrizable} if it can be given a metric $\rho$ such that the metric topology induced by $\rho$ coincides with $\mathcal{T}$.
+\begin{theorem}
+    Given a countable collection of metric spaces $\{(X_j,\rho_j)\}_{j\in J}$, $\prod_{j\in J}X_j$ endowed with the product topology is metrizable.
+\end{theorem}
+\begin{proof}
+    Consider
+    \begin{equation}\label{eq:prodMetric}
+        \rho(x,y)=\sum_{j=1}^{\infty}\frac{\rho_j(x_j,y_j)}{2^j(1+\rho_j(x_j,y_j))}.
+    \end{equation}
+\end{proof}
+\begin{trick}
+    Here we perform the transformation $\rho\mapsto\rho/(1+\rho)$ to make the metric bounded, and use the $1/2^j$ factor. Finally, to show that two bases generate the same topology, it is enough to show that one generates the other and vice versa.
+\end{trick}
+
+\section{Continuous Mappings}
+\begin{definition}
+    Given two topological spaces $(X,\mathcal{T}_X)$ and $(Y,\mathcal{T}_Y)$, a mapping $f:X\to Y$ is \textbf{continuous at} $x\in X$ if for any neighborhood $V$ of $f(x)$, there exists a neighborhood $U$ of $x$ such that $f(U)\subset V$. $f$ is continuous on $X$ if it is continuous at any $x\in X$.
+\end{definition}
+\begin{definition}
+    Given a topological space $(X,\mathcal{T})$ and a metric space $(Y,\rho)$, a collection $\mathcal{F}$ of mappings from $X$ to $Y$ is \textbf{equicontinuous} at $x\in X$ if for any $\epsilon>0$, there exists a neighborhood $U$ of $x$ such that $\rho(f(x),f(x'))<\epsilon$ for any $x'\in U$ and any $f\in \mathcal{F}$. $\mathcal{F}$ is equicontinuous on $X$ if it is equicontinuous at any $x\in X$.
+\end{definition}
+\begin{definition}
+    Given two topological spaces $(X,\mathcal{T}_X)$ and $(Y,\mathcal{T}_Y)$, a mapping $f:X\to Y$ is a \textbf{homeomorphism} if it is one-to-one, continuous, and has a continuous inverse.
+\end{definition}
+\begin{proposition}
+    Given two topological spaces $(X,\mathcal{T}_X)$ and $(Y,\mathcal{T}_Y)$, a mapping $f:X\to Y$ is continuous iff for any open set $O\in \mathcal{T}_Y$, $f^{-1}(O)\in \mathcal{T}_X$.
+\end{proposition}
+\begin{proposition}
+    Suppose $(X,\mathcal{T}_X)$ and $\{(Y_j,\mathcal{T}_j)\}_{j\in J}$ are topological spaces, and let $Y=\prod_{j\in J}Y_j$ with the product topology. Then a function $f:X\to Y$ is continuous iff $\pi_j\circ f$ is continuous for any $j\in J$.
+\end{proposition}
+
+Similar notions can be defined for metric spaces. We further have uniform continuity and uniform equicontinuity.
+\begin{definition}
+    Given two metric spaces $(X,\rho_X)$ and $(Y,\rho_Y)$, a mapping $f:X\to Y$ is \textbf{uniformly continuous} if for any $\epsilon>0$, there exists $\delta>0$, such that for any $x_1,x_2\in X$,
+    \begin{equation*}
+        \rho_X(x_1,x_2)<\delta\implies\rho_Y(f(x_1),f(x_2))<\epsilon.
+    \end{equation*}
+\end{definition}
+\begin{definition}
+    Given two metric spaces $(X,\rho_X)$ and $(Y,\rho_Y)$, a collection $\mathcal{F}$ of mappings from $X$ to $Y$ is \textbf{uniformly equicontinuous} if for any $\epsilon>0$, there exists $\delta>0$, such that for any $x_1,x_2\in X$ and any $f\in \mathcal{F}$,
+    \begin{equation*}
+        \rho_X(x_1,x_2)<\delta\implies\rho_Y(f(x_1),f(x_2))<\epsilon.
+    \end{equation*}
+\end{definition}
+
+\section{Separation Axioms}
+Let $(X,\mathcal{T})$ be a topological spaces. Below we define different separation properties for subsets $A,B\subset X$, but note that the same notions can be defined for points by considering one-point subsets.
+
+$A,B$ are \textbf{topologically distinguishable} if they do not share open neighborhoods. $A,B$ are \textbf{separated} if $A\cap\overline{B}=\emptyset$ and $\overline{A}\cap B=\emptyset$. $A,B$ are \textbf{separated by open neighborhoods} if there exists open sets $O_A,O_B$ such that $A\subset O_A$, $B_\subset O_B$, and $O_A\cap O_B=\emptyset$. $A,B$ are \textbf{separated by a continuous function} if there exists a continuous function $f:X\to \mathbb{R}$, such that $f(A)=\{0\}$ and $f(B)=\{1\}$. $A,B$ are \textbf{percisedly separated by a continuous function} if there exists a continuous function $f:X\to \mathbb{R}$, such that $f^{-1}({0})=A$ and $f^{-1}(\{1\})=B$.
+
+Now we present different separation axioms.
+\begin{itemize}
+    \item $\mathrm{T}_0$, or Kolmogorov: For any $x,y\in X$, $x\ne y$, $x$ and $y$ are topologically distinguishable.
+    \item $\mathrm{T}_1$, or Fr\'{e}chet: For any $x,y\in X$, $x\ne y$, $x$ and $y$ are separated. Equivalently, for any $x\in X$, $\{x\}$ is closed.
+    \item $\mathrm{T}_2$, or Hausdorff: For any $x,y\in X$, $x\ne y$, $x$ and $y$ are separated by open neighborhoods.
+    \item Completely $\mathrm{T}_2$, or completely Hausdorff: For any $x,y\in X$, $x\ne y$, $x$ and $y$ are separated by a continuous function.
+    \item Regular: For any $x\in X$, any closed $B\subset X$, $x\not\in B$, $x$ and $B$ are seperated by open neighborhoods.
+    \item Completely regular: For any $x\in X$, any closed $B\subset X$, $x\not\in B$, $x$ and $B$ are seperated by a continuous function.
+    \item $\mathrm{T}_3$, or regular Hausdorff: $\mathrm{T}_0$ and regular.
+    \item Normal: For any closed $A,B\subset X$, $A\cap B=\emptyset$, $A$ and $B$ are seperated by open neighborhoods.
+    \item $\mathrm{T}_4$, or normal Hausdorff: $\mathrm{T}_1$ and normal.
+\end{itemize}
+\begin{lemma}[Urysohn's Lemma]
+    A topological space is normal iff any two disjoint closed sets can be separated by a continuous function.
+\end{lemma}
+\begin{proposition}
+    Every metric space is normal Hausdorff.
+\end{proposition}
+
+\section{Countability and Separability}
+\begin{definition}
+    Given a topological space $(X,\mathcal{T})$, a sequence of points $x_i$ is said to \textbf{converge} to $x\in X$ if for any neighborhood $U$ of $x$, there exists an index $N$, such that $i\ge N$ implies $x_i\in U$. $x$ is called the \textbf{limit} of the sequence.
+\end{definition}
+\begin{remark}
+    In general, a sequence might have more than one limit. If Hausdorff spaces are considered, then the limit is unique if it exists.
+\end{remark}
+\begin{definition}
+    A topological space $(X,\mathcal{T})$ is \textbf{first countable} if for any $x\in X$, there is a countable base for $\mathcal{T}$ at $x$. It is \textbf{second countable} if there is a countable base for $\mathcal{T}$.
+\end{definition}
+\begin{remark}
+    Note that a metric space is first countable.
+\end{remark}
+\begin{proposition}
+    Suppose $(X,\mathcal{T})$ is a first countable topological space, and $A\subset X$. $x\in X$ is a point of closure of $A$ iff $x$ is a limit of a sequence in $A$.
+\end{proposition}
+\begin{proposition}
+    Any subspace of a first (second) countable topological space is first (second) countable.
+\end{proposition}
+\begin{proposition}
+    The product of countably many first (second) countable topological spaces is first (second) countable.
+\end{proposition}
+\begin{definition}
+    Given a topological space $(X,\mathcal{T})$, a subset $A\subset X$ is \textbf{dense} if any open set $O\in \mathcal{T}$ contains a point in $A$, or equivalently, if $\overline{A}=X$. $(X,\mathcal{T})$ is \textbf{separable} if it has a countable dense subset.
+\end{definition}
+\begin{proposition}
+    A second countable topological space is separable. A metric space is second countable iff it is separable.
+\end{proposition}
+
+\section{Completeness}
+\begin{definition}
+    A sequence $x_i$ in a metric space $(X,\rho)$ is called a \textbf{Cauchy sequence} if for any $\epsilon>0$, there exists an index $N$, such that for any $i,j\ge N$, $\rho(x_i,x_j)<\epsilon$.
+\end{definition}
+\begin{definition}
+    A metric space is \textbf{complete} if every Cauchy sequence in it has a limit.
+\end{definition}
+\begin{proposition}
+    A closed subset of a complete metric space is complete, and a complete subset of an arbitrary metric space is closed.
+\end{proposition}
+\begin{proposition}
+    The product of countably many complete metric spaces is completely metrizable.
+\end{proposition}
+\begin{definition}
+    A \textbf{Polish space} is a separable completely metrizable topological space.
+\end{definition}
+\begin{proposition}
+    The product of countably many Polish spaces is a Polish space.
+\end{proposition}
+\begin{theorem}[Cantor's Intersection Theorem]
+    Let $X$ be a metric space. Then $X$ is complete iff whenever $(A_i)_{i=1}^{\infty}$ is a descending sequence of non-empty closed subsets of $X$ such that
+    \begin{equation*}
+        \lim_{i\to\infty}\mathrm{diam}(A_i)=0,
+    \end{equation*}
+    then there exists $x\in X$ such that $\bigcap_{i\ge1}A_i=\{x\}$.
+\end{theorem}
+
+\section{Compactness}
+\begin{definition}
+    A topological space $(X,\mathcal{T})$ is compact if any open cover of $X$ has a finite subcover.
+\end{definition}
+\begin{proposition}
+    A closed subset of a compact topological space is compact. A compact subspace of a Hausdorff topological space is closed.
+\end{proposition}
+\begin{theorem}[Tychonoff's Theorem]
+    Let $\{(X_j,\mathcal{T}_j)\}_{j\in J}$ be a collection of compact topological spaces. Then $\prod_{j\in J}X_j$ with the product topology is compact.
+\end{theorem}
+\begin{remark}
+    Tychonoff's Theorem requires the Axiom of Choice.
+\end{remark}
+\begin{proposition}
+    The continuous image of a compact topological space is compact.
+\end{proposition}
+
+Next we consider compact metric spaces.
+\begin{theorem}
+    Given a metric space $(X,\rho)$, the following conditions are equivalent.
+    \begin{itemize}
+        \item $X$ is complete and totally bounded.
+        \item $X$ is compact.
+        \item $X$ is sequentially compact.
+        \item $X$ is limit point compact.
+    \end{itemize}
+\end{theorem}
+\begin{proposition}
+    A subset of $\mathbb{R}^n$ is compact iff it is closed bounded.
+\end{proposition}
+\begin{proposition}
+    A compact metric space is separable.
+\end{proposition}
+\begin{proposition}
+    A continuous mapping from a compact metric space into a metric space is uniformly continuous. More generally, an equicontinuous collection of mappings from a compact metric space into a metric space is uniformly equicontinuous.
+\end{proposition}
+
+\chapter{Measure Theory}\label{chp:measure}
+\section{Measure Spaces}
+\begin{definition}
+    A collection $\Sigma$ of subsets of a non-empty set $X$ is called a $\boldsymbol{\sigma}\textbf{-algebra}$ if
+    \begin{itemize}
+        \item $\emptyset\in\Sigma$;
+        \item For any $A\in\Sigma$, $X-A\in\Sigma$;
+        \item For any countable collection of sets $\{A_i\}_{i\in I}\subset\Sigma$, $\bigcup_{i\in I}A_i\in\Sigma$.
+    \end{itemize}
+\end{definition}
+\begin{remark}
+    $\sigma$-algebra is a generalization of algebra, where only finite union is allowed. Countable infinity which appears in measure space is one reason why many good properties are only shown for $\sigma$-finite measure spaces. Similar thing happened in topology, such as second countable topological spaces and separable metric spaces.
+\end{remark}
+One can verify that the intersection of $\sigma$-algebras is still a $\sigma$-algebra. For any non-empty $X$ and non-empty collection $\mathcal{A}\subset 2^X$, the $\sigma$-algebra generated by $\mathcal{A}$, denoted by $\Sigma(\mathcal{A})$, is the intersection of all $\sigma$-algebras which are supersets of $\mathcal{A}$.
+\begin{trick}
+    The above property allows a technique similar to induction for proving certain claim holds on a $\sigma$-algebra.
+\end{trick}
+\begin{example}
+    Here are some examples of generated $\sigma$-algebras.
+    \begin{itemize}
+        \item If $X$ is also a topological space, we use $\mathcal{B}_X$ to denote the $\sigma$-algebra generated by the open sets, called the $\textbf{Borel }\boldsymbol{\sigma}\textbf{-algebra}$. $(X,\mathcal{B}_X)$ is called a \textbf{Borel space}. In particular, the Borel space corresponding to a Polish space is called a \textbf{standard Borel space}.
+
+        \item Let $\{X_j\}_{j\in J}$ denote a non-empty collection of non-empty sets, $X$ denote $\prod_{j\in J}X_j$, and $\pi_j:X\to X_j$ denote the coordinate maps. Suppose for each $j\in J$, $\Sigma_j$ is a $\sigma$-algebra on $X_j$, then the $\textbf{product }\boldsymbol{\sigma}\textbf{-algebra}$ is generated by
+        \begin{equation*}
+            \left\{\pi_j^{-1}(A_j)\middle|A_j\in\Sigma_j,j\in J\right\},
+        \end{equation*}
+        denoted by $\bigotimes_{j\in J}\Sigma_j$. If $J$ is countable, then it coincides with the $\sigma$-algebra generated by
+        \begin{equation*}
+            \left\{\prod_{j\in J}A_j\middle|A_j\in\Sigma_j,j\in J\right\}.
+        \end{equation*}
+        We further have:
+        \begin{itemize}
+            \item (\cite{F13} Proposition 1.4). Suppose for all $j\in J$, $\Sigma_j$ is generated by $\mathcal{A}_j$, then $\bigotimes_{j\in J}\Sigma_j$ is generated by
+            \begin{equation*}
+                \left\{\pi_j^{-1}(A_j)\middle|A_j\in \mathcal{A}_j,j\in J\right\}.
+            \end{equation*}
+            If $J$ is countable, and $X_j\in \mathcal{A}_j$ for all $j\in J$, then $\bigotimes_{j\in J}\Sigma_j$ is generated by
+            \begin{equation*}
+                \left\{\prod_{j\in J}A_j\middle|A_j\in \mathcal{A}_j,j\in J\right\}.
+            \end{equation*}
+
+            \item (\cite{F13} Proposition 1.5). Let $\{X_j\}_{j\in J}$ be a finite collection of metric spaces, $X=\prod_{j\in J}X_j$ equipped with the product metric. Then $\bigotimes_{j\in J}\mathcal{B}_{X_j}\subset \mathcal{B}_X$. If $X_j$ are separable, then $\bigotimes_{j\in J}\mathcal{B}_{X_j}=\mathcal{B}_X$.
+        \end{itemize}
+    \end{itemize}
+\end{example}
+\begin{definition}
+    A function $\mu$ on a $\sigma$-algebra $\Sigma$ over a non-empty set $X$ is called a \textbf{measure} if
+    \begin{itemize}
+        \item $\mu:\Sigma\rightarrow[0,+\infty]$;
+        \item $\mu(\emptyset)=0$;
+        \item ($\sigma$-additivity) For any countable collection of disjoint sets $\{A_i\}_{i\in I}\subset\Sigma$, we have $\mu\left(\bigcup_{i\in I}A_i\right)=\sum_{i\in I}\mu(A_i)$.
+    \end{itemize}
+    $(X,\Sigma)$ is called a \textbf{measurable space}, while $(X,\Sigma,\mu)$ is called a \textbf{measure space}.
+\end{definition}
+\begin{example}
+    Below are some common examples:
+    \begin{itemize}
+        \item For any measurable space $(X,\Sigma)$, the \textbf{counting measure} is defined as $\mu(A)=\#A$.
+        \item For any measurable space $(X,\Sigma)$ and $x\in X$, the \textbf{Dirac measure} is defined as $\mu(A)=0$ if $x\not\in A$ while $\mu(A)=1$ if $x\in A$.
+    \end{itemize}
+\end{example}
+\begin{proposition}
+    A measure $\mu$ on $(X,\Sigma)$ satisfies:
+    \begin{itemize}
+        \item Monotonicity: For any $A,B\in\Sigma$, if $A\subset B$, then $\mu(A)\le\mu(B)$.
+        \item $\sigma$-subadditivity: For any countable collection of sets $\{A_i\}_{i\in I}\subset\Sigma$, we have $\mu\left(\bigcup_{i\in I}A_i\right)\le\sum_{i\in I}\mu(A_i)$.
+        \item Continuity from below: For any sequence of sets $A_1,A_2,\ldots\in\Sigma$ satisfying $\forall i\in \mathbb{N}$, $A_i\subset A_{i+1}$, $\mu\left(\bigcup_{i\ge1}A_i\right)=\lim_{i\rightarrow\infty}\mu(A_i)$.
+        \item Continuity from above: For any sequence of sets $A_1,A_2,\ldots\in\Sigma$ satisfying $\forall i\in \mathbb{N}$, $A_i\supset A_{i+1}$, $\bigcap_{i\ge1}A_i\in\Sigma$. If there exists $i\in \mathbb{N}$ such that $\mu(A_i)$ is finite, then $\mu\left(\bigcap_{i\ge1}A_i\right)=\lim_{i\rightarrow\infty}\mu(A_i)$. (Prove by De Morgan's laws.)
+    \end{itemize}
+\end{proposition}
+
+\begin{definition}
+    Given a measure space $(X,\Sigma,\mu)$, $\mu$ is called \textbf{finite} if $\mu(X)<+\infty$, is called $\boldsymbol{\sigma}\textbf{-finite}$ if $X$ is the union of countably many measurable sets of finite measure.
+\end{definition}
+\begin{definition}
+    Given a measure space $(X,\Sigma,\mu)$, a set $A\in\Sigma$ is called a \textbf{null set} if $\mu(A)=0$.
+
+    A subset of a null set is called \textbf{negligible}.
+
+    The measure $\mu$ is \textbf{complete} if every negligible set is measurable.
+\end{definition}
+A measure $\mu$ can be extended to a minimal complete measure $\bar{\mu}$ by first considering $\overline{\Sigma}=\{A\cup E|A\in\Sigma,\,E\textrm{ is negligible}\}$, and define $\bar{\mu}(A\cup E)=\mu(A)$.
+\begin{definition}
+    Given a measure space $(X,\Sigma,\mu)$, a subset $B\subset X$ is called \textbf{locally measurable} if $B\cap A\in\Sigma$ for all $A\in\Sigma$ with finite measure. Let $\widetilde{\Sigma}$ be the collection of locally measurable subsets. We have $\Sigma\subset\widetilde{\Sigma}$, and if $\Sigma=\widetilde{\Sigma}$, $\mu$ is called \textbf{saturated}.
+\end{definition}
+If $\mu$ is $\sigma$-finite, then $\mu$ is saturated. $\widetilde{\Sigma}$ is also a $\sigma$-algebra. Furthermore, we can define $\tilde{\mu}$ on $\widetilde{\Sigma}$, that $\tilde{\mu}(A)=\mu(A)$ if $A\in\Sigma$, and $\tilde{\mu}(A)=+\infty$ otherwise. Then $\tilde{\mu}$ is a saturated measure on $\widetilde{\Sigma}$, called the \textbf{saturation} of $\mu$. If $\mu$ is complete, then so is $\tilde{\mu}$.
+
+\section{Signed Measure Spaces}
+\begin{definition}\label{def:signedMeasure}
+    A function $\nu$ on a $\sigma$-algebra $\Sigma$ over a non-empty set $X$ is called a \textbf{signed measure} if
+    \begin{itemize}
+        \item $\nu:\Sigma\to(-\infty,+\infty]$ or $\nu:\Sigma\to[-\infty,+\infty)$;
+        \item $\nu(\emptyset)=0$;
+        \item For any countable collection of disjoint sets $\{A_i\}_{i\in I}\subset\Sigma$, $\nu\left(\bigcup_{i\in I}A_i\right)=\sum_{i\in I}\nu(A_i)$.
+    \end{itemize}
+\end{definition}
+\begin{remark}
+    In the third requirement of Definition \ref{def:signedMeasure}, the sum on the righthand side does not depend on the order of $A_i$. As a result, when $I$ is infinite, if $\nu\left(\bigcup_{i\in I}A_i\right)$ is finite, then $\sum_{i\in I}\nu(A_i)$ converges absolutely.
+\end{remark}
+\begin{definition}
+    Let $(X,\Sigma,\nu)$ denote a signed measure space, and $A\in\Sigma$ denote a measurable set.
+    \begin{itemize}
+        \item $A$ is called \textbf{positive} if for any measurable $B\subset A$, $\nu(B)\ge0$.
+        \item $A$ is called \textbf{negative} if for any measurable $B\subset A$, $\nu(B)\le0$.
+        \item $A$ is called \textbf{null} if for any measurable $B\subset A$, $\nu(B)=0$.
+    \end{itemize}
+\end{definition}
+It can be easily verified that the property of being positive, negative or null is preserved under taking measurable subset and forming countable union.
+\begin{lemma}[Hahn's Lemma]
+    Given a signed measure space $(X,\Sigma,\nu)$ and a measurable set $A$ such that $0<\nu(A)<+\infty$, there exists measurable set $B\subset A$ such that $B$ is positive and $0<\nu(B)<+\infty$.
+\end{lemma}
+\begin{theorem}[Hahn Decomposition Theorem]
+    Given a signed measure space $(X,\Sigma,\nu)$, there exists a positive set $A$ and a negative set $B$ such that $A\cap B=\emptyset$ and $A\cup B=X$.
+\end{theorem}
+\begin{remark}
+    The Hahn decomposition might not be unique.
+\end{remark}
+\begin{definition}
+    Given a measurable space $(X,\Sigma)$, two measures $\mu_1$ and $\mu_2$ are called \textbf{mutually singular} if there exists measurable sets $A$ and $B$ such that $A\cap B=\emptyset$, $A\cup B=X$, and $\mu_1(A)=\mu_2(B)=0$.
+\end{definition}
+\begin{theorem}[Jordan Decomposition Theorem]
+    Given a signed measure space $(X,\Sigma,\nu)$, there exists a unique pair of mutually singular measures $\nu^+$ and $\nu^-$ such that $\nu=\nu^+-\nu^-$.
+\end{theorem}
+Since $\nu$ does not take both $+\infty$ and $-\infty$, at least one of $\nu^+$ and $\nu^-$ must be finite. If they are both finite, $\nu$ is called a finite signed measure. We can further define the measure $|\nu|$ by
+\begin{equation*}
+    |\nu|(A)=\nu^+(A)+\nu^-(A),
+\end{equation*}
+for any $A\in\Sigma$. Specifically, $|\nu|(X)$ is called the \textbf{total variation} of $\nu$.
+\begin{remark}
+    It can also be verified that the difference of two measures at least one of which is finite is a signed measure.
+\end{remark}
+
+\section{Outer Measures and Premeasures}
+Given a non-empty set $X$ and $\mu^*:2^X\to[0,+\infty]$, if $\mu^*$ satisfied certain conditions, we can derive a measure from it.
+\begin{definition}
+    Given a set $X$ and $\mu^*:2^X\to[0,+\infty]$, $\mu^*$ is called an \textbf{outer measure} if $\mu^*(\emptyset)=0$, and $\mu^*$ is monotone and $\sigma$-subadditive. Equivalently, we can require $\mu^*(\emptyset)=0$ and $\mu^*$ is $\sigma$-monotone: For any $A\subset X$ and any countable collection $\{A_i\}_{i\in I}\subset 2^X$, if $A\subset\bigcup_{i\in I}A_i$, then $\mu^*(A)\le \sum_{i\in I}^{}\mu^*(A_i)$.
+\end{definition}
+\begin{definition}
+    Given a set $X$ and an outer measure $\mu^*$, $A\subset X$ is called \textbf{measurable} w.r.t. $\mu^*$ if for any $B\subset X$,
+    \begin{equation*}
+        \mu^*(B)=\mu^*(B\cap A)+\mu^*(B\cap A^C).
+    \end{equation*}
+\end{definition}
+\begin{theorem}[\cite{RF88} Theorem 17.8]
+    Given a set $X$ and an outer measure $\mu^*$, the collection $\overline{\Sigma}$ of subsets of $X$ which are measurable w.r.t. $\mu^*$ is a $\sigma$-algebra over $X$. Furthermore, let $\bar{\mu}$ denote the restriction of $\mu^*$ to $\overline{\Sigma}$, then $(X,\overline{\Sigma},\bar{\mu})$ is a complete measure space.
+\end{theorem}
+
+The remaining problem is how to construct an outer measure. It turns out that we can construct an outer measure with an arbitrary set function, by using a covering process.
+\begin{theorem}[\cite{RF88} Theorem 17.9]
+    Given a set $X$, a collection of subsets $\mathcal{S}\subset2^X$, and a function $\mu:\mathcal{S}\to[0,+\infty]$, let $\mu^*(\emptyset)=0$, and for $A\ne\emptyset$, let
+    \begin{equation*}
+        \mu^*(A)=\inf\,\sum_{i\in I}^{}\mu(A_i),
+    \end{equation*}
+    where the infimum is taken over all countable collection of subsets $\{A_i\}_{i\in I}\subset \mathcal{S}$ such that $A\subset\bigcup_{i\in I}A_i$. Then $\mu^*:2^X\to[0,+\infty]$ is an outer measure, called the outer measure induced by $\mu$.
+\end{theorem}
+As a result, given an arbitrary set function $\mu$, we can induce an outer measure $\mu^*$ from $\mu$, and further induce a measure $\bar{\mu}$ from $\mu^*$. $\bar{\mu}$ is called the \textbf{Carath\'{e}odory measure} induced by $\mu$.
+
+However, we still want to know when $\bar{\mu}$ is an extension of $\mu$. That is, all subset $A\in\mathcal{S}$ is measurable w.r.t. $\mu^*$, and $\mu(A)=\mu^*(A)$. To answer this question, we first introduce some more notions.
+
+Suppose we are given a non-empty set $X$ and a non-empty collection of subsets $\mathcal{S}\subset2^X$. $\mathcal{S}$ is called a \textbf{ring of subsets} if it is closed under finite union and difference, or equivalently closed under finite intersection and symmetric difference. It can be verified that $\mathcal{S}$ is a commutative ring (perhaps without multiplicative unit) under the symmetric difference and union operation. A ring of subsets containing $X$ is called an \textbf{algebra}.
+
+$\mathcal{S}$ is called a \textbf{semi-ring of subsets} if $\emptyset\in \mathcal{S}$, $S$ is closed under finite intersection, and for any $A,B\in \mathcal{S}$, there exists a finite collection of disjoint sets $\{C_i\}_{i\in I}\subset \mathcal{S}$ such that $A-B=\bigcup_{i\in I}C_i$. A semi-ring of subsets containing $X$ is called a \textbf{semi-algebra}. It can be verified that given a semi-ring $\mathcal{S}$, the minimal ring generated by $\mathcal{S}$ is the collection of finite unions of disjoint sets in $\mathcal{S}$; denote it by $\mathcal{R}(\mathcal{S})$.
+\begin{remark}
+    It should be pointed out that the term "semi-rings of sets" is actually not related to semi-rings in abstract algebra. This term only means that it is a weaker notion than rings of sets. Also, if we take finite union of general, not necessarily disjoint sets in a semi-ring $\mathcal{S}$, we will end up getting the same ring $\mathcal{R}(\mathcal{S})$. However, disjoint union will be convenient in the following when we try to extend a premeasure on $\mathcal{S}$ to a premeasure on $\mathcal{R}(\mathcal{S})$.
+\end{remark}
+
+Now let us come back to properties of the set function $\mu$. $\mu$ is said to be \textbf{finitely additive (}$\boldsymbol{\sigma}\textbf{-additive)}$ if for any finite (countable) collection of disjoint sets $\{A_i\}_{i\in I}\subset \mathcal{S}$, whenever $\bigcup_{i\in I}A_i\in \mathcal{S}$, we have $\mu\left(\bigcup_{i\in I}A_i\right)=\sum_{i\in I}^{}\mu(A_i)$. $\mu$ is called $\boldsymbol{\sigma}\textbf{-finite}$ if there exists a countable collection $\{A_i\}_{i\in I}\subset \mathcal{S}$, such that $X=\bigcup_{i\in I}A_i$ and $\mu(A_i)<+\infty$ for any $i\in I$.
+\begin{definition}\label{def:preMeasure1}
+    Given a non-empty set $X$, a non-empty collection of subsets $\mathcal{S}\subset2^X$, and a function $\mu:\mathcal{S}\to[0,+\infty]$, $\mu$ is called a \textbf{premeasure} if $\mu$ is finitely additive and $\sigma$-monotone (or $\sigma$-subadditive), and if $\emptyset\in \mathcal{S}$, $\mu(\emptyset)=0$.
+\end{definition}
+\begin{definition}\label{def:preMeasure2}
+    Given a non-empty set $X$, a non-empty collection of subsets $\mathcal{S}\subset2^X$, and a function $\mu:\mathcal{S}\to[0,+\infty]$, $\mu$ is called a \textbf{premeasure} if $\mu$ is $\sigma$-additive, and if $\emptyset\in \mathcal{S}$, $\mu(\emptyset)=0$.
+\end{definition}
+Definition \ref{def:preMeasure1} and \ref{def:preMeasure2} are both used in literature, and are equivalent when $\mathcal{S}$ is a ring of subsets (refer to \cite{SS09}). They might not be equivalent in general, for example, when $\mathcal{S}$ is only a semi-ring. However, the following results hold no matter which definition is used.
+\begin{proposition}[\cite{RF88} Proposition 17.13]
+    Given a non-empty set $X$, a semi-algebra $\mathcal{S}$ over $X$, and a premeasure $\mu$ on $\mathcal{S}$, there exists a unique extension of $\mu$ to a premeasure on $\mathcal{R}(\mathcal{S})$.
+\end{proposition}
+\begin{proposition}[\cite{RF88} Theorem 17.12]
+    Given a non-empty set $X$, an algebra $\mathcal{S}$ of subsets of $X$, and a premeasure $\mu$ on $\mathcal{S}$, the Carath\'{e}odory measure induced by $\mu$ is an extension of $\mu$.
+\end{proposition}
+\begin{theorem}[Carath\'{e}dory's Theorem]\label{thm:CarathHahn}
+    Given a non-empty set $X$, a semi-algebra $\mathcal{S}$ of subsets of $X$, and a premeasure $\mu$ on $\mathcal{S}$, the Carath\'{e}odory measure $\bar{\mu}$ induced by $\mu$ is an extension of $\mu$. Furthermore, if $\mu$ is $\sigma$-finite, then $\bar{\mu}$ is the unique measure on the $\sigma$-algebra of measurable sets w.r.t. $\mu^*$ which extends $\mu$.
+\end{theorem}
+Note that one can also only extend the premeasure $\mu$ to a measure on $\Sigma(\mathcal{S})$. We have the following result.
+\begin{theorem}[\cite{F13} Exercise 1.20]
+    Given a measure space $(X,\Sigma,\mu)$, if $\mu$ is $\sigma$-finite, then $\bar{\mu}$ is the completion of $\mu$. In general, $\bar{\mu}$ is the saturation of the completion of $\mu$.
+\end{theorem}
+
+\section{Measurable Functions}
+\begin{definition}
+    Let $(X,\Sigma_X)$ and $(Y,\Sigma_Y)$ be two measurable spaces. A function $f:X\rightarrow Y$ is $(\Sigma_X,\Sigma_Y)$-measurable if for any $B\in\Sigma_Y$, $f^{-1}(B)\in\Sigma_X$.
+
+    When $(Y,\Sigma_Y)=(\mathbb{R},\mathcal{B}_{\mathbb{R}})$ or $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$, $f$ is simply called $\Sigma_X$-measurable.
+
+    When $(X,\Sigma_X)$ and $(Y,\Sigma_Y)$ are fixed, $f$ is simply called measurable.
+\end{definition}
+\begin{remark}
+    We do not need a concrete measure to define measurable functions, but if a measure $\mu_X$ on $(X,\Sigma_X)$ is given, $f$ turns it into a measure $\mu_Y=f\#\mu_X$ on $(Y,\Sigma_Y)$, called the \textbf{pushforward measure} of $\mu$.
+\end{remark}
+\begin{proposition}
+    Let $(X,\Sigma_X)$ and $(Y,\Sigma_Y)$ be two measurable spaces, $f$ is a function from $X$ to $Y$, and $\Sigma_Y$ is generated by $\mathcal{A}\subset2^Y$. Then $f$ is measurable iff $f^{-1}(A)\in\Sigma_X$ for any $A\in \mathcal{A}$.
+\end{proposition}
+\begin{proposition}
+    Let $(X,\mathcal{B}_X)$ and $(Y,\mathcal{B}_Y)$ denote two Borel spaces. Then any continuous function from $X$ to $Y$ is measurable.
+\end{proposition}
+\begin{proposition}
+    Let $(X,\Sigma_X)$, $(Y,\Sigma_Y)$ and $(Z,\Sigma_Z)$ be three measurable spaces, $f:X\to Y$ and $g:Y\to Z$ are both measurable functions. Then $g\circ f$ is a measurable function from $X$ to $Z$.
+\end{proposition}
+
+By definition, we can see that the product $\sigma$-algebra is generated by the coordinate mappings. We further have the following convenient results (similar to what we have for product topology and continuous functions).
+\begin{proposition}
+    Suppose $(X,\Sigma_X)$ and $\{(Y_{\alpha},\Sigma_{\alpha})\}$ are measurable spaces, and $Y=\prod_{\alpha}Y_{\alpha}$, $\Sigma=\bigotimes_{\alpha}\Sigma_{\alpha}$. Then a function $f:X\to Y$ is measurable iff $\pi_{\alpha}\circ f$ is measurable for any $\alpha$.
+\end{proposition}
+\begin{proposition}
+    Assume $f$ and $g$ are measurable functions from $(X,\Sigma)$ to $(\mathbb{R},\mathcal{B})$, $\alpha\in \mathbb{R}$. Then $\alpha f$, $f+g$ and $fg$ are measurable.
+\end{proposition}
+
+To develop te theory of integration, it is sometimes convenient to consider measurable functions from some measurable space $(X,\Sigma)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$, where $\overline{\mathbb{R}}=\mathbb{R}\cup\{-\infty,+\infty\}$ is the set of extended reals and $\mathcal{B}_{\overline{\mathbb{R}}}$ denote the Borel $\sigma$-algebra on $\overline{\mathbb{R}}$. Now to check if a function is measurable, one only need to check for $a\in \mathbb{R}$, the invese image of $[-\infty,a)$ (or $[-\infty,a]$, or $(a,+\infty]$, or $[a,+\infty]$).
+\begin{proposition}\label{prop:limMeasurable}
+    Suppose $(f_n)$ is a sequence of measurable functions from $(X,\Sigma)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$. Then $\sup\{f_n\}$, $\inf\{f_n\}$, $\lim\sup\{f_n\}$, and $\lim\inf\{f_n\}$ are all measurable. If $\lim f_n$ exists, it is also measurable.
+\end{proposition}
+\begin{remark}
+    By \Cref{prop:limMeasurable}, we can see that the set
+    \begin{equation*}
+        \left\{x\middle|\lim f(x)\textrm{ exists}\right\}=\left\{x\middle|\lim\sup f_n(x)=\lim\inf f_n(x)\right\}
+    \end{equation*}
+    is measurable. If an underlying measure is given and the limit exists a.e., then it may not be measurable if the underlying measure is not complete. To obtain a measurable limit, we can let the function value to be $0$ for those points where the limit is not defined. Especially, this does not change the integration, which is usually what we care about. Below are two more related results.
+\end{remark}
+\begin{proposition}\label{prop:nullDiff}
+    Let $(X,\Sigma,\mu)$ be a complete measure space, $f,g:X\to\overline{\mathbb{R}}$, and $\mu(f\ne g)=0$. Then $f$ is measurable iff $g$ is measurable.
+\end{proposition}
+\begin{proposition}\label{prop:negligibleDiff}
+    Let $(X,\Sigma,\mu)$ be a measurable space, and $(X,\overline{\Sigma},\bar{\mu})$ be its completion. Then for any measurable function from $(X,\overline{\Sigma},\bar{\mu})$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$, there exists a function $g$ from $(X,\Sigma,\mu)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$, such that $f=g$ a.e. w.r.t. $\bar{\mu}$.
+\end{proposition}
+\begin{remark}
+    \Cref{prop:nullDiff} and \ref{prop:negligibleDiff} tells us that modification of $\mu$-measurable functions on negligible sets gives exactly $\bar{\mu}$-measurable functions. However, it is usually enough to modify on null sets, as in the remark following \Cref{prop:limMeasurable}.
+\end{remark}
+
+Given a measurable space $(X,\Sigma)$ and $A\in\Sigma$, the \textbf{characteristic function}, denoted by $\chi_A$ or $\mathds{1}_A$, is given by $\chi_A(x)=1$ for $x\in A$ and $\chi_A(x)=0$ for $x\not\in A$. A \textbf{simple function} is a linear combination of finitely many disjoint characteristic functions.
+\begin{theorem}[The Simple Approximation Theorem]
+    Suppose $(X,\Sigma,\mu)$ is a measure space, $f$ is a measurable function from $(X,\Sigma)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$. There exists a sequence $(\psi_n)$ of simple functions on $X$ converging pointwisely to $f$, such that $|\psi_n|\le|f|$ for all $n$.
+
+    If $\mu$ is $\sigma$-finite, then $(\psi_n)$ can be chosen such that $\psi_n$ is supported on a set of finite measure for all $n$.
+
+    If $f$ is non-negative, $(\psi_n)$ can be chosen to be non-decreasing and non-negative.
+\end{theorem}
+
+\section{Integration}
+To define integration, measurability is required, but a set of ill-bahaved points of zero measure is allowable. In other words, one can think that integrability implies a.e. measurability, and furthermore changing the function value on a zero measure set will ensure everywhere measurability. Usually we just define intergration and establish various properties for measurable functions, but keep in mind that changing the function value in a zero measure set does not change the integration.
+
+Consider a measure space $(X,\Sigma,\mu)$. Integration can first be defined for \textbf{non-negative simple functions} in the following way: First, we can take non-negative linear combinations of non-negative simple functions, and integration is linear w.r.t. this operation. Second, the mapping $A\mapsto\int_Af \mathrm{d}\mu$, $A\in\Sigma$ is a measure on $(X,\Sigma)$. Finally, if $f\le g$, then $\int f \mathrm{d}\mu\le\int g \mathrm{d}\mu$.
+
+Then consider \textbf{non-negative extended-real-valued measurable functions}, using the following definition.
+\begin{equation*}
+    \int f \mathrm{d}\mu=\sup_{\substack{0\le\phi\le f,\\\phi\textrm{ simple}}}\int\phi \mathrm{d}\mu.
+\end{equation*}
+Here we present some useful results. Note that they are not sorted according to the order of derivation.
+\begin{theorem}
+    Assume $f$ and $g$ are both non-negative measurable from $(X,\Sigma,\mu)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$. Then we have:
+    \begin{itemize}
+        \item We can take non-negative linear combinations of non-negative extended-real-valued measurable functions, and integration is linear w.r.t. this operation.
+        \item The mapping $A\mapsto\int_Af \mathrm{d}\mu$, $A\in\Sigma$ is a measure on $(X,\Sigma)$.
+        \item Suppose $f\le g$, then $\int f \mathrm{d}\mu\le\int g \mathrm{d}\mu$.
+        \item $\int f \mathrm{d}\mu=0$ iff $f=0$ a.e.
+    \end{itemize}
+\end{theorem}
+\begin{remark}
+    We can prove the stronger result that integration can be switched with countable summation, using monotone convergence theorem.
+\end{remark}
+
+\begin{proposition}[\cite{RF88} Proposition 18.9]\label{prop:inftyZeroMeasure}
+    Suppose $(X,\Sigma,\mu)$ is a measure space, $f$ is a non-negative measurable function from $(X,\Sigma)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$ such that $\int f \mathrm{d}\mu<+\infty$. Then $f$ is finite a.e., and $\{x\in X|f(x)>0\}$ is $\sigma$-finite.
+\end{proposition}
+\begin{lemma}[Fatou's Lemma]
+    Suppose $(X,\Sigma,\mu)$ is a measure space, $(f_n)$ is a sequence of non-negative measurable functions from $(X,\Sigma)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$. Then
+    \begin{equation*}
+        \int\left(\lim\inf f_n\right)\mathrm{d}\mu\le\lim\inf\int f_n \mathrm{d}\mu.
+    \end{equation*}
+\end{lemma}
+\begin{remark}
+    In general, Fatou's lemma may hold strictly, for example, when $X=\mathbb{R}$ and $f_n=\chi_{[n,n+1]}$ for all $n$.
+\end{remark}
+\begin{theorem}[The Monotone Convergence Theorem]
+    Suppose $(X,\Sigma,\mu)$ is a measure space, $(f_n)$ is a sequence of non-decreasing non-negative measurable functions from $(X,\Sigma)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$ such that $\lim_{n\to\infty}f_n=\sup f_n=f$. Then
+    \begin{equation*}
+        \int f \mathrm{d}\mu=\lim_{n\to\infty}\int f_n \mathrm{d}\mu.
+    \end{equation*}
+\end{theorem}
+\begin{remark}
+    The use of $\overline{\mathbb{R}}$ is to allow some generality in the presentation of Fatou's Lemma, Monotone Convergence Theorem, etc. Meanwhile, due to Proposition \ref{prop:inftyZeroMeasure}, as long as we consider the non-negative integrable functions, it is safe to assume finiteness.
+\end{remark}
+
+Then we can proceed to \textbf{general real-valued integrable functions}.
+\begin{theorem}
+    Assume $f$ and $g$ are both integrable. We have the following properties:
+    \begin{itemize}
+        \item $\left|\int f\mathrm{d}\mu\right|\le\int|f|\mathrm{d}\mu$.
+        \item Integrable functions form a vector space, and integration is a linear operator on it.
+        \item The mapping $A\mapsto\int_Af \mathrm{d}\mu$, $A\in\Sigma$ is a finite signed measure on $(X,\Sigma)$.
+        \item If $f\le g$ a.e., then $\int f\,\mathrm{d}\mu\le\int g\,\mathrm{d}\mu$.
+        \item $\int_A f \mathrm{d}\mu=0$ for every measurable $A$ iff $\int|f|\mathrm{d}\mu=0$ iff $f=0$ a.e. Moreover, $\int_A f \mathrm{d}\mu\ge0$ for every measurable $A$ iff $f\ge0$ a.e.
+    \end{itemize}
+\end{theorem}
+\begin{remark}
+    The elements of $L^1(\mu)$ is usually defined to be the equivalent classes of real-valued integrable functions given by a.e. equality. By this definition, $L^1(\mu)$ will become a normed vector space. Allowing a zero measure set of undefined points can be sometimes convenient (e.g., in Fubini's Theorem) and sometimes inconvenient.
+\end{remark}
+\begin{theorem}[The Dominated Convergence Theorem]
+    Suppose $(X,\Sigma,\mu)$ is a measure space, $(f_n)$ is a sequence in $L^1(\mu)$ such that $\lim_{n\to\infty}f_n=f$ a.e., and there exists a non-negative integrable function $g$ such that $|f_n|\le g$ a.e. for all $n$. Then $f\in L^1(\mu)$ (in the a.e. sense, if we exclude all the ill-behaved points above), and
+    \begin{equation*}
+        \int f \mathrm{d}\mu=\lim_{n\to\infty}\int f_n \mathrm{d}\mu.
+    \end{equation*}
+\end{theorem}
+\begin{theorem}\label{thm:L1Banach}
+    Suppose $(X,\Sigma,\mu)$ is a measure space, $(f_n)$ is a sequence of functions in $L^1(\mu)$, and $\sum_{i=1}^{\infty}\int|f_i|\mathrm{d}\mu<+\infty$. Then $\sum_{i=1}^{\infty}f_i$ converges to a function in $L^1(\mu)$ a.e. and $\sum_{i=1}^{\infty}\int f_i \mathrm{d}\mu=\int \sum_{i=1}^{\infty}f_i \mathrm{d}\mu$.
+\end{theorem}
+
+One can establish the following "change of variable" property by proving it through the above three steps.
+\begin{theorem}
+    Given to measure space $(X,\Sigma_X,\mu_X)$ and $(Y,\Sigma_Y,\mu_Y)$, a measurable function $f$, where $\mu_Y=f\#\mu_X$ is the pushforward measure of $\mu_X$ through $f$, and a measurable function $g$ from $(Y,\Sigma_Y)$ to $(\mathbb{R},\mathcal{B}_{\mathbb{R}})$. Then $g$ is integrable iff $g\circ f$ is integrable, and
+    \begin{equation*}
+        \int g \mathrm{d}\mu_Y=\int(g\circ f)\mathrm{d}\mu_X.
+    \end{equation*}
+\end{theorem}
+
+Now we can discuss different modes of convergence. Suppose $(f_n)$ is a sequence of functions from some space $X$ to $\mathbb{R}$. We can talk about uniform convergence and pointwise convergence. If $X$ is further a measure space, a.e. uniform convergence (or $L^{\infty}$ convergence), almost uniform convergence, and a.e. convergence. Uniform convergence implies pointwise convergence implies a.e. convergence; also, uniform convergence implies a.e. uniform convergence implies almost uniform convergence implies a.e. convergence. None of the above implication can be reversed, even if we further assume $f_n$ are non-negative integrable; see the following examples.
+\begin{itemize}
+    \item $f_n=\chi_{[0,n]}/n$.
+    \item $f_n=\chi_{[n,n+1]}$.
+    \item $f_n=n\chi_{[0,1/n]}$.
+\end{itemize}
+If we assume $f_n$ are non-negative non-decreasing integrable which converges a.e. to a non-negative integrable $f$, then this convergence is also almost uniform, which can be proved similarly as Egoroff's Theorem.
+
+One can also talk about $L^1$ convergence, or more generally $L^p$ convergence. It is implicitly assumed that $f_n$ are in $L^p$. For general measure, there is no simple relation between different $L^p$ convergence. Uniform convergence does not imply $L^p$ convergence (see above), and $L^p$ convergence does not imply a.e. convergence, even if we only consider non-negative functions. Dominated Convergence Theorem provides one case where a.e. convergence implies $L^p$ convergence. For non-negative non-decreasing $f_n\in L^p$, a.e. convergence implies $L^p$ convergence by the Monotone Convergence Theorem. Conversely, if non-negative non-decreasing $f_n\in L^p$ converges in $L^p$ norm to a non-negative $f\in L^p$, this convergence is also a.e.
+
+Another important mode of convergence is convergence in measure: For any $\epsilon>0$, $\mu\left(\left\{x\middle||f_n(x)-f(x)|\ge\epsilon\right\}\right)\to0$ as $n\to\infty$. $L^p$ convergence and almost uniform convergence imply convergence in measure, while pointwise convergence does not imply convergence in measure even if we assume $f_n$ are non-negative integrable. However, further assume $f_n$ are non-decreasing is enough (see above). Conversely, if $f_n$ are non-decreasing measurable converging in measure to $f$, this convergence is a.e.
+
+For finite measure, and in particular probability measure, we have much nicer relation between different modes of convergence. We will discuss this in probability measure theory.
+
+\section{Product Measures}
+Consider two measure spaces $(X,\Sigma_X,\mu)$ and $(Y,\Sigma_Y,\nu)$. For every $A\in\Sigma_X$, $B\in\Sigma_Y$, $A\times B$ is called a \textbf{measurable rectangle}. One can check that the collection $\mathcal{S}$ of measurable rectangles is a semi-algebra over $X\times Y$, and $(\mu\times\nu)(A\times B)=\mu(A)\times\nu(B)$ (let $0\times\infty=0$) is a premeasure on $\mathcal{S}$. Thus by Theorem \ref{thm:CarathHahn}, $(\mu\times\nu)$ can be extended to a measure on $\Sigma_X\otimes\Sigma_Y$. Furthermore, if $\mu$ and $\nu$ are $\sigma$-finite, then this extension is unique.
+
+Given $A\subset X\times Y$, $x\in X$ and $y\in Y$, the $x$-section $A_x$ and $y$-section $A^y$ of $A$ is given by
+\begin{equation*}
+    A_x=\{y\in Y|(x,y)\in A\},\quad A^y=\{x\in X|(x,y)\in A\}.
+\end{equation*}
+Similarly, given a function $f$ on $X\times Y$, the $x$-section $f_x$ and $y$-section $f^y$ is given by
+\begin{equation*}
+    f_x(y)=f(x,y),\quad f^y(x)=f(x,y).
+\end{equation*}
+\begin{proposition}[\cite{F13} Proposition 2.34]
+    Given two measurable spaces $(X,\Sigma_X)$ and $(Y,\Sigma_Y)$, and $A\in\Sigma_X\otimes\Sigma_Y$. Then $A_x\in\Sigma_Y$ for all $x$ and $A^y\in\Sigma_X$ for all $y$.
+
+    More generally, given a measurable function $f$ on $(X\times Y,\Sigma_X\otimes\Sigma_Y)$, $f_x$ is measurable on $(Y,\Sigma_Y)$ for all $x$ and $f^y$ is measurable on $(X,\Sigma_X)$ for all $y$.
+\end{proposition}
+\begin{theorem}[\cite{F13} Proposition 2.36]
+    Given two $\sigma$-finite measure spaces $(X,\Sigma_X,\mu)$ and $(Y,\Sigma_Y,\nu)$, and $A\in\Sigma_X\otimes\Sigma_Y$. Then the function $x\to\nu(A_x)$ is measurable on $(X,\Sigma_X)$ and $y\to\mu(A^y)$ is measurable on $(Y,\Sigma_Y)$. Furthermore,
+    \begin{equation*}
+        (\mu\times\nu)(A)=\int\nu(A_x)\mathrm{d}\mu=\int\mu(A^y)\mathrm{d}\nu.
+    \end{equation*}
+\end{theorem}
+
+The following results use the Monotone Class Theorem, or Dynkin's $\pi$-$\lambda$ Theorem, which is also used extensively in probability measure theory. However, both notions in the theorem and the theorem itself can be formulated in different but equivalent ways. We put all discussions in \Cref{chpApp:piLambda}.
+
+\begin{theorem}[Tonelli's Theorem]
+    Suppose we are given two $\sigma$-finite measure spaces $(X,\Sigma_X,\mu)$ and $(Y,\Sigma_Y,\nu)$, and a non-negative measurable function $f$ from $(X\times Y,\Sigma_X\otimes\Sigma_Y)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$. Then the function $g(x)=\int f_x \mathrm{d}\nu$ is non-negative measurable from $(X,\Sigma_X)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$, and $h(y)=\int f^y \mathrm{d}\mu$ is non-negative measurable from $(Y,\Sigma_Y)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$. Furthermore,
+    \begin{equation*}
+        \int f \mathrm{d}(\mu\times\nu)=\int\left(\int f \mathrm{d}\nu\right)\mathrm{d}\mu=\int\left(\int f \mathrm{d}\mu\right)\mathrm{d}\nu.
+    \end{equation*}
+\end{theorem}
+\begin{theorem}[Fubini's Theorem]
+    Suppose we are given two $\sigma$-finite measure spaces $(X,\Sigma_X,\mu)$ and $(Y,\Sigma_Y,\nu)$, and an integrable function $f$ from $(X\times Y,\Sigma_X\otimes\Sigma_Y)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$. Then $f_x$ is integrable for almost all $X$, $f^y$ is integrable for almost all $y$, the a.e. defined $g(x)=\int f_x \mathrm{d}\nu$ is integrable on $(X,\Sigma_X,\mu)$, $h(y)=\int f^y \mathrm{d}\mu$ is integrable on $(Y,\Sigma_Y,\nu)$. Furthermore,
+    \begin{equation*}
+        \int f \mathrm{d}(\mu\times\nu)=\int\left(\int f \mathrm{d}\nu\right)\mathrm{d}\mu=\int\left(\int f \mathrm{d}\mu\right)\mathrm{d}\nu.
+    \end{equation*}
+\end{theorem}
+
+\section{Differentiation}
+Given a measurable space $(X,\Sigma)$ and two measures $\nu$ and $\mu$, $\nu$ is called absolutely continuous w.r.t. $\mu$, denoted by $\nu\ll\mu$, if $\nu(A)=0$ whenever $\mu(A)=0$.
+\begin{theorem}[Radon-Nikodym Theorem]
+    Suppose $(X,\Sigma)$ is a measurable space, $\nu$ and $\mu$ are two $\sigma$-finite measures with $\nu\ll\mu$, then there is a non-negative measurable function $f$ such that for all $A\in\Sigma$,
+    \begin{equation*}
+        \nu(A)=\int_Af\,\mathrm{d}\mu.
+    \end{equation*}
+    $f$ is unique in the sense that if $g$ also satisfies the above property, then $f=g$ a.e. w.r.t. $\mu$.
+\end{theorem}
+$f$ is called the Radon-Nikodym derivative or density of $\nu$ with respect to $\mu$, denoted by $f=\mathrm{d}\nu/\mathrm{d}\mu$. Under the same assumption and suppose $g$ is integrable w.r.t. $\nu$, then by considering the three-step definition of integral, one can prove that
+\begin{equation*}
+    \int g \mathrm{d}\nu=\int g \frac{\mathrm{d}\nu}{\mathrm{d}\mu}\mathrm{d}\mu.
+\end{equation*}
+
+Given a signed measure $\nu$, it is absolutely continuous w.r.t. $\mu$ if $|\nu|$ is absolutely continuous w.r.t. $\mu$.
+\begin{corollary}
+    Suppose $(X,\Sigma,\mu)$ is a $\sigma$-finite measure space and $\nu$ is a finite signed measure which is absolutely continuous w.r.t. $\mu$. Then there exists an integrable function $f$ w.r.t. $\mu$ such that for all $A\in\Sigma$,
+    \begin{equation*}
+        \nu(A)=\int_Af \mathrm{d}\mu.
+    \end{equation*}
+\end{corollary}
+
+Next we deal with the switch of integration and differentiation. The following content is from this online document \href{http://people.hss.caltech.edu/~kcb/Notes/LeibnizRule.pdf}{Leibniz's rule}.
+
+Suppose $(\Omega,\Sigma,\mu)$ is a measure space, and $(X,\mathcal{T})$ is a topological space. A function $f:X\times\Omega\to \mathbb{R}$ is called a \textbf{Carath\'{e}odory function} if for every $x\in X$, the mapping $\omega\mapsto f(x,\omega)$ is a measurable from $(\Omega,\Sigma,\mu)$ to $(\mathbb{R},\mathcal{B}_{\mathbb{R}})$, and for almost all $\omega\in\Omega$, the mapping $x\mapsto f(x,\omega)$ is continuous from $X$ to $\mathbb{R}$.
+
+Furthermore, $f$ is called \textbf{locally uniformly integrably bounded} if for every $x\in X$, there exists a non-negative integrable function $h_x$ from $(\Omega,\Sigma,\mu)$ to $(\mathbb{R},\mathcal{B}_{\mathbb{R}})$ and a neighborhood $U_x$ of $x$ such that for all $y\in U_x$, almost all $\omega\in\Omega$, $|f(y,\omega)|\le h_x(\omega)$. For such $f$, for all $x\in X$, the mapping $\omega\mapsto f(x,\omega)$ is integrable.
+\begin{theorem}[Leibniz's Rule]
+    Let $(\Omega,\Sigma,\mu)$ be a measure space, $X\subset \mathbb{R}^n$, and $f:X\times\Omega\to \mathbb{R}$ be Carath\'{e}odory and locally uniformly integrably bounded. Then $g:X\to \mathbb{R}$ given by
+    \begin{equation*}
+        g(x)=\int_{\Omega} f(x,\omega)\mathrm{d}\mu
+    \end{equation*}
+    is continuous.
+
+    Now suppose for dimension $i$, the partial derivative $D_if(x,\omega)$ is continuous of $x$ for almost all $\omega\in\Omega$ (and hence Carath\'{e}odory) and locally uniformly integrably bounded. The $g$ has continuous derivative on the $i$-th dimention, given by
+    \begin{equation*}
+        D_ig(x)=\int_{\Omega}D_if(x,\omega)\mathrm{d}\mu.
+    \end{equation*}
+\end{theorem}
+
+\chapter{Functional Analysis}
+\section{Banach Spaces}
+Given a normed vector space $(X,\|\cdot\|)$, we can assign a topology to it by considering the induced norm metric. A normed vector space which is complete w.r.t. the induced norm metric is called a \textbf{Banach space}.
+
+Suppose $(x_i)$ is a sequence in a Banach space $X$. $(x_i)$ is called \textbf{absolutely convergent} if $\sum_{i=1}^{\infty}\|x_i\|$ converges.
+\begin{theorem}[\cite{F13} Theorem 5.1]
+    A normed vector space $X$ is complete iff every absolutely convergent sequence in $X$ converges.
+\end{theorem}
+
+Given two normed vector spaces $(X,\|\cdot\|_X)$ and $(Y,\|\cdot\|_Y)$, $X\times Y$ can also be made into a normed vector space with the product norm $\|(x,y)\|_{X\times Y}=\max\{\|x\|_X,\|y\|_Y\}$.
+
+A linear mapping $f:X\to Y$ is \textbf{bounded} if there exists $C\ge0$, such that for any $x\in X$, $\|f(x)\|\le C\|x\|$.
+\begin{proposition}[\cite{F13} Proposition 5.2]
+    Given two normed vector spaces $X$ and $Y$, and a linear mapping $f:X\to Y$, $f$ is continuous iff $f$ is continuous at $0$ iff $f$ is bounded.
+\end{proposition}
+Let $L(X,Y)$ denote the set of bounded linear mappings from $X$ to $Y$. Then $L(X,Y)$ is also a normed vector space. For $f\in L(X,Y)$, $f$ is \textbf{invertible} or an \textbf{isomorphism} if $f$ is bijective and $f^{-1}$ is bounded. $f$ is an \textbf{isometry} if $\|f(x)\|=\|x\|$ for all $x\in X$. An isomety is injective, but not necessarily surjective;  it is an isomorphism onto its range.
+\begin{proposition}[\cite{F13} Proposition 5.4]
+    If $Y$ is complete, $L(X,Y)$ is complete.
+\end{proposition}
+
+\section{Dual Spaces}
+Next we consider dual spaces. Suppose $V$ is a vector space, a linear mapping from $V$ to $\mathbb{R}$ is called a \textbf{linear functional} on $V$. A mapping $f:X\to \mathbb{R}$ satisfying for all $x,y\in V$ and $\lambda\ge0$
+\begin{equation*}
+    f(x+y)\le f(x)+f(y),\quad f(\lambda x)=\lambda f(x)
+\end{equation*}
+is called a \textbf{sublinear functional} on $V$.
+\begin{theorem}[Hahn-Banach Theorem]
+    Let $V$ be a vector space, $f$ a sublinear functional on $V$, $W$ a subspace of $V$, $g$ a linear functional on $W$ such that $g(x)\le f(x)$ for all $x\in W$. Then $g$ can be extended to a linear functional $h$ on $V$ such that $h(x)\le f(x)$ for all $x\in V$.
+\end{theorem}
+\begin{remark}
+    The proof of Hahn-Banach Theorem requires the Axiom of Choice.
+\end{remark}
+
+Suppose $X$ is a normed vector space, then $L(X,\mathbb{R})$ is a Banach space, called the \textbf{dual space} of $X$, denoted by $X^*$. Hahn-Banach Theorem ensures that there are non-trivial elements in $X^*$ satisfying interesting properties.
+\begin{theorem}[\cite{F13} Theorem 5.8]
+    Let $X$ be a normed vector space.
+    \begin{itemize}
+        \item If $Y$ is a closed subspace of $X$ and $x\not\in Y$, then there exists $f\in X^*$ such that $f|_Y=0$, $f(x)=\inf_{y\in Y}\|x-y\|$, and $\|f\|=1$. In particular, for any $x\ne0$, there exists $f\in X^*$ such that $f(x)=\|x\|$ and $\|f\|=1$. As a corollary, for any $x,y\in X$, $x\ne y$, there exists $f\in X^*$ such that $f(x)-f(y)=\|x-y\|$.
+
+        \item Given $x\in X$, let $\hat{x}\in X^{**}$ defined by $\hat{x}(f)=f(x)$. Then the mapping $x\mapsto\hat{x}$ is a linear isometry from $X$ to $X^{**}$.
+    \end{itemize}
+\end{theorem}
+Let $\widehat{X}=\{\hat{x}|x\in X\}$ denote the normed vector subspace of $X^{**}$. Since $X^{**}$ is complete, $\overline{\widehat{X}}$ will be a Banach space, and $\widehat{X}$ is a dense subset of it. $\widehat{X}=\overline{\widehat{X}}$ iff $X$ is Banach. If we further have $\widehat{X}=X^{**}$, then we say $X$ is \textbf{reflexive}. Direct examples of reflexive Banach spaces include finite-dimensional spaces.
+
+\section{Hilbert Spaces}
+A vector space $X$ equipped with an inner product is called a \textbf{pre-Hilbert space}. We can then define $\|x\|=\sqrt{\langle x,x\rangle}$, and prove that it is indeed a norm through the Schwarz Inequality: For any $x,y\in X$,
+\begin{equation*}
+    \left|\langle x,y\rangle\right|\le\|x\|\|y\|.
+\end{equation*}
+If $X$ is complete w.r.t. the induced norm, it is called a \textbf{Hilbert space}.
+
+\section{$L^p$ Spaces}
+Fix a measure space $(X,\Sigma,\mu)$. For a measurable function $f$ from $(X,\Sigma)$ to $(\overline{\mathbb{R}},\mathcal{B}_{\overline{\mathbb{R}}})$ and $1\le p<+\infty$, define
+\begin{equation*}
+    \|f\|_p=\left(\int|f|^p \mathrm{d}\mu\right)^{1/p},
+\end{equation*}
+and $L^p(\mu)$ accordingly.
+\begin{remark}
+    We can define similarly for $0<p<1$, but $p\ge1$ will give us triangle inequality.
+\end{remark}
+\begin{remark}
+    As before, in general we only include real-valued functions in $L^p$, but sometimes it might be convenient to also include a.e. defined functions.
+\end{remark}
+
+\begin{theorem}[H\"{o}lder's Inequality]
+    Suppose $1<p<+\infty$ and $1/p+1/q=1$, $f$ and $g$ are both measurable functions from $(X,\Sigma)$ to $(\mathbb{R},\mathcal{B}_{\mathbb{R}})$. Then
+    \begin{equation*}
+        \|fg\|_1\le\|f\|_p\|g\|_q.
+    \end{equation*}
+    In particular, if $f\in L^p$ and $g\in L^q$, then $fg\in L^1$.
+\end{theorem}
+\begin{theorem}[Minkowski's Inequality]
+    Suppose $1\le p<+\infty$, and $f,g\in L^p$. Then
+    \begin{equation*}
+        \|f+g\|_p\le\|f\|_p+\|g\|_p.
+    \end{equation*}
+\end{theorem}
+\begin{theorem}
+    For $1\le p<+\infty$, $L^p$ is a Banach space, in which simple functions are dense.
+\end{theorem}
+
+We further define
+\begin{equation*}
+    \|f\|_{\infty}=\inf\left\{a\ge0\middle|\mu\left(\left\{x\middle||f(x)|>a\right\}\right)=0\right\},
+\end{equation*}
+and $L^{\infty}$ accordingly. Note that the infimum is actually always attained.
+
+H\"{o}lder's inequality is still true for $p=1$ and $q=\infty$, and $L^{\infty}$ is a Banach space where simple functions are dense.
+
+\part{Basic Probability Theory}
+\chapter{Probability Measure Theory}
+\section{Probability Measure, Probability Measure Spaces and Random Variables}
+\begin{definition}
+    A measure space $(\Omega,\mathcal{F},P)$ is called a \textbf{probability measure space} if $P(\Omega)=1$. $P$ is called a probability measure.
+\end{definition}
+\begin{remark}
+    $\mathcal{F}$ is often interpreted as the ``information'' we have. For more concrete examples, see the stochastic process part.
+\end{remark}
+A measurable function $X:(\Omega,\mathcal{F})\rightarrow(\mathbb{R},\mathcal{B})$ is called a \textbf{random variable}. The probability measure $P_X$ defined by
+\begin{equation*}
+    P_X(A)=P\left(\{\omega\in\Omega|X(\omega)\in A\}\right)=P(X\in A)
+\end{equation*}
+for any Borel set $A$ is called the distribution of $X$. We use $X\sim Q$ to denote $P_X=Q$. The cumulative distribution function of $X$ is given by
+\begin{equation*}
+    F_X(x)=P(X\le x)=P_X\left((-\infty,x]\right)
+\end{equation*}
+for any $x\in \mathbb{R}$.
+
+It turns out that there is a one-to-one correspondence between distributions and cumulative distribution functions (i.e., monotonic non-decreasing right-continuous function which tends to 0 as $x\to-\infty$ and tends to $1$ as $x\to+\infty$).
+
+\section{Stochastic Processes}
+\begin{definition}
+    A \textbf{stochastic process} is a collection of random variables from a probability space $(\Omega,\mathcal{F},P)$ to a measurable space $(S,\Sigma)$, indexed by some \textbf{index set} $T$. $S$ is called the \textbf{state space} of the stochastic process.
+\end{definition}
+\begin{remark}
+    In fact, a stochastic process is a function from $\Omega\times T$ to $S$, satisfying the additional property that when $t\in T$ is fixed, it is measurable.
+\end{remark}
+
+\begin{definition}
+    Suppose $T$ is an index set with a total order, a \textbf{filtration} is a collection of $\sigma$-algebras $\{\mathcal{F}_t\}_{t\in T}$ on a measurable space $(\Omega,\mathcal{F})$ such that for any $s,t\in T$, $s\le t$, $\mathcal{F}_s\subset \mathcal{F}_t\subset \mathcal{F}$.
+\end{definition}
+\begin{remark}
+    A filtration is usually used for describing the phenomenon that, as time passes, more and more information is available.
+\end{remark}
+
+\section{Expectation, Variance, and Covariance}
+Let $X$ be a random variable on probability space $(\Omega,\mathcal{F},P)$. Then the expectation of $X$ is defined as (suppose $P$ has density $p$ with respect to $\mu$, and $P_X$ has density $p_X$ with respect to $\mu_X$)
+\begin{equation*}\label{expectation}
+    \mathbb{E}[X]=\int X\,\mathrm{d}P=\int Xp\,\mathrm{d}\mu=\int x\,\mathrm{d}P_X=\int x\,p_X(x)\,\mathrm{d}\mu_X.
+\end{equation*}
+What's more, if $Y=f(X)$, then
+\begin{equation*}
+    \mathbb{E}[Y]=\int f(X)\,\mathrm{d}P=\int f(X)p\,\mathrm{d}\mu=\int f(x)\,\mathrm{d}P_X=\int f(x)\,p_X(x)\,\mathrm{d}\mu_X.
+\end{equation*}
+
+For integration, we can of course use the definition given in Chapter \ref{chp:measure}. However, sine probability measure is finite, there is another way to define integration: First for simple r.v.'s, then for non-negative bounded r.v.'s, and next for non-negative r.v.'s and general integrable r.v.'s.
+
+\begin{comment}
+In addition to the existing convergence theorem, the following theorem is also useful.
+\begin{theorem}[Bounded Convergence Theorem]
+    Suppose $X_n$ and $X$ always take value in $[0,M]$, and $X_n\to X$ in probability. Then
+    \begin{equation*}
+        \lim_{n\to\infty}\left|\mathbb{E}[X_n]-\mathbb{E}[X]\right|\le\lim_{n\to\infty}\mathbb{E}[|X_n-X|]\to0.
+    \end{equation*}
+\end{theorem}
+\end{comment}
+
+We can also discuss different convergence modes. The following examples are useful:
+\begin{itemize}
+    \item $f_n(x)=1-x^n$, $f=\lim_{n\to\infty}f_n$, $x\in[0,1]$.
+    \item $f_n=n\chi_{[1/n,2/n]}$, $f=0$, $x\in[0,1]$.
+    \item For $n\ge1$, $1\le k\le 2^{n-1}$, $f_{n,k}=\chi_{[(k-1)/2^{n-1},k/2^{n-1}]}$, $f=0$, $x\in[0,1]$.
+\end{itemize}
+Below is a summary of implications.
+\begin{itemize}
+    \item Uniform convergence implies pointwise convergence and a.s. uniform convergence ($L^{\infty}$ convergence), both of which imply a.s. convergence. No implication can be reversed even if non-decreasing non-negative uniformly-bounded r.v.'s are considered.
+
+    \item For any $1<p<q<\infty$, $L^{\infty}$ convergence implies $L^q$ convergence, which implies $L^p$ convergence, which implies $L^1$ convergence.
+
+    \item Pointwise convergence does not imply $L^1$ convergence for non-negative integrable r.v.'s, while a.s. convergence does imply $L^1$ convergence for integrable r.v.'s whose norms of differences are summable (see Theorem \ref{thm:L1Banach}). $L^1$ convergence does not imply a.s. convergence even for non-negative integrable r.v.'s.
+
+    \item Both a.s. convergence (Egoroff's Theorem) and $L^1$ convergence imply convergence in probability. Convergence in probability implies neither a.s. convergence nor $L^1$ convergence even for non-negative integrable r.v.'s. Those three modes of convergence allows at most one limit in the a.s. sense, and therefore if $f_n$ converges to $g$ in probability and $f_n$ does converge a.s., then $f_n$ also converges to $g$ a.s. For more discussion, see Chapter \ref{chp:LLN}.
+
+    \item Finally, convergence in probability implies convergence in distribution: $X_n$ converges in distribution to $X$ if
+    \begin{equation*}
+        \lim_{n\to\infty}F_n(x)\to F(x)
+    \end{equation*}
+    at every $x$ where $F$ is continuous. More discussions on convergence in distribution is given in Chapter \ref{chp:CLT}.
+\end{itemize}
+
+\begin{remark}
+    A.s. convergence, $L^p$ convergence and convergence in probability requires that $X_n$ and $X$ are defined on the same measure space, while convergence in distribution does not. Also, the continuity in the definition of convergence in distribution is necessary. One can consider the case where $X_n$ is uniformly distributed on $(0,1/n)$; it converges in distribution to $X=0$ with the above definition.
+\end{remark}
+
+Two r.v. $X$ and $Y$ with $\mathbb{E}[X^2],\mathbb{E}[Y^2]<+\infty$ are \textbf{uncorrelated} if
+\begin{equation*}
+    \mathbb{E}[XY]=\mathbb{E}[X]\mathbb{E}[Y].
+\end{equation*}
+This definition can be generalized to finitely many r.v.'s naturally. The variance of $X$ with finite expectation is defined as
+\begin{equation*}
+    \mathrm{Var}[X]=\mathbb{E}[(X-\mathbb{E}[X])^2].
+\end{equation*}
+The covariance of $X$ and $Y$ with finite expectation is defined as
+\begin{equation*}
+    \mathrm{Cov}[X,Y]=\mathbb{E}[(X-\mathbb{E}[X])(Y-\mathbb{E}[Y])].
+\end{equation*}
+
+\section{Independence}
+\begin{definition}
+    Given a probability measure space $(\Omega,\mathcal{F},P)$, we say that two sub-$\sigma$-algebras $\mathcal{G}$ and $\mathcal{H}$ are \textbf{independent} if for any $A\in \mathcal{G}$ and $B\in \mathcal{H}$, $P(A\cap B)=P(A)P(B)$. Specifically, two random variables $X$ and $Y$ are independent if $\Sigma(X)$ and $\Sigma(Y)$ are independent.
+\end{definition}
+\begin{remark}
+    The above definition can be generalized to finitely many $\sigma$-algebras or r.v.'s naturally. Infinitely many $\sigma$-algebras or r.v.'s are independent if any finitely many among them are independent.
+\end{remark}
+\begin{definition}
+    Given a probability measure space $(\Omega,\mathcal{F},P)$, we say that events $A_1,\ldots,A_n\in \mathcal{F}$ are independent if for any $I\subset[n]$,
+    \begin{equation}\label{indepEvents}
+        P\left(\bigcap_{i\in I}A_i\right)=\prod_{i\in I}P(A_i).
+    \end{equation}
+    More generally, collections $\mathcal{A}_1,\ldots,\mathcal{A}_n\subset \mathcal{F}$ are independent if for any $I\subset[n]$, any $A_i\in \mathcal{A}_i$, \eqref{indepEvents} is true.
+\end{definition}
+\begin{remark}
+    W.l.o.g., we can assume that $\Omega\in \mathcal{A}_i$ for all $i$ to avoid taking subset of $[n]$.
+\end{remark}
+
+To check that some $\sigma$-algebras or r.v.'s are independent by definition, we need to check all involved events, which is a hard job. Fortunately, we only need to check $\pi$-systems which generate the corresponding sub-$\sigma$-algebras.
+\begin{theorem}[\cite{D10} Theorem 2.1.3]\label{thm:indepPiSystems}
+    Given a probability measure space $(\Omega,\mathcal{F},P)$, suppose $\pi$-systems $\mathcal{A}_1,\ldots,\mathcal{A}_n\subset \mathcal{F}$ are independent. Then $\Sigma(\mathcal{A}_i),\ldots,\Sigma(\mathcal{A}_n)$ are independent.
+\end{theorem}
+By Theorem \ref{thm:indepPiSystems}, to check that r.v.'s $X_1,\ldots,X_n$ are independent, we only need to ensure that for any $a_1,\ldots,a_n\in(-\infty,+\infty]$,
+\begin{equation*}
+    P\left(\bigwedge_{i=1}^n(X_i\le a_i)\right)=\prod_{i=1}^n P(X_i\le a_i).
+\end{equation*}
+\begin{proposition}[\cite{D10} Theorem 2.1.5]
+    Given a probability measure space $(\Omega,\mathcal{F},P)$, suppose sub-$\sigma$-algebras $\mathcal{F}_{i,j}$, $1\le i\le n$, $1\le j\le m(i)$ are independent and let $\mathcal{G}_i=\Sigma\left(\bigcup_{1\le j\le m(i)} \mathcal{F}_{i,j}\right)$. Then $\mathcal{G}_1,\ldots,\mathcal{G}_n$ are independent.
+\end{proposition}
+\begin{proposition}[\cite{D10} Theorem 2.1.6]
+    Given a probability measure space $(\Omega,\mathcal{F},P)$, suppose r.v.'s $X_{i,j}$, $1\le i\le n$, $1\le j\le m(i)$ are independent, and $f_i:\mathbb{R}^{m(i)}\to \mathbb{R}$, $1\le i\le n$ are measurable (from $(\mathbb{R}^{m(i)},\mathcal{B}_{\mathbb{R}^{m(i)}})$ to $(\mathbb{R},\mathcal{B}_{\mathbb{R}})$). Then $f_i$ are independent. Specifically, the above claim is true if $f_i$ are continuous.
+\end{proposition}
+
+The next problem is to what extent can we say that independent r.v.'s exist. To show independence, one only need to care about distributions. Given finitely many distributions $P_1,\ldots,P_n$, one can take the product measure of $(\mathbb{R},\mathcal{B}_{\mathbb{R}},P_i)$ and define independent r.v.'s using coordinate mapping. The following result gives us independent r.v.'s indexed by real numbers.
+\begin{theorem}[Kolmogorov Extension Theorem]
+    Let $T$ be some interval. Suppose for any $k\ge1$ and any distinct $t_1,\ldots,t_k\in T$, there is a distribution $P_{t_1,\ldots,t_k}$ on $\mathbb{R}^k$. Suppose the following conditions are satisfied:
+    \begin{itemize}
+        \item For any permutation $\pi$ of $\{1,\ldots,k\}$ and any Borel sets $B_1,\ldots,B_k\subset \mathbb{R}$,
+        \begin{equation*}
+            P_{\pi(t_1),\ldots,\pi(t_k)}(B_{\pi(t_1)}\times\cdots\times B_{\pi(t_k)})=P_{t_1,\ldots,t_k}(B_1\times\cdots\times B_k).
+        \end{equation*}
+
+        \item For any Borel sets $B_1,\ldots,B_k\subset \mathbb{R}$ and any $m\in \mathbb{N}$,
+        \begin{equation*}
+            P_{t_1,\ldots,t_k}(B_1\times\cdots\times B_k)=P_{t_1,\ldots,t_{k+m}}(B_1\times\cdots\times B_k\times\underbrace{\mathbb{R}\times\cdots\times \mathbb{R}}_{m\textrm{ copies}}).
+        \end{equation*}
+    \end{itemize}
+    Then there exists a probability measure $P$ on $(\mathbb{R}^T,\bigotimes_{t\in T}\mathcal{B}_{\mathbb{R}})$ and a stochastic process $X:\mathbb{R}^T\times T\to \mathbb{R}$ given by coordinate mapping, such that for any $k$, any distinct $t_1,\ldots,t_k\in T$, and any Borel sets $B_1,\ldots,B_k\subset \mathbb{R}$,
+    \begin{equation*}
+        P_{t_1,\ldots,t_k}(B_1\times\cdots\times B_k)=P(X_{t_1}\in B_1,\ldots,X_{t_k}\in B_k).
+    \end{equation*}
+\end{theorem}
+If we plug in product probability measures into Kolmogorov Extension Theorem, we can get i.i.d. r.v.'s.
+\begin{remark}
+    Note that in Kolmogorov Extension Theorem we start from distributions and end up getting r.v.'s mapping into $\mathbb{R}$.
+\end{remark}
+
+Given independent r.v. $X$ and $Y$, one can also consider the r.v. $X+Y$; to get the cumulative distribution function of $X+Y$, one can consider the cumulative distribution function $F$ of $X$, the cumulative distribution function $G$ of $Y$, the indicator function $\mathds{1}_{X+Y\le z}$, and Tonelli's Theorem.
+
+\section{Conditional Expectation and Regular Conditional Probabilities}
+\begin{definition}
+    Given a probability measure space $(\Omega,\mathcal{F},P)$, $X\in L^1(\Omega,\mathcal{F},P)$, and a sub-$\sigma$-algebra $\mathcal{G}\subset \mathcal{F}$, a conditional expectation of $X$ given $\mathcal{G}$, denoted by $\mathbb{E}[X|\mathcal{G}]$, is any r.v. $Y\in L^1(\Omega,\mathcal{G},P)$ such that for any $A\in \mathcal{G}$,
+    \begin{equation}
+        \mathbb{E}[X\mathds{1}_A]=\mathbb{E}[Y\mathds{1}_A].
+    \end{equation}
+\end{definition}
+\begin{theorem}
+    Conditional expectation exists and is unique a.s.
+\end{theorem}
+\begin{remark}
+    In the following, when conditional expectation is involved, usually ``$=$'' means ``one version of''.
+\end{remark}
+\begin{example}
+    Here are some examples of conditional expectations:
+    \begin{itemize}
+        \item If $X$ is $\mathcal{G}$-measurable, then $\mathbb{E}[X|\mathcal{G}]=X$.
+        \item If $\mathcal{G}=(\emptyset,\Omega)$, or in general if $\mathcal{G}$ is independent of $\Sigma(X)$, then $\mathbb{E}[X|\mathcal{G}]=\mathbb{E}[X]$. We will see below that many properties of conditional expectations are natural extensions of properties of expectations.
+    \end{itemize}
+\end{example}
+\begin{proposition}
+    Here are some properties of conditional expectations:
+    \begin{itemize}
+        \item $X\le(=)Y$ a.s. implies $\mathbb{E}[X|\mathcal{G}]\le(=)\mathbb{E}[Y|\mathcal{G}]$ a.s.
+        \item $\mathbb{E}[aX+bY|\mathcal{G}]=a \mathbb{E}[X|\mathcal{G}]+b \mathbb{E}[Y|\mathcal{G}]$ for $a,b\in \mathbb{R}$.
+        \item (William's Tower Property.) Suppose $\mathcal{G}\subset \mathcal{H}$. Then $\mathbb{E}\left[\mathbb{E}[X|\mathcal{H}]\middle|\mathcal{G}\right]=\mathbb{E}[X|\mathcal{G}]$.
+        \item (Jensen's Inequality.) Suppose $\phi$ is convex and $\mathbb{E}\left[|\phi(X)|\right]<+\infty$. Then $\phi\left(\mathbb{E}[X|\mathcal{G}]\right)\le \mathbb{E}\left[\phi(X)\middle|\mathcal{G}\right]$ a.s. Consequently, conditional expectation is a contraction in $L^p$ norm: $\mathbb{E}\left[\left|\mathbb{E}[X|\mathcal{G}]\right|^p\right]\le \mathbb{E}\left[|X|^p\right]$ for $p\ge1$.
+    \end{itemize}
+\end{proposition}
+\begin{theorem}[\cite{D10} Theorem 5.1.7]
+    Suppose $Y\in L^1(\Omega,\mathcal{G},P)$, $XY\in L^1(\Omega,\mathcal{F},P)$, then
+    \begin{equation*}
+        \mathbb{E}[XY|\mathcal{G}]=Y \mathbb{E}[X|\mathcal{G}].
+    \end{equation*}
+\end{theorem}
+\begin{theorem}[\cite{D10} Theorem 5.1.8]
+    Suppose $X\in L^2(\Omega,\mathcal{F},P)$, then $\mathbb{E}[X|\mathcal{G}]=\Pi_{L^2(\Omega,\mathcal{G})}(X)$.
+\end{theorem}
+\begin{trick}
+    Due to this nice characterization of conditional expectation in the $L^2$ space, one common technique is to first establish some property in the $L^2$ space and then extend to $L^1$ space using truncation.
+\end{trick}
+
+Now suppose we are given a measurable function $f$ from some probability measure space $(\Omega,\mathcal{F},P)$ to some measurable space $(S,\Sigma)$, and a sub-$\sigma$-algebra $\mathcal{G}\subset \mathcal{F}$. For each $A\in\Sigma$, $\mathds{1}_{f\in A}\in L^1(\Omega,\mathcal{F},P)$, and thus we can define $P(f\in A|\mathcal{G})=\mathbb{E}[\mathds{1}_{f\in A}|\mathcal{G}]\in[0,1]$, called the \textbf{conditional probability} of the event $f\in A$ given $\mathcal{G}$. If we vary $A$, we can get a mapping $\mu:\Omega\times\Sigma\to[0,1]$. We want $\mu$ to satisfy some additional good properties, which motivates the following definitions.
+\begin{definition}
+    Let $(\Omega,\mathcal{F})$ and $(S,\Sigma)$ be measurable spaces, $\mu:\Omega\times\Sigma\to[0,1]$.  $\mu$ is called a \textbf{Markov transition kernel} if:
+    \begin{itemize}
+        \item For any $\omega\in\Omega$, $\mu(\omega,\cdot)$ is a probability measure on $(S,\Sigma)$.
+        \item For any $A\in\Sigma$, $\mu(\cdot,A)$ is $\mathcal{F}$-measurable.
+    \end{itemize}
+    If $(\Omega,\mathcal{F})=(S,\Sigma)$, $\mu$ is called a Markov transition probability.
+\end{definition}
+\begin{definition}
+    Let $f$ be a measurable function from some probability measure space $(\Omega,\mathcal{F},P)$ to some measurable space $(S,\Sigma)$, $\mathcal{G}\subset \mathcal{F}$, $\mu:\Omega\times\Sigma\to[0,1]$. $\mu$ is called a \textbf{regular conditional distribution} if it is a Markov transition kernel, and for each $A\in\Sigma$, $\omega\mapsto\mu(\omega,\Sigma)$ is a version of $P(f\in A|\mathcal{G})$.
+    If $(S,\Sigma)=(\Omega,\mathcal{F})$ and $f$ is the identity map, $\mu$ is called a regular conditional probability.
+\end{definition}
+\begin{theorem}[\cite{D10} Theorem 5.1.9]
+    Regular conditional distribution exists if $(S,\Sigma)=(\mathbb{R},\mathcal{B}_{\mathcal{R}})$.
+\end{theorem}
+
+\chapter{Almost Sure Convergence and Laws of Large Numbers}\label{chp:LLN}
+In this chapter we talk about laws of large numbers, and when possible, we will state the convergence rate.
+
+\section{Weak and Strong Laws of Large Numbers}
+For convenience, we summarize a few useful lemmmas first.
+\begin{lemma}
+    If $p>0$ and $\mathbb{E}\left[|X_n|^p\right]\to0$, then $X_n\to0$ in probability.
+\end{lemma}
+\begin{lemma}\label{lem:momentFubini}
+    If $X\ge0$ and $p>0$, then
+    \begin{equation*}
+        \mathbb{E}[X^p]=\int_0^{+\infty}px^{p-1}P(X>x)\mathrm{d}x=\int_0^{+\infty}px^{p-1}P(X\ge x)\mathrm{d}x.
+    \end{equation*}
+\end{lemma}
+
+Next we present several laws of large numbers.
+\begin{theorem}\label{thm:generalWeakLaw}
+    Let $X_1,X_2,\ldots$ be i.i.d. with
+    \begin{equation*}
+        xP\left(|X_1|>x\right)\to0
+    \end{equation*}
+    as $x\to+\infty$. Let $S_n=\sum_{i=1}^{n}X_n$, $\bar{X}_n=S_n/n$ and $\mu_n=\mathbb{E}\left[X_1\mathds{1}_{|X_1|\le n}\right]$. Then $\bar{X}_n-\mu_n\to0$ in probability.
+\end{theorem}
+\begin{remark}
+    One can verify using Lemma \ref{lem:momentFubini} that condition in Theorem \ref{thm:generalWeakLaw} implies $\mathbb{E}\left[|X|^{\epsilon}\right]$ exists for any $0<\epsilon<1$. Also, the convergence of $\mathbb{E}\left[|X|\right]$ does imply the condition in Theorem \ref{thm:generalWeakLaw}, which is stronger than the directly application of Markov.
+\end{remark}
+\begin{theorem}[Weak Law of Large Numbers]\label{thm:weakLaw}
+    Let $X_1,X_2,\ldots$ be i.i.d. with mean $\mu$, and $\bar{X}_n=\left(\sum_{i=1}^{n}X_n\right)/n$. Then $\bar{X}_n-\mu\to0$ in probability.
+\end{theorem}
+\begin{theorem}[Strong Law of Large Numbers, \cite{D10} Theorem 2.4.1]\label{thm:strongLaw}
+    Let $X_1,X_2,\ldots$ be i.i.d. with mean $\mu$, and $\bar{X}_n=\left(\sum_{i=1}^{n}X_n\right)/n$. Then $\bar{X}_n-\mu\to0$ a.s.
+\end{theorem}
+\begin{remark}
+    The assumption can actually be relaxed to pairwise independence.
+\end{remark}
+
+Proofs of above theorems are complicated. The Borel-Cantelli lemmas play an important role in the proof of the Strong Law of Large Numbers, which will be treated in Section \ref{sec:BorelCantelli}. However, if we assume finite variance, then the proof will be much simpler.
+
+\begin{theorem}\label{thm:L2WeakLaw}
+    Let $X_1,X_2,\ldots$ be uncorrelated r.v.'s with zero mean and variance no larger than $C$, and $\bar{X}_n=(\sum_{i=1}^{n}X_n)/n$. Then we have
+    \begin{equation*}
+        \mathbb{E}\left[\bar{X}_n^2\right]=\mathrm{Var}\left[\bar{X}_n\right]\le \frac{C}{n},
+    \end{equation*}
+    and for any $a>0$,
+    \begin{equation*}
+        P\left[\left|\bar{X}_n\right|\ge a\right]\le \frac{C}{na^2}.
+    \end{equation*}
+\end{theorem}
+The next result is stronger, which motivates more results concerning the sum of r.v.'s.
+\begin{theorem}[Kolmogorov's Maximal Inequality]
+    Let $X_1,X_2,\ldots$ be independent r.v.'s with zero mean and finite variance. Define $S_n=\sum_{i=1}^{n}X_i$. Then for any $a>0$,
+    \begin{equation*}
+        P\left(\max_{1\le j\le n}|S_j|\ge a\right)\le \frac{\mathbb{E}[S_n^2]}{a^2}.
+    \end{equation*}
+\end{theorem}
+\begin{theorem}\label{thm:L2Convergence}
+    Let $X_1,X_2,\ldots$ be independent r.v.'s with zero mean, and furthermore $\sum_{i=1}^{n}\mathrm{Var}[X_i]<+\infty$. Then $S_n=\sum_{i=1}^{n}X_i$ converges in $L^2$ and a.s.
+\end{theorem}
+Now consider independent $X_1,X_2,\ldots$ with zero mean and variance no larger than $C$. By Theorem \ref{thm:L2Convergence}, $S_n=\sum_{i=1}^{n}X_i/i$ converges a.s. Then by Kronecker's Lemma, $\left(\sum_{i=1}^{n}X_i\right)/n$ converges a.s., which gives a simpler proof of the Strong Law of Large Numbers when variance is bounded.
+
+The condition in Theorem \ref{thm:L2Convergence} is necessary when $X_i$ are bounded. This can be derived from the following result.
+\begin{theorem}[Kolmogorov's 3-series Theorem]
+    Let $X_1,X_2,\ldots$ be independent r.v.'s, and fix $b>0$. Consider
+    \begin{equation*}
+        \sum_{i=1}^{n}P\left(|X_i|>b\right),\quad \sum_{i=1}^{n}\mathbb{E}\left[X_i\mathds{1}_{|X_i|\le b}\right],\quad\textrm{and}\quad \sum_{i=1}^{n}\mathrm{Var}\left[X_i\mathds{1}_{|X_i|\le b}\right].
+    \end{equation*}
+    Then $\sum_{i=1}^{n}X_i$ converges a.s. iff the above three series converges.
+\end{theorem}
+
+Suppose $X_i$ are i.i.d. r.v.'s with zero mean and finite variance. The strong law of large numbers claims that $S_n=o(n)$ a.s. One may wonder if we can find the "correct" order of $S_n$. The following result is kind of negative.
+\begin{theorem}[Law of Iterative Logarithms]
+    Let $X_1,X_2,\ldots$ be independent r.v.'s with zero mean and unit variance. Then
+    \begin{equation*}
+        \lim\sup\frac{S_n}{\sqrt{2n\ln\ln n}}=1\textrm{ a.s.,}\quad\textrm{and}\quad\lim\inf\frac{S_n}{\sqrt{2n\ln\ln n}}=1\textrm{ a.s.}
+    \end{equation*}
+\end{theorem}
+
+Finally, we have the following interesting results. Let $X_1,\ldots$ be r.v.'s. The $\sigma$-albegra
+\begin{equation*}
+    \tau=\bigcap_{i\ge1}\Sigma\left(X_i,\ldots\right)
+\end{equation*}
+is called the \textbf{tail} $\boldsymbol{\sigma}$\textbf{-algebra}.
+\begin{theorem}[Kolmogorov's 0-1 Law]
+    For independent r.v.'s $X_1,\ldots$, $\tau$ is independent to itself, and thus for any $A\in\tau$, either $P(A)=0$ or $P(A)=1$.
+\end{theorem}
+
+\section{Borel-Cantelli Lemmas}\label{sec:BorelCantelli}
+\begin{lemma}[Borel-Cantelli Lemmas]
+    If $\sum_{i=1}^{\infty}P(A_i)<+\infty$, then
+    \begin{equation*}
+        P\left(\lim\sup A_i\right)=0.
+    \end{equation*}
+    If $A_i$ are pairwise independent and $\sum_{i=1}^{\infty}P(A_i)=+\infty$, then
+    \begin{equation*}
+        \frac{\sum_{i=1}^{n}\mathds{1}_{A_i}}{\sum_{i=1}^{n}P(A_i)}\to1\textrm{ a.s.,}
+    \end{equation*}
+    and thus
+    \begin{equation*}
+        P\left(\lim\sup A_i\right)=1.
+    \end{equation*}
+\end{lemma}
+\begin{remark}
+    The first Borel-Cantelli lemma might be sometimes loose; one form which is stronger is to prove $P(A_i)\to0$ and $\sum_{i=0}^{\infty}P\left(A_i^c\cap A_{i+1}\right)<+\infty$, $A_0=\emptyset$.
+\end{remark}
+
+Borel-Cantelli lemmas help us understand the relation between a.s. convergence and convergence in probability.
+\begin{proposition}
+    The following claims are equivalent:
+    \begin{itemize}
+        \item $X_n\to X$ a.s.
+        \item For any $\epsilon>0$, $P\left(|X_n-X|\ge\epsilon\textrm{ i.o.}\right)=0$.
+        \item There exists $\epsilon_n\downarrow0$ such that $P\left(|X_n-X|\ge\epsilon_n\textrm{ i.o.}\right)=0$.
+        \item Let $M_n=\sup_{i\ge n}|X_i-X|$, then $M_n\to0$ in probability.
+    \end{itemize}
+\end{proposition}
+\begin{proposition}[\cite{D10} Theorem 2.3.2]
+    $X_n\to X$ in probability iff for every subsequence $Y_n$ of $X_n$ there exists a subsequence $Z_n$ of $Y_n$ such that $Z_n\to X$ a.s.
+\end{proposition}
+\begin{remark}
+    One can show that convergence in probability comes from the metric $d(X,Y)=\mathbb{E}\left[\min\{X-Y,1\}\right]$. By contrast, a.s. convergence does not come from a metric, otherwise by the following result, there will be no difference between convergence in probability and a.s. convergence.
+\end{remark}
+\begin{proposition}[\cite{D10} Theorem 2.3.3]
+    Given a sequence $x_n$ in metric space, $x_n$ converges to $x$ iff for every subsequence $y_n$ of $x_n$, there exists a subsequence $z_n$ of $y_n$ which converges to $x$.
+\end{proposition}
+\begin{trick}
+    Below are some tricks to establish a.s. convergence.
+    \begin{itemize}
+        \item If $X_n\to X$ in probability and for any $m\ge n$ and any $\epsilon>0$,
+        \begin{equation*}
+            \left\{\omega\middle||X_m(\omega)-X(\omega)|\ge\epsilon\right\}\subset\left\{\omega\middle||X_n(\omega)-X(\omega)|\ge\epsilon\right\},
+        \end{equation*}
+        then $X_n\to X$ a.s.
+
+        \item If $X_n=a_n/b_n$ where $a_n$ and $b_n$ are both non-decreasing in $n$, then proving a.s. convergence for a subsequence $X_{n_k}$ such that $b_{n_k}/b_{n_{k+1}}\to1$ is enough.
+    \end{itemize}
+\end{trick}
+
+\begin{comment}
+\section{Large Deviation Principle}
+What we do in this section is actually Chernoff bound. Also refer to Section \ref{sec:Chernoff} for more details.
+
+Assume $X$ has zero mean. Let $\psi_X(\lambda)=\ln \mathbb{E}\left[\exp\left(\lambda X\right)\right]$. One can verify by H\"{o}lder and the Monotone Convergence Theorem that $\psi_X$ is closed convex, and its effective domain is thus an interval containing $0$. Furthermore, $\psi_X(0)=0$, $\psi_X(\lambda)\ge0$.
+
+Let $\psi_X^*(t)$ denote the convex conjugate of $\psi_X$. Then $\psi_X^*(t)\ge0$, $\psi_X^*(0)=0$. Moreover, by Markov's inequality, one can get that for $t\ge0$,
+\begin{equation}
+    \mathrm{Pr}\left[X\ge t\right]\le\exp\left(-\psi_X^*(t)\right),
+\end{equation}
+and for $t\le0$,
+\begin{equation}
+    \mathrm{Pr}\left[X\le t\right]\le\exp\left(-\psi_X^*(t)\right).
+\end{equation}
+
+Now consider i.i.d. copies $X_i$ of $X-\mathbb{E}[X]$, and $S_n=\sum_{i=1}^{n}X_i$. We have
+\begin{equation*}
+    \psi_{S_n}(\lambda)=n\psi_X(\lambda),\quad\psi_{S_n}^*(t)=n\psi^*\left(\frac{t}{n}\right),\quad\textrm{and}\quad \frac{1}{n}\ln P(S_n\ge nt)\le-\psi_X^*(t).
+\end{equation*}
+Note that $\ln P(S_n\ge nt)$ is a super-additive sequence, thus $\left(\ln P(S_n\ge nt)\right)/n$ converges. Actually one can show that the limit is $-\psi_X^*(t)$.
+\end{comment}
+
+\chapter{Weak Convergence and Central Limit Theorems}\label{chp:CLT}
+\section{Convergence in Distribution and Weak Convergence}
+\begin{proposition}[\cite{D10} Theorem 3.2.2]
+    Let $X_1,\ldots$ be r.v.'s. Then $X_n\to X$ in distribution iff there exists a probability space $(\Omega,\mathcal{F},P)$ and r.v.'s $Y_1,\ldots$ such that
+    \begin{equation*}
+        P_{X_n}=P_{Y_n},\quad P_X=P_Y,\quad\textrm{and}\quad Y_n\to Y\textrm{ a.s.}
+    \end{equation*}
+\end{proposition}
+\begin{proof}
+    The ``if'' part is obvious. Next we prove the ``only if'' part.
+
+    Consider the probability space $\left((0,1),\mathcal{B}_{(0,1)},P\right)$, where $P$ is the uniform distribution. Let $F$, $F_n$ denote the cumulative distribution function of $Y$ and $Y_n$, respectively. For any $\omega\in(0,1)$, let
+    \begin{equation*}
+        Y(\omega)=\sup\left\{y\in \mathbb{R}|F(y)<\omega\right\}=\inf\left\{y\in \mathbb{R}|F(y)\ge\omega\right\}
+    \end{equation*}
+    To verify that $Y(\omega)$ is well-defined, just notice that for each $\omega\in(0,1)$, the two sets involved in the definition are both non-empty and do not intersect. Furthermore, by the right continuity of $F$, we know that $F\left(Y(\omega)\right)\ge\omega$. $Y_n$ can be defined similarly.
+
+    Let us discuss some properties of $Y$. $Y$ is non-decreasing, left-continuous, $\lim_{\omega\to0}Y(\omega)\to-\infty$, and $\lim_{\omega\to1}Y(\omega)\to+\infty$. $Y$ is not necessarily right-continuous, even if $F$ is continuous.
+
+    For rest of the proof, see \cite{D10}.
+\end{proof}
+\begin{remark}
+    Conceptually, a.s. convergence requires the same underlying probability measure space and convergent r.v.'s, while convergence in distribution deals with convergent distributions.
+\end{remark}
+\begin{definition}
+    Let $X_1,\ldots$ be r.v.'s. $X_n\to X$ weakly if for any bounded continuous function $f$,
+    \begin{equation*}
+        \mathbb{E}\left[f(X_n)\right]\to \mathbb{E}\left[f(X)\right].
+    \end{equation*}
+\end{definition}
+\begin{proposition}[\cite{D10} Theorem 3.2.3]
+    Let $X_1,\ldots$ be r.v.'s. The following are equivalent:
+    \begin{itemize}
+        \item $X_n\to X$ in distribution.
+        \item $X_n\to X$ weakly.
+        \item $\mathbb{E}\left[f(X_n)\right]\to \mathbb{E}\left[f(X)\right]$ for any $f\in C_c^{\infty}(\mathbb{R})$, denoting infinitely differentiable functions supported on a compact set.
+    \end{itemize}
+\end{proposition}
+\begin{remark}
+    Later we will see that it is enough to consider the function class $\{x\mapsto e^{itx}|t\in \mathbb{R}\}$.
+\end{remark}
+
+With the above framework, one can define different distances between probability measures. Given a measurable space $(\Omega,\mathcal{F})$, two probability measures $P$ and $Q$, and a function class $\mathcal{A}$, we define
+\begin{equation*}
+    d_A(P,Q)=\sup_{f\in \mathcal{\mathcal{A}}}\left|\int f \mathrm{d}P-\int f \mathrm{d}Q\right|.
+\end{equation*}
+When r.v.'s are given, we can just plug in their pushforward measures.
+
+Below are some examples where $(\mathbb{R},\mathcal{B}_{\mathbb{R}})$ is considered:
+\begin{itemize}
+    \item If $\mathcal{A}=\{\mathds{1}_B|B\in \mathcal{B}_{\mathbb{R}}\}$, we get the \textbf{total variation distance} $d_{\mathrm{TV}}(P,Q)$.
+
+    \item If $\mathcal{A}=\left\{\mathds{1}_{(-\infty,x]}\middle|x\in \mathbb{R}\right\}$, we get the \textbf{Kolmogorov-Smirnov distance} $d_{\mathrm{KS}}(P,Q)$, which is no larger than $d_{\mathrm{TV}}(P,Q)$.
+
+    \item If $\mathcal{A}$ contains $1$-Lipschitz functions, we get the \textbf{Wasserstein distance} $d_{\mathrm{Wass}}(P,Q)$.
+\end{itemize}
+
+Weak convergence also comes from some metric (e.g., L\'{e}vy metric). One can see that weak convergence is weaker than convergence in Kolmogorov-Smirnov distance (equivalent if th e limiting cumulative distribution function is continuous everywhere), which is in turn weaker than total variation distance.
+
+\section{Central Limit Theorems}
+\begin{theorem}[Basic Central Limit Theorem]
+    Suppose $X_1,\ldots$ are i.i.d. r.v.'s with mean $\mu$ and variance $\sigma^2$. Then $\left(\sum_{i=1}^{n}X_i-n\mu\right)/\sqrt{n}\sigma$ converges in distribution to $\mathcal{N}(0,1)$.
+\end{theorem}
+\begin{theorem}[Lindeberg's Central Limit Theorem]
+    Suppose $X_1,\ldots$ are independent r.v.'s with $\mathbb{E}[X_i]=\mu_i$ and $\mathrm{Var}[X_i]=\sigma_i^2$. Let $r_n^2=\sum_{i=1}^{n}\sigma_i^2$. If for any $\epsilon>0$,
+    \begin{equation*}
+        \frac{1}{r_n^2}\sum_{i=1}^{n}\mathbb{E}\left[|X_i-\mu_i|^2\mathds{1}_{|X_i-\mu_i|\ge\epsilon r_n}\right]\to0,
+    \end{equation*}
+    then $\left(\sum_{i=1}^{n}(X_i-\mu_i)\right)/r_n$ converges in distribution to $\mathcal{N}(0,1)$.
+\end{theorem}
+Given a triangular array $X_{ij}$, $i\ge1$, $1\le j\le i$, it satisfies the triangular array conditions if
+\begin{itemize}
+    \item For each $i$, $X_{ij}$ are independent.
+    \item For each $i$, $j$, $\mathbb{E}[X_{ij}]=0$.
+    \item For each $i$, $\sum_{j=1}^{i}X_{ij}^2=1$.
+\end{itemize}
+\begin{theorem}[Lindeberg's Theorem]
+    Suppose a triangular array satisfies the triangular array condition and for any $\epsilon>0$,
+    \begin{equation*}
+        \lim_{i\to\infty}\sum_{j=1}^{i}\mathbb{E}\left[X_{ij}^2\mathds{1}_{|X_{ij}|\ge\epsilon}\right]=0,
+    \end{equation*}
+    then $\sum_{j=1}^{i}X_{ij}$ converges in distribution to $\mathcal{N}(0,1)$.
+\end{theorem}
+
+\section{Characteristic Functions}
+\begin{definition}
+    Given a r.v. $X$, its \textbf{characteristic function} $\phi_X:\mathbb{R}\to \mathbb{C}$ is defined as
+    \begin{equation*}
+        \varphi_X(t)=\mathbb{E}[e^{itX}].
+    \end{equation*}
+\end{definition}
+Below are properties of characteristic functions.
+\begin{itemize}
+    \item $\varphi_X(0)=1$.
+    \item $\varphi_X(-t)=\overline{\varphi_X(t)}$.
+    \item $|\varphi_X(t)|\le1$.
+    \item $|\varphi_X(t+h)-\varphi_X(t)|\le \mathbb{E}\left[|e^{ihX}-1|\right]$, and thus $\varphi_X$ is uniform continuous on $\mathbb{R}$.
+    \item $\varphi_{aX+b}(t)=e^{itb}\varphi_X(at)$.
+    \item Suppose $\mathbb{E}\left[|X|^n\right]<+\infty$, then $\varphi_X(t)$ has continuous $n$-th order derivatives, given by
+    \begin{equation*}
+        \varphi_X^{(n)}(t)=\mathbb{E}[(iX)^ne^{itX}].
+    \end{equation*}
+    \item Suppose $X_1$ and $X_2$ are independent, then $\varphi_{X_1+X_2}=\varphi_{X_1}\varphi_{X_2}$.
+\end{itemize}
+Below are some examples.
+\begin{itemize}
+    \item If $X\sim \mathcal{N}(0,1)$, then $\varphi_X(t)=\exp\left(-\frac{t^2}{2}\right)$. (Note that this is kind of a self-reducibility property.)
+\end{itemize}
+
+\begin{theorem}[The Inversion Formula]
+    If $a<b$ then
+    \begin{equation*}
+        \lim_{T\to+\infty}\frac{1}{2\pi}\int_{-T}^{+T}\frac{e^{-ita}-e^{-itb}}{it}\varphi_X(t)\mathrm{d}t=P\left((a,b)\right)+\frac{1}{2}P\left(\{a,b\}\right),
+    \end{equation*}
+    and for any $a$,
+    \begin{equation*}
+        P\left(\{a\}\right)=\lim_{T\to+\infty}\frac{1}{2T}\int_{-T}^{+T}e^{-ita}\varphi_X(t)\mathrm{d}t.
+    \end{equation*}
+\end{theorem}
+\begin{remark}
+    In other words, the characteristic function completely determines the distribution.
+\end{remark}
+\begin{theorem}
+    If $\int|\varphi_X(t)|\mathrm{d}t<+\infty$, then $P$ has bounded continuous density
+    \begin{equation*}
+        f(x)=\frac{1}{2\pi}\int_{-\infty}^{+\infty}e^{-itx}\varphi_X(t)\mathrm{d}t.
+    \end{equation*}
+\end{theorem}
+
+\begin{definition}
+    A collection of distributions $\{P_i|i\in I\}$ is \textbf{tight} if
+    \begin{equation*}
+        \lim_{C\to+\infty}\sup_{i\in I}P_i\left((-\infty,-C]\cup[C,+\infty)\right)=0.
+    \end{equation*}
+\end{definition}
+\begin{theorem}[Helly's Selection Theorem]
+    Given a sequence of distributions $(P_i)_{i\ge1}$ which is tight, then there exists a subsequence $(P_{i_k})$ which converges in distribution to some distribution $P$.
+\end{theorem}
+\begin{theorem}
+    Let $(P_i)_{i\ge1}$ and $P$ be distributions. $P_i\to P$ weakly iff $\varphi_i(t)\to\varphi(t)$ pointwisely.
+
+    More generally, if $\varphi_i(t)$ converges pointwisely to some $\varphi(t)$ which is continuous at $0$, then $\varphi$ is a characteristic funciton, $P_i$ is tight and converges weakly to the distribution $P$ determined by $\varphi$.
+\end{theorem}
+\begin{proof}
+    Key observations include:
+    \begin{itemize}
+        \item We have
+        \begin{equation*}
+            \frac{1}{u}\int_{-u}^{+u}\left(1-\varphi(t)\right)\mathrm{d}t\ge P\left(|x|\ge \frac{2}{u}\right).
+        \end{equation*}
+
+        \item Every subsequence of $(P_i)$ is tight, and thus has a further subsequence which converges weakly to distribution $P$ corresponding to $\varphi$.
+    \end{itemize}
+\end{proof}
+
+\begin{comment}
+\section{Poisson Convergence}
+\begin{theorem}[Law of Small Numbers]
+    For $i\ge1$, let $X_{i1},\ldots,X_{ii}$ be independent, non-negative-integer-valued r.v.'s such that
+    \begin{itemize}
+        \item $\sum_{j=1}^{i}P(X_{ij}=1)\to\lambda\in(0,+\infty)$;
+        \item $\sum_{j=1}^{i}P(X_{ij}\ge2)\to0$;
+        \item $\max_{1\le j\le i}P(X_{ij}=1)\to0$.
+    \end{itemize}
+    Then $\sum_{j=1}^{i}X_{ij}$ converges to $\mathrm{Poi}(\lambda)$ in the total variation distance, and thus in distribution.
+\end{theorem}
+\begin{proof}
+    Here are the key proof ideas:
+    \begin{itemize}
+        \item Suppose $X_i\sim \mathrm{Poi}(\lambda_i)$, then $\sum_{i}^{}X_i\sim \mathrm{Poi}\left(\sum_{i}^{}\lambda_i\right)$.
+        \item Suppose $X\sim \mathrm{Ber}(p)$, $Y\sim \mathrm{Poi}(p)$, then $d_{\mathrm{TV}}(X,Y)=p\left(1-e^{-p}\right)\le p^2$.
+        \item Suppose $X_1$, $X_2$, $Y_1$, and $Y_2$ are non-negative-integer-valued r.v.'s, $X_1$ and $X_2$, $Y_1$ and $Y_2$ are independent. Then $d_{\mathrm{TV}}(X_1+X_2,Y_1+Y_2)\le d_{\mathrm{TV}}(X_1,Y_1)+d_{\mathrm{TV}}(X_2,Y_2)$.
+    \end{itemize}
+\end{proof}
+\end{comment}
+
+\part{Stochastic Processes}
+\chapter{Discrete-Time Martingales}
+\section{Basic Definitions and Properties}
+Given a probability space $(\Omega,\mathcal{F},P)$, a discrete \textbf{filtration} is a sequence of increasing $\sigma$-algebras
+\begin{equation*}
+    \mathcal{F}_0\subset \mathcal{F}_1\subset\cdots.
+\end{equation*}
+A sequence of r.v.'s $(X_i)_{i\ge0}$ is \textbf{adapted} to the filtration $(\mathcal{F}_i)_{i\ge0}$ if for all $i\ge0$,
+\begin{equation*}
+    \Sigma(X_i)\subset \mathcal{F}_i.
+\end{equation*}
+A sequence of r.v.'s $(H_i)_{i\ge1}$ is \textbf{predictable} given $(\mathcal{F}_i)_{i\ge0}$ if for all $i\ge1$,
+\begin{equation*}
+    \Sigma(H_i)\subset \mathcal{F}_{i-1}.
+\end{equation*}
+\begin{definition}
+    A r.v. $T:\Omega\to \mathbb{N}\cup\{\infty\}$ is a \textbf{stopping time} w.r.t. the filtration $(\mathcal{F}_i)_{i\ge0}$ if for any $i\in \mathbb{N}\cup\{\infty\}$,
+    \begin{equation*}
+        T^{-1}\left(\{i\}\right)\in \mathcal{F}_i,
+    \end{equation*}
+    where $\mathcal{F}_{\infty}=\Sigma\left(\bigcup_{i\ge0}\mathcal{F}_i\right)$.
+\end{definition}
+\begin{remark}
+    When $T$ is allowed to be $\infty$, to define $X_T$ in this case, we further assume there exists $X_{\infty}$ which is $\mathcal{F}_{\infty}$-measurable. However, it may be unsure how to interpret $X_{\infty}$ in many applications, such as martingales. In the following, we will point it out clearly when finite-valued $T$ is needed.
+\end{remark}
+\begin{remark}
+    Now we can discuss some intuitive explanations. Usually one thinks of a gambling process. $\mathcal{F}_i$ is the information we have at step $i$. An adapted $X_i$ is something we can decide with information up to step $i$, such as how much money the gambler has at step $i$. An predictable $H_i$ is something we can decide with information up to step $i-1$, such as how much to bet at step $i$. A stopping time can be interpreted as whether to quit at step $i$.
+\end{remark}
+\begin{proposition}
+    If $S$ and $T$ are stopping times w.r.t. the filtration $\mathcal{F}_i$, then $S+T$, $\max\{S,T\}$ and $\min\{S,T\}$ are also stopping times.
+\end{proposition}
+Let $T$ be a stopping time, define
+\begin{equation*}
+    \mathcal{F}_T=\left\{A\in \mathcal{F}_{\infty}\middle|A\cap T^{-1}\left(\{i\}\right)\in \mathcal{F}_i\textrm{ for all }i\in \mathbb{N}\right\}.
+\end{equation*}
+It can be checked easily that we do not need to verify the case $i=\infty$. The following characterization might be more intuitive.
+\begin{equation*}
+    \mathcal{F}_T=\left\{\bigcup_{i\in N\cup\{\infty\}}A_i\middle|\forall i\in \mathbb{N}\cup\{\infty\},A_i\in \mathcal{F}_i,A_i\subset T^{-1}\left(\{i\}\right)\right\}.
+\end{equation*}
+\begin{proposition}
+    $T$ is $\mathcal{F}_T$-measurable. If $X_i$ is adapted to $\mathcal{F}_i$, then $X_T$ is also $\mathcal{F}_T$-measurable.
+\end{proposition}
+\begin{proposition}
+    Suppose $S$ and $T$ are stopping times with $S\le T$. Then
+    \begin{equation*}
+        \mathcal{F}_S\subset \mathcal{F}_T.
+    \end{equation*}
+    Furthermore, for $A\in \mathcal{F}_S$,
+    \begin{equation*}
+        R=\left\{
+        \begin{array}{ll}
+            S & \textrm{if }\omega\in A, \\
+            T & \textrm{if }\omega\not\in A,
+        \end{array}
+        \right.
+    \end{equation*}
+    is a stopping time.
+\end{proposition}
+
+Next we give definitions and properties of martingales.
+\begin{definition}
+    Given a filtration $(\mathcal{F}_i)_{i\ge0}$, A sequence of r.v.'s $(X_i)_{i\ge0}$ is a \textbf{martingale} if for any $i\ge0$, $X_i\in L^1(\Omega,\mathcal{F}_i,P)$, and
+    \begin{equation*}
+        \mathbb{E}[X_{i+1}|\mathcal{F}_i]=X_i.
+    \end{equation*}
+    The \textbf{martingale difference} is defined as $\Delta_i=M_i-M_{i-1}$ for $i\ge1$. Consequently for any $i\ge0$
+    \begin{equation*}
+        \mathbb{E}[\Delta_{i+1}|\mathcal{F}_i]=0.
+    \end{equation*}
+
+    $(X_i)_{i\ge0}$ is a \textbf{super-martingale} or \textbf{sub-martingale} if the ``$=$'' is replaced with ``$\le$'' or ``$\ge$''.
+\end{definition}
+\begin{proposition}
+    Suppose $X_i$ and $Y_i$ are submartingales. Then $X_i+Y_i$ and $\max\{X_i,Y_i\}$ are also submartingales.
+\end{proposition}
+\begin{proposition}
+    Suppose $X_i$ is a martingale and $\phi$ is a convex (concave) function such that $\mathbb{E}\left[|\phi(X_i)|\right]<+\infty$ for all $i\ge0$, then $\phi(X_i)$ is a sub-(super-)martingale.
+
+    Suppose $X_i$ is a sub-(super-)martingale and $\phi$ is a non-decreasing convex (non-increasing concave) function such that $\mathbb{E}\left[|\phi(X_i)|\right]<+\infty$ for all $i\ge0$, then $\phi(X_i)$ is a sub-(super-)martingale.
+\end{proposition}
+\begin{proposition}[Doob's Decomposition, \cite{D10} Theorem 5.2.10]
+    $X_i$ is a submartingale iff it can be written uniquely as $X_i=M_i+A_i$, where $M_i$ is a martingale and $A_i$ is predictable, integrable, and increasing with $A_0=0$.
+\end{proposition}
+
+\section{Almost Sure Convergence}
+Given a filtration $\mathcal{F}_i$, suppose $H_i$ is predictable and $X_i$ is adapted. Define
+\begin{equation*}
+    (H\cdot X)_i=\sum_{j=1}^{i}H_j(X_j-X_{j-1}).
+\end{equation*}
+\begin{proposition}[\cite{D10} Theorem 5.2.5]
+    Suppose $X_i$ is a (sub-, super-)martingale, $H_i$($\ge0$, $\ge0$) is predictable and each of them is bounded, then $(H\cdot X)_i$ is a (sub-, super-)martingale.
+\end{proposition}
+As an application, suppose $T$ is a stopping time, then $H_i=\mathds{1}_{T\ge i}$, $i\ge1$, is predictable.
+\begin{corollary}[\cite{D10} Theorem 5.2.6]\label{cor:boundedTime}
+    Suppose $X_i$ is a (sub-, super-)martingale and $T$ is a stopping time, $X_{i\wedge T}$ is also a (sub-, super-)martingale.
+\end{corollary}
+\begin{trick}
+    Corollary \ref{cor:boundedTime} is usually used in the following ways:
+    \begin{itemize}
+        \item Breaking it into two parts and get some bound on probability;
+        \item Letting $i\to\infty$ to argue about $X_T$.
+    \end{itemize}
+\end{trick}
+
+Next we introduce the upcrossing inequality. Let $a<b$, $N_0=-1$, and for $k\ge1$, let
+\begin{equation*}
+    N_{2k-1}=\inf\{i>N_{2k-2}|X_i\le a\},\quad N_{2k}=\inf\{i>N_{2k-1}|X_i\ge b\}.
+\end{equation*}
+For each $i\ge1$, let $H_i=\mathds{1}[N_{2k-1}<i\le N_{2k}\textrm{ for some }k]$. $H_i$ indicates whether $X_i$ is in an ``upcrossing'' stage; however, notice that $H_i=1$ does not necessarily mean that $X_i$ increases from $X_{i-1}$. Furthermore, let $U_i=\sup\{k\ge0|N_{2k}\le i\}$, meaning the number of upcrossings up to step $i$.
+\begin{theorem}[Upcrossing Inequality, \cite{D10} Theorem 5.2.7]
+    Suppose $X_i$ is a submartingale, then for any $i\ge0$,
+    \begin{equation*}
+        (b-a)\mathbb{E}[U_i]\le \mathbb{E}\left[(X_i-a)^+\right]-\mathbb{E}\left[(X_0-a)^+\right].
+    \end{equation*}
+\end{theorem}
+\begin{theorem}[Martingale Convergence Theorem, \cite{D10} Theorem 5.2.8]\label{thm:MGCT}
+    Suppose $X_i$ is a submartingale with $\sup_{i\ge0}\mathbb{E}[X_i^+]<+\infty$. Then $X_i$ converges a.s. to a limit $X$ with $\mathbb{E}\left[|X|\right]<+\infty$.
+
+    Consequently, suppose $X_i$ is a martingale with $\sup_{i\ge0}\mathbb{E}\left[|X_i|\right]<+\infty$. $X_i$ converges a.s. to a limit $X$ with $\mathbb{E}\left[|X|\right]<+\infty$.
+\end{theorem}
+\begin{remark}
+    In Theorem \ref{thm:MGCT}, $X_i$ may not converge to $X$ in $L^1$. See \cite{D10} Example 5.2.3.
+\end{remark}
+
+\section{$L^p$ Convergence}
+\begin{proposition}\label{prop:boundedOptStop}
+    Suppose $X_i$ is a submartingale, $S$ and $T$ are stopping times such that $S\le T\le k$ a.s. Then
+    \begin{equation*}
+        \mathbb{E}[X_S]\le \mathbb{E}[X_T],\quad\textrm{and moreover}\quad X_S\le \mathbb{E}[X_T|\mathcal{F}_S].
+    \end{equation*}
+\end{proposition}
+\begin{proof}
+    To prove the first argument, notice that
+    \begin{equation*}
+        \sum_{i=1}^{k}\mathds{1}_{s<i\le T}(X_i-X_{i-1})=X_T-X_S.
+    \end{equation*}
+    To prove the second argument, notice that for each $A\in \mathcal{F}_S$,
+    \begin{equation*}
+        R=\left\{
+        \begin{array}{ll}
+            S & \textrm{if }\omega\in A, \\
+            T & \textrm{if }\omega\not\in A,
+        \end{array}
+        \right.
+    \end{equation*}
+    is a stopping time, and $S\le R\le k$. Therefore
+    \begin{equation*}
+        0\le \mathbb{E}[X_R]-\mathbb{E}[X_S]=\mathbb{E}_A[X_T-X_S].
+    \end{equation*}
+    Since it is true for any $A\in \mathcal{F}_S$, we know that $X_S\le \mathbb{E}[X_T|\mathcal{F}_S]$.
+\end{proof}
+\begin{theorem}[Doob's Maximal Inequality, \cite{D10} Theorem 5.4.2]
+    Suppose $X_i$ is a non-negative submartingale, $\bar{X}_i=\max_{1\le j\le i}X_j$, and $A=\left\{\omega\middle|\bar{X}_i(\omega)\ge t\right\}$. Then
+    \begin{equation*}
+        P(A)\le \frac{1}{t}\mathbb{E}[X_n\mathds{1}_A]\le \frac{1}{t}\mathbb{E}[X_n].
+    \end{equation*}
+\end{theorem}
+\begin{theorem}[$L^p$ Maximal Inequality, \cite{D10} Theorem 5.4.3]
+    Suppose $X_i$ is a non-negative submartingale such that $\sup_{i\ge0}\|X_i\|_p<+\infty$ for some $p>1$. Then
+    \begin{equation*}
+        \left\|\bar{X}_i\right\|_p\le \frac{p}{p-1}\|X_i\|_p.
+    \end{equation*}
+\end{theorem}
+\begin{theorem}[$L^p$ Convergence Theorem, \cite{D10} Theorem 5.4.5]
+    Suppose $X_i$ is a non-negative submartingale or martingale. For any $p>1$, $X_i$ converges in $L^p$ (and thus a.s.) iff $\sup_{i\ge0}\|X_i\|_p<+\infty$ for some $p>1$.
+\end{theorem}
+
+\section{$L^1$ Convergence}
+A collection of r.v.'s $\{X_i\}_{i\in I}$ is \textbf{uniformly integrable} if
+\begin{equation*}
+    \lim_{C\to+\infty}\sup_{i\in I}\mathbb{E}\left[|X_i|\mathds{1}_{|X_i|\ge C}\right]=0.
+\end{equation*}
+Note that uniform integrability is stronger than tightness and integrability with uniform bound.
+\begin{proposition}[\cite{D10} Theorem 5.5.1]
+    Given a probability space $(\Omega,\mathcal{F},P)$ and $X\in L^1(\Omega,\mathcal{F},P)$, the collection
+    \begin{equation*}
+        \left\{\mathbb{E}[X|\mathcal{G}]\middle|G\textrm{ is a sub-}\sigma\textrm{-algebra of }\mathcal{F}\right\}
+    \end{equation*}
+    is uniformly integrable.
+\end{proposition}
+\begin{proposition}[\cite{D10} Theorem 5.5.2]\label{prop:L1Converge}
+    Suppose $X_i\to X$ a.s., then the following are equivalent:
+    \begin{itemize}
+        \item $X_i$ is uniformly integrable.
+        \item $X_i\to X$ in $L^1$.
+        \item $\mathbb{E}\left[|X_i|\right]\to \mathbb{E}\left[|X|\right]<+\infty$.
+    \end{itemize}
+\end{proposition}
+Using Proposition \ref{prop:L1Converge} and the Martingale Convergence Theorem, we can prove the following result.
+\begin{theorem}[$L^1$ Convergence Theorem, \cite{D10} Theorem 5.5.6]
+    Suppose $X_i$ is a martingale. Then $X_i$ converges in $L^1$ (and thus a.s.) iff $X_i$ is uniformly integrable.
+
+    Suppose $X_i$ is a martingale. Then the following are equivalent:
+    \begin{itemize}
+        \item $X_i$ converges in $L^1$ (and thus a.s.).
+        \item There exists $X\in L^1(\Omega,\mathcal{F},P)$ such that $X_i=\mathbb{E}[X|\mathcal{F}_i]$ for any $i\ge0$.
+        \item $X_i$ is uniformly integrable.
+    \end{itemize}
+\end{theorem}
+\begin{proposition}[\cite{D10} Theorem 5.5.7]
+    Suppose $X\in L^1(\Omega,\mathcal{F},P)$, $\mathcal{F}_i$ is a filtration, $\mathcal{F}_{\infty}=\Sigma\left(\bigcup_{i\ge0}\mathcal{F}_i\right)$. Then $\mathbb{E}[X|\mathcal{F}_i]$ converges to $\mathbb{E}[X|\mathcal{F}_{\infty}]$ a.s. and in $L^1$.
+\end{proposition}
+
+\section{Optional Stopping Theorem}
+In this section, we try to generalize Proposition \ref{prop:boundedOptStop}.
+
+Suppose $X_i$ is a uniformly integrable submartingale and $T$ is a stopping time. $X_{i\wedge T}$, $X_i^+$, and $X_{i\wedge T}^+$ are also supermartingales, and by Proposition \ref{prop:boundedOptStop}, $\mathbb{E}[X_{i\wedge T}^+]\le \mathbb{E}[X_i^+]$ for all $i\ge0$. Therefore $\sup_{i\ge0}\mathbb{E}[X_{i\wedge T}^+]<+\infty$, and by the Martingale Convergence Theorem,
+\begin{equation*}
+    X_{i\wedge T}\to X_T\in L^1(\Omega,\mathcal{F},P)\ a.s.
+\end{equation*}
+Note that here the existence of $X_T$ is guaranteed by the Martingale Convergence Theorem.
+
+\cite{D10} Theorem 5.7.1 tells us that $X_{i\wedge T}$ is also uniformly integrable, and thus by the $L^1$ convergence Theorem, $X_i\to X_{\infty}$ a.s. and in $L^1$, and $X_{i\wedge T}\to X_T$ a.s. and in $L^1$. One consequence is, since Proposition \ref{prop:boundedOptStop} ensures $\mathbb{E}[X_0]\le \mathbb{E}[X_{i\wedge T}]\le \mathbb{E}[X_i]$ for any $i\ge0$, we further have
+\begin{equation*}
+    \mathbb{E}[X_0]\le \mathbb{E}[X_T]\le \mathbb{E}[X_{\infty}].
+\end{equation*}
+
+Using the above results, we can actually prove the following stronger result, which is also a generalization of Proposition \ref{prop:boundedOptStop}.
+\begin{theorem}[Optional Stopping Theorem, \cite{D10} Theorem 5.7.4]
+    Suppose $S\le T$ are stopping times, and $X_{i\wedge T}$ is a uniformly integrable submartingale. Then $\mathbb{E}[X_S]\le \mathbb{E}[X_T]$, and furthermore
+    \begin{equation*}
+        X_S\le \mathbb{E}[X_T|\mathcal{F}_S].
+    \end{equation*}
+\end{theorem}
+
+\begin{theorem}[Wald's First Identity]
+    Suppose $X_i$ are independent r.v.'s with mean $0$ such that
+    \begin{equation*}
+        \sup_{i\ge1}\mathbb{E}\left[|X_i|\right]<+\infty,
+    \end{equation*}
+    and furthermore $T$ is a stopping time w.r.t. the standard filtration with finite mean. Then
+    \begin{equation*}
+        \mathbb{E}[S_T]=0.
+    \end{equation*}
+
+    As a special case, if $X_i$ are i.i.d. with mean $\mu$, and $T$ is a stopping time w.r.t. the standard filtration with finite mean, then
+    \begin{equation*}
+        \mathbb{E}[S_T]=\mu \mathbb{E}[T].
+    \end{equation*}
+\end{theorem}
+\begin{theorem}[Wald's Second Identity]
+    Suppose $X_i$ are independent r.v.'s with mean $0$ such that
+    \begin{equation*}
+        \sup_{i\ge0}\mathbb{E}[X_i^2]<+\infty,
+    \end{equation*}
+    and furthermore $T$ is a stopping time w.r.t. the standard filtration with finite mean. Then
+    \begin{equation*}
+        M_i=S_i^2-\sum_{t=1}^{i}X_t^2
+    \end{equation*}
+    is a martingale w.r.t. the standard filtration, and
+    \begin{equation*}
+        \mathbb{E}[M_T^2]=0.
+    \end{equation*}
+
+    As a special case, if $X_i$ are i.i.d. with mean $0$ and variance $\sigma^2$, and $T$ is a stopping time w.r.t. the standard filtration with finite mean, then
+    \begin{equation*}
+        \mathbb{E}[S_T^2]=\sigma^2 \mathbb{E}[T].
+    \end{equation*}
+\end{theorem}
+\begin{theorem}[Wald's Third Identity]
+    Suppose $X_i$ are i.i.d. r.v.'s such that $\mathbb{E}[e^{\theta X_1}]=\phi(\theta)<+\infty$ for some $\theta$, nd $T$ is a stopping time w.r.t. the standard filtration which is bounded a.s. Then
+    \begin{equation*}
+        \mathbb{E}\left[e^{\theta S_T}\phi(\theta)^{-T}\right]=1.
+    \end{equation*}
+\end{theorem}
+
+\section{Reverse Martingales}
+A sequence of decreasing $\sigma$-algebras
+\begin{equation*}
+    \mathcal{F}_0\supset \mathcal{F}_{-1}\supset\cdots
+\end{equation*}
+is called a \textbf{reverse filtration}. $(X_i)_{i\le0}$ is called a \textbf{reverse martingale} if
+\begin{itemize}
+    \item $X_i\in L^1(\Omega,\mathcal{F}_i,P)$ for all $i\le0$;
+    \item $\mathbb{E}[X_{i+1}|\mathcal{F}_i]=X_i$ for all $i\le-1$.
+\end{itemize}
+\begin{theorem}[\cite{D10} Theorem 5.6.1, 5.6.2]
+    As $i\to-\infty$, $X_i$ converges a.s. and in $L^1$ to some $X_{-\infty}$. Furthermore, let $\mathcal{F}_{-\infty}=\bigcap_{i\le0}\mathcal{F}_i$, then $X_{-\infty}=\mathbb{E}[X_0|\mathcal{F}_{-\infty}]$.
+\end{theorem}
+
+\part{Optimal Transport}
+
+\begin{comment}
+\part{Markov Chains}
+\chapter{Discrete-Time Markov Chains}
+\section{Basic Concepts}
+For discrete-time Markov chains, the state space is assumed to be countable, and thus is denoted by $I$.
+\begin{definition}
+    A stochastic process $(X_t)_{t\ge0}$ is a \textbf{Markov chain} with \textbf{initial distribution} $\lambda$ and \textbf{transition matrix} $P$, or is $\mathrm{Markov}(\lambda,P)$, if
+    \begin{itemize}
+        \item $X_0$ has distribution $\lambda$;
+        \item For any $t\ge0$, conditioned on $X_t=i$, $X_{t+1}$ has distribution $(p_{ij})_{j\in I}$ and is independent of $X_0,\ldots,X_{t-1}$.
+    \end{itemize}
+\end{definition}
+
+We use $\mathrm{Pr}_i(A)$ to denote $\mathrm{Pr}(A|X_0=i)$. We say that $i$ leads to $j$, denoted by $i\rightarrow j$, if
+\begin{equation}
+    \mathrm{Pr}_i(X_t=j\textrm{ for some }t\ge0)>0.
+\end{equation}
+We say $i$ communicates with $j$, denoted by $i\leftrightarrow j$, if $i\rightarrow j$ and $j\rightarrow i$. $\leftrightarrow$ is a equivalence relation on $I$, and partitions $I$ into \textbf{communicating classes}. A chain or transition matrix $P$ is \textbf{irreducible} if $I$ is a single class. Furthermore, a class is \textbf{closed} if for any $i\in C$ and $j \leftarrow i$, we have $j\in C$. A state $i$ is \textbf{absorbing} if $\{i\}$ is a closed class.
+
+\section{Hitting Times and Absorption Probability}
+Let $(X_t)_{t\ge0}$ be $\mathrm{Markov}(\lambda,P)$. The \textbf{hitting time} of $A\subset I$ is a random variable $H^A:\Omega\to\{0,1,\ldots\}\cup\{\infty\}$ given by
+\begin{equation}
+    H^A(\omega)=\inf\{t\ge0|X_t(\omega)\in A\}.
+\end{equation}
+\end{comment}
+
+\part{Concentration Inequalities}
+\chapter{Basic Inequalities}
+\section{Markov's Inequality}
+\begin{theorem}
+    Suppose $X\in L^1$ is non-negative, then for any $t>0$,
+    \begin{equation*}
+        P\del{X\ge t}\le \frac{\mathbb{E}[X]}{t}.
+    \end{equation*}
+\end{theorem}
+
+\section{Chebyshev's Inequality}
+\begin{theorem}
+    Suppose $X\in L^2$, then for any $t>0$,
+    \begin{equation*}
+        P\del{\left|X-\mathbb{E}[X]\right|\ge t}\le \frac{\mathrm{Var}[X]}{t^2}.
+    \end{equation*}
+\end{theorem}
+
+\section{Chernoff Bound}\label{sec:Chernoff}
+Suppose $X$ is a random variable, such that for $\lambda>0$, $\mathbb{E}\left[e^{\lambda X}\right]$ is bounded. Then by Markov's inequality, for any $t\in \mathbb{R}$,
+\begin{equation}\label{eq:MarkovCherPos}
+    \mathrm{Pr}[X\ge t]=\mathrm{Pr}\left[e^{\lambda X}\ge e^{\lambda t}\right]\le \frac{\mathbb{E}\left[e^{\lambda X}\right]}{e^{\lambda t}}.
+\end{equation}
+Similarly, if for $\lambda<0$, $\mathbb{E}[e^{\lambda X}]$ is bounded, then for any $t\in \mathbb{R}$,
+\begin{equation}\label{eq:MarkovCherNeg}
+    \mathrm{Pr}[X\le t]=\mathrm{Pr}\left[e^{\lambda X}\ge e^{\lambda t}\right]\le \frac{\mathbb{E}\left[e^{\lambda X}\right]}{e^{\lambda t}}.
+\end{equation}
+
+Alternatively, let
+\begin{equation}\label{eq:logMGF}
+    \psi_X(\lambda)=\ln \mathbb{E}\left[\exp\left(\lambda\left(X-\mathbb{E}[X]\right)\right)\right].
+\end{equation}
+One can verify by H\"{o}lder and the Monotone Convergence Theorem that $\psi_X$ is closed convex, and its effective domain is thus an interval containing $0$. Furthermore, $\psi_X(0)=0$, $\psi_X(\lambda)\ge0$.
+
+Let $\psi_X^*(t)$ denote the convex conjugate of $\psi_X$. Then $\psi_X^*(t)\ge0$, $\psi_X^*(0)=0$. Moreover, by \eqref{eq:MarkovCherPos} and \eqref{eq:MarkovCherNeg}, one can get that for $t\ge0$,
+\begin{equation}\label{eq:ChernoffPos}
+    \mathrm{Pr}\left[X-\mathbb{E}[X]\ge t\right]\le\exp\left(-\psi^*(t)\right),
+\end{equation}
+and for $t\le0$,
+\begin{equation}\label{eq:ChernoffNeg}
+    \mathrm{Pr}\left[X-\mathbb{E}[X]\le t\right]\le\exp\left(-\psi^*(t)\right).
+\end{equation}
+By properties of the convex conjugate, an upper bound of $\psi_X$ will give us an upper bound of the tail probabilty.
+
+The above observation is the general form of Chernoff bound, which can be applied in many different cases. Here we present one special case of the general Chernoff bound (which is often called "Chernoff bound" directly in practice), which bounds the probability that sum of bounded variables deviates largely and multiplicatively from its expectation.
+
+\begin{theorem}\label{thm:ChernoffMult}
+    Suppose $X=\sum_{i=1}^{n}X_i$, where $X_1,\ldots,X_n$ are independent r.v.'s such that for each $i$, $X_i\in[0,1]$ with $\mathbb{E}[X_i]=\mu_i$. Then for any $\delta>0$,
+    \begin{equation}\label{ChernoffPos}
+        \mathrm{Pr}\left[X\ge(1+\delta)\mathbb{E}[X]\right]\le\left(\frac{e^{\delta}}{(1+\delta)^{1+\delta}}\right)^{\mathbb{E}[X]},
+    \end{equation}
+    and for any $0<\delta<1$,
+    \begin{equation}\label{ChernoffNeg}
+        \mathrm{Pr}\left[X\le(1-\delta)\mathbb{E}[X]\right]\le\left(\frac{e^{-\delta}}{(1-\delta)^{1-\delta}}\right)^{\mathbb{E}[X]}.
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    We prove the first half. For any $\lambda>0$,
+    \begin{equation*}
+        \begin{array}{rcl}
+            \mathrm{Pr}[X\ge(1+\delta)\mathbb{E}[X]] & = & \mathrm{Pr}[e^{\lambda X}\ge e^{\lambda(1+\delta)\mathbb{E}[X]}] \\
+             & \le & \displaystyle \frac{\mathbb{E}[\exp(\lambda \sum_{i=1}^{n}X_i])}{\exp(\lambda(1+\delta)\mathbb{E}[X])} \\
+             & = & \displaystyle \frac{\prod_{i=1}^{n}\mathbb{E}[\exp(\lambda X_i)]}{\exp(\lambda(1+\delta)\mathbb{E}[X])} \\
+             & \le & \displaystyle \frac{\prod_{i=1}^{n}(\mu_ie^{\lambda}+1-\mu_i)}{\exp(\lambda(1+\delta)\mathbb{E}[X])} \\
+             & \le & \displaystyle \frac{\prod_{i=1}^{n}\exp(\mu_i(e^{\lambda}-1))}{\exp(\lambda(1+\delta)\mathbb{E}[X])} \\
+             & = & \displaystyle\left[\frac{\exp(e^{\lambda}-1)}{\exp(\lambda(1+\delta))}\right]^{\mathbb{E}[X]}, \\
+        \end{array}
+    \end{equation*}
+    where the first inequality is due to Markov's inequality, the second one is due to the convexity of the exponential function, and the third one is due to $1+x\le e^x$ for any $x\in \mathbb{R}$. Finally, by taking $\lambda=\ln(1+\delta)$, we get Inequality \eqref{ChernoffPos}.
+\end{proof}
+\begin{corollary}\label{cor:Chernoff}
+    Suppose $X=\sum_{i=1}^{n}X_i$, where $X_1,\ldots,X_n$ are independent binary random variables. Then for any $\delta>0$,
+    \begin{equation}\label{ChernoffPosSpecial}
+        P\del{X\ge(1+\delta)\mathbb{E}[X]}\le\exp\left(-\frac{\delta^2 \mathbb{E}[X]}{2+\delta}\right),
+    \end{equation}
+    and for any $0<\delta<1$,
+    \begin{equation}\label{ChernoffNegSpecial}
+        P\del{X\le(1-\delta)\mathbb{E}[X]}\le\exp\left(-\frac{\delta^2 \mathbb{E}[X]}{2}\right).
+    \end{equation}
+\end{corollary}
+\begin{proof}
+    Inequality \eqref{ChernoffPosSpecial} is due to Inequality \eqref{ChernoffPos} and for $\delta>0$, $\ln(1+\delta)>2\delta/(2+\delta)$. Inequality \eqref{ChernoffNegSpecial} is due to Inequality \eqref{ChernoffNeg} and for $0<\delta<1$, $(1-\delta)\ln(1-\delta)\ge(\delta^2-2\delta)/2$.
+\end{proof}
+
+\section{Sub-Gaussian Random Variables and Hoeffding's Inequality}
+As we can see from \eqref{eq:ChernoffPos} and \eqref{eq:ChernoffNeg}, the general Chernoff bounds depend on the growth rate of the moment generating function. Sub-Gaussianity is one simple condition to put on the moment generating function, which gives Hoeffding's inequality.
+
+To motivate sub-Gaussianity, let us first consider Gaussian variables. Suppose $X\sim \mathcal{N}(0,\sigma^2)$ is a Gaussian variable, then its moment generating function is given by
+\begin{equation*}
+    \mathbb{E}\left[e^{\lambda X}\right]=\exp\left(\frac{\sigma^2\lambda^2}{2}\right),
+\end{equation*}
+for any $\lambda\in \mathbb{R}$. By applying the general Chernoff bound, we have $\mathrm{Pr}[X\ge t]\le \exp\left(-t\lambda+\frac{\sigma^2\lambda^2}{2}\right)$ for any $\lambda>0$ and $t>0$. Let $\lambda=t/\sigma^2$, we have
+\begin{equation*}
+    P\del{X\ge t}\le \exp\left(-\frac{t^2}{2\sigma^2}\right),
+\end{equation*}
+and similarly
+\begin{equation*}
+    P\del{X\le-t}\le\exp\left(-\frac{t^2}{2\sigma^2}\right).
+\end{equation*}
+
+Note that to get the above bound, in fact we only need that the moment generating function of a random variable is upper-bounded by the moment generating function of Gaussian. Therefore we define
+\begin{definition}\label{def:subGaussian}
+    A random variable $X\in L^1$ is \textbf{sub-Gaussian} if there exists a positive number $\sigma$ such that
+    \begin{equation*}
+        \psi_X(\lambda)\le \frac{\sigma^2\lambda^2}{2},
+    \end{equation*}
+    for any $\lambda\in \mathbb{R}$.
+\end{definition}
+By nearly the same argument, we can establish the same concentration bound for sub-Gaussian variables.
+\begin{theorem}
+    Suppose $X\in L^1$ is sub-Gaussian with parameter $\sigma$. Then for any $t>0$, we have
+    \begin{align*}
+        P\del{X\ge \mathbb{E}[X]+t} & \le\exp\left(-\frac{t^2}{2\sigma^2}\right), \\
+        P\del{X\le \mathbb{E}[X]-t} & \le\exp\left(-\frac{t^2}{2\sigma^2}\right).
+    \end{align*}
+\end{theorem}
+It is easy to see that sub-Gaussianity is preserved under independent sum. Thus we have
+\begin{corollary}
+    Suppose $X=\sum_{i=1}^{n}X_i$, where $X_i\in L^1$ are independent such that for each $i$, $X_i$ is sub-Gaussian with parameter $\sigma_i$. Then for any $t>0$,
+    \begin{align*}
+        P\del{X\ge \mathbb{E}[X]+t} & \le\exp\left(-\frac{t^2}{2 \sum_{i=1}^{n}\sigma_i^2}\right), \\
+        P\del{X\le \mathbb{E}[X]-t} & \le\exp\left(-\frac{t^2}{2 \sum_{i=1}^{n}\sigma_i^2}\right).
+    \end{align*}
+\end{corollary}
+
+Now what we need is some concrete sub-Gaussian variables. Below are some examples.
+\begin{example}[Rademacher Variables]
+    A Rademacher variable $X$ takes $+1$ with probability $1/2$, and $-1$ with probability $1/2$. It is sub-Gaussian with parameter $1$:
+    \begin{align*}
+            \mathbb{E}\left[e^{\lambda X}\right] & =\frac{1}{2}\left(e^{\lambda}+e^{-\lambda}\right) \\
+             & =\frac{1}{2}\left(\sum_{i=0}^{\infty}\frac{\lambda^i}{i!}+\sum_{i=0}^{\infty}\frac{(-\lambda)^i}{i!}\right) \\
+             & =\sum_{i=0}^{\infty}\frac{\lambda^{2i}}{(2i)!} \\
+             & \le1+\sum_{i=1}^{\infty}\frac{\lambda^{2i}}{2^ii!} \\
+             & =\exp\left(\frac{\lambda^2}{2}\right).
+    \end{align*}
+\end{example}
+\begin{example}[Bounded Random Variables]
+    Suppose $X$ is a random variable on $[a,b]$ with mean $0$. Then $X$ is sub-Gaussian with parameter $b-a$. To see this, we make use of the symmetrization technique. Let $X'$ be an independent copy of $X$, and let $\epsilon$ be an independent Rademacher random variable. $X-X'$ have the same distribution as $\epsilon(X-X')$. Thus
+    \begin{align*}
+        \mathbb{E}_{X}\left[e^{\lambda X}\right] & =\mathbb{E}_{X}\left[e^{\lambda\left(X-\mathbb{E}[X']\right)}\right] \\
+             & \le \mathbb{E}_{X,X'}\left[e^{\lambda(X-X')}\right] \\
+             & =\mathbb{E}_{X,X',\epsilon}\left[e^{\lambda\epsilon(X-X')}\right] \\
+             & =\mathbb{E}_{X,X'}\left[\mathbb{E}_{\epsilon}\left[e^{\lambda\epsilon(X-X')}\right]\right] \\
+             & \le \mathbb{E}_{X,X'}\left[\exp\left(\frac{\lambda^2(X-X')^2}{2}\right)\right] \\
+             & \le \frac{\lambda^2(b-a)^2}{2}.
+    \end{align*}
+\end{example}
+In fact, a random variable bounded by $[a,b]$ is sub-Gaussian with parameter $(b-a)/2$, as given by the following lemma:
+\begin{lemma}[Hoeffding's Lemma]\label{HoeffdingLem}
+    Suppose $X$ is a random variable on $[a,b]$ with $\mathbb{E}[X]=0$. Then for any $\lambda\in \mathbb{R}$,
+    \begin{equation*}
+        \mathbb{E}\left[e^{\lambda X}\right]\le\exp\left(\frac{\lambda^2(b-a)^2}{8}\right).
+    \end{equation*}
+\end{lemma}
+The proof is based on a uniform bound on $\psi^{''}_X(\lambda)$ and Taylor. Consequently, we have the following common form of Hoeffding's inequality:
+\begin{theorem}\label{HoeffdingIneqThm}
+    Suppose $X=\sum_{i=1}^{n}X_i$, where $X_1,\ldots,X_n$ are independent random variables and for each $i$, $X_i\in[a_i,b_i]$. Then for any $t>0$,
+    \begin{align*}
+        P\del{X-\mathbb{E}[X]\ge t} & \le\exp\left(-\frac{2t^2}{\sum_{i=1}^{n}(b_i-a_i)^2}\right), \\
+        P\del{X-\mathbb{E}[X]\le -t} & \le\exp\left(-\frac{2t^2}{\sum_{i=1}^{n}(b_i-a_i)^2}\right).
+    \end{align*}
+\end{theorem}
+\begin{remark}
+    Hoeffding's inequality can be strengthened when all variables are near their upper bound or lower bound. Please refer to \citep{SW09} Appendix A.4.
+\end{remark}
+
+\section{Sub-Gamma Random Variables and Bernstein's Inequality}
+An even weaker notion than sub-exponential variables is sub-Gamma variables.
+\begin{definition}\label{Def:subGamma}
+    A random variable $X\in L^1$ is \textbf{sub-Gamma on the right tail} with parameters $(\sigma,b)$ if for all $0\le\lambda<1/b$, we have
+    \begin{equation*}
+        \psi_X(\lambda)\le\frac{\sigma^2\lambda^2}{2(1-b\lambda)}.
+    \end{equation*}
+    Similarly, $X$ is sub-Gamma on the left tail with parameters $(\sigma,b)$ if $-X$ is sub-Gamma on the right tail with parameters $(\sigma,b)$. Finally, $X$ is sub-Gamma with parameters $(\sigma,b)$ if it is sub-Gamma on both the left and the right tail with parameters $(\sigma,b)$.
+\end{definition}
+\begin{example}
+    Consider the Gamma distribution $\mathrm{Gamma}(k,\theta)$ with shape parameter $k>0$ and scale parameter $\theta>0$. The mean is $k\theta$ and the variance is $k\theta^2$. In Section 2.4 of \cite{BLM13}, it is shown that the Gamma distribution is $(k\theta^2,\theta)$ on the right tail and $(k\theta^2,0)$ on the left tail.
+\end{example}
+The next inequality captures the full potential of the sub-Gamma property.
+\begin{theorem}
+    Suppose $X\in L^1$ is sub-Gamma on the right tail with parameters $(\sigma,b)$. Then for any $t>0$,
+    \begin{equation*}
+        P\del{X-\mathbb{E}[X]\ge\sqrt{2\sigma^2t}+bt}\le e^{-t}.
+    \end{equation*}
+\end{theorem}
+The following inequality relaxes the sub-Gamma property a little.
+\begin{theorem}
+    Suppose $X\in L^1$ is sub-Gamma on the right tail with parameters $(\sigma,b)$. Then for any $t>0$
+    \begin{equation*}
+        P\del{X-\mathbb{E}[X]\ge t}\le\exp\left(-\frac{t^2}{2(\sigma^2+bt)}\right).
+    \end{equation*}
+\end{theorem}
+\begin{proof}
+    One can just use the Chernoff bound and let $\lambda=t/(bt+\sigma^2)$.
+\end{proof}
+Sub-Gammaness is preserved under independent sum.
+
+\begin{example}[Bernstein's Condition]
+    A random variable $X$ with mean $\mu$ satisfies the \textbf{Bernstein's condition} with parameters $(\sigma,b)$ if for any integer $i\ge2$,
+    \begin{equation*}
+        \mathbb{E}\sbr[1]{|X-\mu|^i}\le \frac{1}{2}i!\sigma^2b^{i-2}.
+    \end{equation*}
+    If $X$ is bounded with $\Delta_X\le2b$ and $\mathrm{Var}[X]\le\sigma^2$, then we have
+    \begin{equation*}
+        \mathbb{E}\sbr[1]{|X-\mu|^i}\le \frac{1}{2}i!\sigma^2b^{i-2}.
+    \end{equation*}
+    However, unbounded variables may also satisfy Bernstein's condition.
+
+    If $X$ satisfies Bernstein's condition, then $X$ is sub-Gamma with parameters $(\sigma,b)$.
+    \begin{align*}
+        \mathbb{E}\left[e^{\lambda(X-\mu)}\right] & \le1+\frac{\lambda^2\sigma^2}{2}+\sum_{i=3}^{\infty}\frac{\lambda^2\sigma^2}{2}(|\lambda|b)^{i-2} \\
+         & =1+\frac{\lambda^2\sigma^2}{2(1-|\lambda|b)} \\
+         & \le\exp\left(\frac{\lambda^2\sigma^2}{2(1-|\lambda|b)}\right).
+    \end{align*}
+\end{example}
+
+\section{A Maximal Inequality}
+In this section, we consider having an estimate of the maximum of some random variables. We have for $\lambda>0$,
+\begin{align*}
+    \exp\left(\lambda \mathbb{E}\left[\max_{1\le i\le n}X_i\right]\right) & \le \mathbb{E}\left[\exp\left(\lambda\max_{1\le i\le n}X_i\right)\right] \\
+     & =\mathbb{E}\left[\max_{1\le i\le n}\exp(\lambda X_i)\right] \\
+     & \le \mathbb{E}\left[\sum_{i=1}^{n}\exp(\lambda X_i)\right] \\
+     & =\sum_{i=1}^{n}\mathbb{E}[\exp(\lambda X_i)].
+\end{align*}
+Take logarithm on by sides, we have
+\begin{equation*}
+    \mathbb{E}\left[\max_{1\le i\le n}X_i\right]\le \frac{1}{\lambda}\ln\left(\sum_{i=1}^{n}\mathbb{E}[\exp(\lambda X_i)]\right).
+\end{equation*}
+
+Now suppose $X_i$ is a sub-Gaussian random variable with mean $0$ and parameter $\sigma$. By letting $\lambda=\sqrt{2\ln n}/\sigma$, we have
+\begin{equation*}
+    \mathbb{E}\left[\max_{1\le i\le n}X_i\right]\le\sigma\sqrt{2\ln n}.
+\end{equation*}
+If $X_i$ has zero mean, and is sub-Gamma on the right tail with parameter $(\sigma,b)$, then similarly we have
+\begin{equation*}
+    \mathbb{E}\left[\max_{1\le i\le n}X_i\right]\le\sigma\sqrt{2\ln n}+b\ln n.
+\end{equation*}
+
+\bibliography{Notes_on_Probability}
+\bibliographystyle{plainnat}
+
+\appendix
+
+\chapter{Dynkin's System}\label{chpApp:piLambda}
+\begin{definition}
+    A collection $\mathcal{A}$ of subsets of non-empty $\Omega$ is a $\boldsymbol{\pi}$\textbf{-system} if it contains $\Omega$ and is closed under intersection.
+
+    $\mathcal{A}$ is a $\boldsymbol{\lambda}$\textbf{-system} if
+    \begin{itemize}
+        \item $\Omega\in \mathcal{A}$;
+        \item If $A,B\in \mathcal{A}$ and $A\subset B$, then $B-A\in \mathcal{A}$;
+        \item If $A_n\in \mathcal{A}$ and $A_n\uparrow A$, then $A\in \mathcal{A}$.
+    \end{itemize}
+    Or Equivalently,
+    \begin{itemize}
+        \item $\Omega\in \mathcal{A}$;
+        \item If $A\in \mathcal{A}$, then $\Omega-A\in \mathcal{A}$;
+        \item If $A_n\in \mathcal{A}$ and $A_i\cap A_j=\emptyset$ for all $i\ne j$, then $\bigcup_{n\ge1}A_i\in \mathcal{A}$.
+    \end{itemize}
+
+    $\mathcal{A}$ is a \textbf{monotone class} if it contains $\Omega$, and is closed under countable monotone unions and intersections.
+\end{definition}
+\begin{remark}
+    For the definition of $\pi$-system and monotone class, usually it is not required that $\Omega\in \mathcal{A}$. However, this inclusion loses no generality, and will simplify many expressions.
+\end{remark}
+
+A $\sigma$-algebra is a $\lambda$-system, while a $\lambda$-system is a monotone class. If $\mathcal{A}$ is both a $\pi$-system and a $\lambda$-system, then $\mathcal{A}$ is a $\sigma$-algebra. The following theorem is an important generalization.
+\begin{theorem}[Dynkin's $\pi$-$\lambda$ Theorem]\label{thm:piLambda}
+    If $\mathcal{A}$ is a $\pi$-system, $\mathcal{B}$ is a $\lambda$-system, and $\mathcal{A}\subset \mathcal{B}$, then $\Sigma(\mathcal{A})\subset \mathcal{B}$. Equivalently, the minimal $\lambda$-system generated by $\mathcal{A}$ is $\Sigma(\mathcal{A})$.
+\end{theorem}
+\begin{theorem}[The Monotone Class Theorem]\label{thm:monotoneClass}
+    Let $\mathcal{A}$ be an algebra, then the minimal monotone class generated by $\mathcal{A}$ equals $\Sigma(\mathcal{A})$.
+\end{theorem}
+\begin{remark}
+    \Cref{thm:piLambda} and \ref{thm:monotoneClass} are equivalent. See \href{https://math.stackexchange.com/questions/1841193/monotone-class-theorem-and-another-similar-theorem}{here}.
+\end{remark}
+\begin{trick}
+    \Cref{thm:piLambda} and \ref{thm:monotoneClass} usually applied in the following way: We first show that the collection satisfying some good property is a $\lambda$-system (or monotone class), which contains some $\pi$-system (or algebra) $\mathcal{A}$. Then $\Sigma(\mathcal{A})$ also satisfies this good property.
+\end{trick}
+
+\end{document}
+
+
+\section{Martingales, Azuma's Inequality, and McDiarmid's Inequality}
+In this section we describe Azuma's inequality, which is based on martingales. We do not consider martingales in full generality.
+
+\begin{definition}
+    A \textbf{discrete-time martingale} is a sequence of integrable random variables $(Y_{\tau})_{\tau=0}^{\infty}$, such that for any $\tau\ge0$, we have
+    \begin{equation}
+        \mathbb{E}[Y_{\tau+1}|Y_1,\ldots,Y_{\tau}]=Y_\tau.
+    \end{equation}
+
+    More generally, a sequence of integrable random variables $(Y_{\tau})_{\tau=0}^{\infty}$ is a martingale w.r.t. sequence of random variables $(X_{\tau})_{\tau=1}^{\infty}$ if for any $\tau\ge0$, we have
+    \begin{equation}
+        \mathbb{E}[Y_{\tau+1}|X_1,\ldots,X_{\tau}]=Y_{\tau}.
+    \end{equation}
+\end{definition}
+\begin{remark}
+    It is more natural to define martingales using filtration.
+\end{remark}
+
+Given a martingale $(Y_{\tau})_{\tau=0}^{\infty}$, the sequence $(D_{\tau})_{\tau=1}^{\infty}$ given by $D_{\tau}=Y_{\tau}-Y_{\tau-1}$ for $\tau\ge1$ is called the martingale difference sequence.
+\begin{theorem}
+    Given a martingale $(Y_{\tau})_{\tau=0}^{\infty}$ and the associated martingale difference sequence $(D_{\tau})_{\tau=1}^{\infty}$, if for any $\tau\ge0$ and $\lambda\in \mathbb{R}$, $\mathbb{E}[e^{\lambda D_{\tau+1}}|X_1,\ldots,X_{\tau}]\le\exp\left(\frac{\lambda^2\sigma_{\tau+1}^2}{2}\right)$ almost surely, then
+    $\sum_{\tau=1}^{T}D_{\tau}$ is a sub-Gaussian random variable with parameter $\sqrt{\sum_{\tau=1}^{T}\sigma_{\tau}^2}$, and thus for any $T\ge1$,
+    \begin{equation}
+        \mathrm{Pr}[Y_T-Y_0\ge t]=\mathrm{Pr}\left[\sum_{\tau=1}^{T}D_{\tau}\ge t\right]\le\exp\left(-\frac{t^2}{2 \sum_{\tau=1}^{T}\sigma_{\tau}^2}\right),
+    \end{equation}
+    \begin{equation}
+        \mathrm{Pr}[Y_T-Y_0\le -t]=\mathrm{Pr}\left[\sum_{\tau=1}^{T}D_{\tau}\le -t\right]\le\exp\left(-\frac{t^2}{2 \sum_{\tau=1}^{T}\sigma_{\tau}^2}\right).
+    \end{equation}
+\end{theorem}
+\begin{corollary}[Azuma's Inequality]
+    Given a martingale $(Y_{\tau})_{\tau=0}^{\infty}$ and the associated martingale difference sequence $(D_{\tau})_{\tau=1}^{\infty}$, suppose for any $\tau\ge1$, $|D_{\tau}|\le\sigma_{\tau}$ almost surely. Then for any $t>0$,
+    \begin{equation}\label{AzumaIneqPos}
+        \mathrm{Pr}[Y_T-Y_0\ge t]=\mathrm{Pr}\left[\sum_{\tau=1}^{T}D_{\tau}\ge t\right]\le\exp\left(-\frac{t^2}{2 \sum_{\tau=1}^{T}\sigma_{\tau}^2}\right),
+    \end{equation}
+    \begin{equation}\label{AzumaIneqNeg}
+        \mathrm{Pr}[Y_T-Y_0\le -t]=\mathrm{Pr}\left[\sum_{\tau=1}^{T}D_{\tau}\le -t\right]\le\exp\left(-\frac{t^2}{2 \sum_{\tau=1}^{T}\sigma_{\tau}^2}\right).
+    \end{equation}
+\end{corollary}
+If we apply Azuma's inequality to the Doob martingale, then we can get the following result.
+\begin{corollary}[McDiarmid's Inequality]
+    Let $X_1,\ldots,X_n$ be independent real-valued random variables, and $f:\mathbb{R}^n\to \mathbb{R}$. Suppose for any $1\le i\le n$, any $x_{-i}$, and any $x_i,x_i'$, we have $|f(x_i,x_{-i})-f(x_i',x_{-i})|\le c_i$. Then for any $t>0$,
+    \begin{equation}\label{McDiarmidIneqPos}
+        \mathrm{Pr}\left[f(X)-\mathbb{E}[f(X)]\ge t\right]\le\exp\left(-\frac{2t^2}{\sum_{i=1}^{n}c_i^2}\right),
+    \end{equation}
+    \begin{equation}\label{McDiarmidIneqNeg}
+        \mathrm{Pr}\left[f(X)-\mathbb{E}[f(X)]\le-t\right]\le\exp\left(-\frac{2t^2}{\sum_{i=1}^{n}c_i^2}\right).
+    \end{equation}
+\end{corollary}
+\begin{remark}
+    In Doob martingale, $X_i$ do not need to be independent, while in McDiarmid's inequality, we need $X_i$ to be independent to ensure bounded change.
+\end{remark}
+
+
+\section{Association Inequalities}
+\begin{theorem}
+    Given $f,g:\mathbb{R}\to \mathbb{R}$, $X$ a real-valued random variable, $Y$ a real-valued non-negative variable. If $f$ and $g$ are non-decreasing, then
+    \begin{equation}
+        \mathbb{E}[Y]\mathbb{E}[Yf(X)g(X)]\ge \mathbb{E}[Yf(X)]\mathbb{E}[Yg(X)].
+    \end{equation}
+    If $f$ is non-decreasing and $g$ is non-increasing, Then
+    \begin{equation}
+        \mathbb{E}[Y]\mathbb{E}[Yf(X)g(X)]\le \mathbb{E}[Yf(X)]\mathbb{E}[Yg(X)].
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    Let $(X',Y')$ have the same distribution with but independent of $(X,Y)$. If $f$ and $g$ are non-decreasing, then we have
+    \begin{equation*}
+        YY'(f(X)-f(X'))(g(X)-g(X'))\ge 0.
+    \end{equation*}
+    Taking expectation on both sides and the theorem is proved.
+\end{proof}
+\begin{theorem}[Harris' Inequality, \cite{BLM13} Theorem 2.15]
+    Given $f,g:\mathbb{R}^n\to \mathbb{R}$, $X=(X_1,\ldots,X_n)$ where $X_i$ are independent real-valued random variables. If $f$ and $g$ are non-decreasing, then
+    \begin{equation}
+        \mathbb{E}[f(X)g(X)]\ge \mathbb{E}[f(X)]\mathbb{E}[g(X)].
+    \end{equation}
+    If $f$ is non-decreasing and $g$ is non-increasing, Then
+    \begin{equation}
+        \mathbb{E}[f(X)g(X)]\le \mathbb{E}[f(X)]\mathbb{E}[g(X)].
+    \end{equation}
+\end{theorem}
+
+\section{Application: Sampling from a Finite Population}
+Let $\mathcal{C}=\{c_1,\ldots,c_N\}$ denote a finite population of real numbers, $X_1,\ldots,X_n$ denote $n$ samples from $\mathcal{C}$ without replacement, and $Y_1,\ldots,Y_n$ denote $n$ samples from $\mathcal{C}$ with replacement. Let
+\begin{equation}
+    \mu=\frac{1}{N}\sum_{i=1}^{N}c_i,
+\end{equation}
+and
+\begin{equation}
+    \sigma^2=\frac{1}{N}\sum_{i=1}^{N}(c_i-\mu)^2.
+\end{equation}
+Then $\overline{Y}=\frac{1}{n}\sum_{i=1}^{n}Y_i$ has mean $\mu$ and variance $\frac{\sigma^2}{n}$, while $\overline{X}=\frac{1}{n}\sum_{i=1}^{n}X_i$ has mean $\mu$ and variance $\frac{N-n}{N-1}\frac{\sigma^2}{n}$.
+
+Hoeffding's inequality and Bernstein's inequality can bound the probablity that $\overline{Y}$ deviates largely from $\mu$.
+\begin{corollary}
+    Let $\Delta=\max_{1\le i\le N}c_i-\min_{1\le i\le N}c_i$. We have the following inequalities:
+    \begin{eqnarray}
+        \mathrm{Pr}[\overline{Y}\ge\mu+t] & \le & \exp\left(-\frac{2nt^2}{\Delta^2}\right), \\
+        \mathrm{Pr}[\overline{Y}\le\mu-t] & \le & \exp\left(-\frac{2nt^2}{\Delta^2}\right), \\
+        \mathrm{Pr}[\overline{Y}\ge\mu+t] & \le & \exp\left(-\frac{nt^2}{2\sigma^2+t\Delta}\right), \\
+        \mathrm{Pr}[\overline{Y}\le\mu-t] & \le & \exp\left(-\frac{nt^2}{2\sigma^2+t\Delta}\right).
+    \end{eqnarray}
+\end{corollary}
+
+We will show next that the same bounds hold for $\overline{X}$. This result comes from the above proofs and the following theorem:
+\begin{theorem}[\cite{H63} Theorem 4]\label{ExpectationNoReplacementThm}
+    If $f$ is convex, and $\sum_{i=1}^{n}Y_i$ always takes value in $\mathbf{dom}\,f$, then
+    \begin{equation}
+        \mathbb{E}[f(\sum_{i=1}^{n}X_i)]\le \mathbb{E}[f(\sum_{i=1}^{n}Y_i)].
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    Consider a function $g$ of $n$ variables. There exists another function $\tilde{g}$, such that
+    \begin{equation}\label{auxiliaryExpectation}
+        \mathbb{E}[g(Y_1,\ldots,Y_n)]=\mathbb{E}[\tilde{g}(X_1,\ldots,X_n)].
+    \end{equation}
+    $\tilde{g}$ is not unique, even if we require that $\tilde{g}$ is symmetric (i.e., suppose $(x_1',\ldots,x_n')$ is an arbitrary permutation of $(x_1,\ldots,x_n)$, then $\tilde{g}(x_1',\ldots,x_n')=\tilde{g}(x_1,\ldots,x_n)$). Here is one way of constructing $\tilde{g}$: For every sample $(y_1,\ldots,y_n)$ of $(Y_1,\ldots,Y_n)$, let $U=\{y_1,\ldots,y_n\}$ (the size of which might be less than $n$), and let $S=\{(x_1,\ldots,x_n)|x_1,\ldots,x_n\textrm{ are distinct},U\subset\{x_1,\ldots,x_n\}\}$. The coefficient of term $(y_1,\ldots,y_n)$, $\frac{1}{N^n}$, is then evenly distributed among terms in $S$. $\tilde{g}$ we get in this way is symmetric.
+
+    Now consider a special case of $g$, $g(y_1,\ldots,y_n)=f(\sum_{i=1}^{n}y_i)$. Based on the above construction, for any distinct $x_1,\ldots,x_n$,
+    \begin{equation}\label{auxiliaryConstruction}
+        \tilde{g}(x_1,\ldots,x_n)=\sum_{\substack{r_1,\ldots,r_n\ge0\\r_1+\cdots r_n=n}}^{}p(r_1,\ldots,r_n)f\left(\sum_{i=1}^{n}r_ix_i\right).
+    \end{equation}
+    Here the coefficients $p(r_1,\ldots,r_n)$ do not depend on $f$ or $x_i$'s. Let $f=1$, then by \eqref{auxiliaryExpectation} and \eqref{auxiliaryConstruction}, we know that $\sum_{}^{}p(r_1,\ldots,r_n)=1$. Let $f(x)=x$, we know that $\tilde{g}$ is now a symmetric linear function, in other words, $\tilde{g}(x_1,\ldots,x_n)=C \sum_{i=1}^{n}x_i$. Again by \eqref{auxiliaryExpectation}, we know that $C=1$. In other words, for any distinct $x_1,\ldots,x_n$,
+    \begin{equation}
+        \sum_{i=1}^{n}x_i=\sum_{\substack{r_1,\ldots,r_n\ge0\\r_1+\cdots r_n=n}}^{}p(r_1,\ldots,r_n)\left(\sum_{i=1}^{n}r_ix_i\right).
+    \end{equation}
+    By the conditions of Theorem \ref{ExpectationNoReplacementThm} and Jensen's inequality, we have that for any distinct $x_1,\ldots,x_n$,
+    \begin{equation}
+        \tilde{g}(x_1,\ldots,x_n)\ge f(\sum_{i=1}^{n}x_i)=g(x_1,\ldots,x_n).
+    \end{equation}
+    The theorem is proved by taking expectation on both sides.
+\end{proof}
+
+By Theorem \ref{ExpectationNoReplacementThm} and the convexity of $f(x)=e^{tx}$ for any $t$, we know that the proof of Hoeffding's inequality still goes through. As a result,
+\begin{corollary}
+    Let $\Delta=\max_{1\le i\le N}c_i-\min_{1\le i\le N}c_i$. Then we have
+    \begin{eqnarray}
+        \mathrm{Pr}[\overline{X}\ge\mu+a] & \le & \exp\left(-\frac{2na^2}{\Delta^2}\right), \\
+        \mathrm{Pr}[\overline{X}\le\mu-a] & \le & \exp\left(-\frac{2na^2}{\Delta^2}\right), \\
+        \mathrm{Pr}[\overline{X}\ge\mu+t] & \le & \exp\left(-\frac{nt^2}{2\sigma^2+t\Delta}\right), \\
+        \mathrm{Pr}[\overline{X}\le\mu-t] & \le & \exp\left(-\frac{nt^2}{2\sigma^2+t\Delta}\right).
+    \end{eqnarray}
+\end{corollary}

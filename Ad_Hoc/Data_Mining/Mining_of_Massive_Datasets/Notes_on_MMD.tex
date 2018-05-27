@@ -1,0 +1,330 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\title{Notes on Mining of Massive Datasets}
+\author{Ziwei Ji}
+
+\begin{document}
+\maketitle
+
+\section*{What is Data Mining?}
+There are many different interpretations of data mining. Below are some of them:
+\paragraph{Statistical Modeling} 
+Here we try to construct a distribution from which the visible data is drawn. However, inspired by the Bonferroni's principle, it may be hard to extract features which actually appear frequently due to randomness.
+
+\paragraph{Machine Learning}
+Sometimes it is quite useful to apply machine learning algorithms to datasets, especially when we are not sure what to look for in the data. However, if we are sure which features are important and how they make a difference, directly-designed algorithms can beat machine learning algorithms.
+
+\paragraph{Computational Approach}
+The task of data mining can be seen as answering certain kinds of queries.
+
+\paragraph{Summarization}
+Summarization of datasets is an important type of queries. For example,
+\begin{itemize}
+\item PageRank
+\item Clustering
+\end{itemize}
+
+\paragraph{Feature Extraction}
+\begin{itemize}
+\item Frequent itemsets
+\item Similar items
+\end{itemize}
+
+\section*{MapReduce and Distributed File Systems}
+In cluster computing, compute nodes are typically first grouped into racks using high-bandwidth networks. There may be multiple racks, which in turn are connected by another level of network. Such a structure will give rise to two principles in distributed computation:
+\begin{itemize}
+\item Files must be stored redundantly; that's why we need a distributed file system.
+\item Computations must be divided into tasks so that the failure of a single or a small number of tasks won't impede the whole performance. Here comes the MapReduce framework.
+\end{itemize}
+
+\paragraph{Distributed File Systems}
+In a DFS, first a file will be divided into chunks and then replicated multiple times. Different replications will be stored on different compute nodes on different racks. The locations of those replications are stored in a so-called master node or name node, which itself can be replicated.
+
+\paragraph{MapReduce}
+In a MapReduce system, all we need to do is to write the Map function and Reduce function. The whole system runs as below:
+\begin{enumerate}
+\item There are multiple Map tasks, each of which is given one or more chunks and produces a sequence of key-value pairs.
+\item The key-value pairs produced by all the Map tasks are gathered by a master controller and grouped by key.
+\item Each key-value pair is assigned to a Reduce task using a hash function of the key. Each Reduce task may process more than one key. The outputs of Reduce tasks are still key-value pairs, whose type may be identical or different to the type of the outputs of the Map tasks.
+\end{enumerate}
+
+The MapReduce framework can be used to do matrix-vector multiplication, relational-algebra operations, matrix multiplications, etc.
+
+In the MapReduce system, there is a master node which distribute tasks among compute nodes, A compute node will deliver its output only if it has completed its task. Thus if a failed node is discovered, we only need to reassign its task to another node or itself.
+
+\paragraph{Extensions to MapReduce} 
+There also exist some extensions to MapReduce. Below are some examples:
+\begin{itemize}
+\item Workflow systems.
+
+In a workflow system, the two-stage structure in a MapReduce system is replaced with an acyclic workflow structure. One of its advantage is that we can avoid much communication.
+
+\item Recursive extensions to MapReduce
+
+\item Pregel
+
+In the Pregel system, computations are organized into supersteps. The Pregel system will checkpoint and make a copy of the state of the system every $k$ supersteps, where $k$ is selected such that the probability of a failure between two checkpoints is low.
+\end{itemize}
+
+\paragraph{The Communication Cost Model}
+The communication cost of a task is the size of input to this task. The communication cost of an algorithm is the sum of communication cost of all the tasks which implement the algorithm.
+
+\paragraph{Complexity Theory for MapReduce}
+Usually there are many MapReduce algorithms with different communication costs for a given problem. Typically we will notice that as the communication cost decreases, other costs such as the wall clock time and the main memory required increase.
+
+There are two important parameters when considering MapReduce algorithms. One is the replication rate, which refers to the average communication from Map tasks to Reduce tasks per input. This parameter is closely related to communication cost. Another parameter is the reducer size. To make the reducer size small, one can ensure a high degree of parallelism and little communication between the main memory and disk. Typically, there is a tradeoff between replication rate and reducer size.
+
+Using graph models and mapping schemas for MapReduce problems, we can derive a lower bound on replication rate.
+For example, consider the matrix multiplication problem. The one-pass algorithm gives $r=2n^2/q$, and the lower bound of $r$ is also $2n^2/q$. However, with $q$ fixed, the two-pass MapReduce algorithm for matrix multiplication has less communication cost.
+
+\section*{Finding Similar Items}
+\paragraph{Similarities of Sets}
+The Jaccard similarity of sets $S$ and $T$ is defined as $|S\cap T|/|S\cup T|$. 
+
+The similarity of sets has many applications in online purchases, movie ratings, etc. However, usually some preprocessing is needed. For example, when dealing with ratings, there are multiple choices: ignoring low ratings, distinguishing between liked and hated items, or giving different weights to high ratings and low ratings.
+
+\paragraph{Turning Documents to Sets}
+A $k$-shingle of a document is any substring of length $k$ of the document. $k$ should be chosen to make sure that any $k$-shingle appears in any document with a low probability. We need to consider the length of a typical document, the size of the alphabet, different frequencies of different characters, etc. Since some characters appear very rarely, it is useful to further hash shingles to some number of buckets.
+
+Specifically, when dealing with news articles, it is effective to treat any stop word followed by the next two words as a single. Such a method will focus more on news articles than on surrounding materials.
+
+\paragraph{Min-Hashing}
+To compute a min-hash signature of a set, we do as follows:
+\begin{enumerate}
+\item Using a matrix to represent the set
+\item Pick a random permutation of the rows
+\item Compute the first row where there is a 1 after the permutation
+\item Similarly, we can compute a min-hash signature using multiple random permutations. What's more, since permutation is hard to compute for a large number of rows, it is still acceptable to use a random hash function with not too many collisions.
+\end{enumerate}
+
+Below is a key property of min-hash: The probability that the min-hash value of two sets are identical is equal to their Jaccard similarity.
+
+\paragraph{Locality-Sensitive Hashing}
+Even if we have computed the min-hash signature of sets, it may still be difficult to find pairs with large similarities. The reason is that there may be too many pairs. To address this problem, we need locality-sensitive hashing.
+
+First, we divide the signatures into multiple bands. Then for each column and each band, we apply a hash function to it. If two columns fall into the same bucket for at least one band, this pair becomes a candidate pair for which we will compute the exact similarity. 
+
+Suppose the number of bands is $b$ and the number of rows in each band is $r$. Then the probability that two columns will become a candidate pair is $1-(1-s^r)^b$. If we draw the graph of such a function, a sharp threshold will be observed. 
+
+\paragraph{Distance Measures} There are many different distance measures:
+\begin{itemize}
+\item Euclidean distance
+\item Cosine distance
+\item Hamming distance
+\item Jaccard distance: one minus the Jaccard similarity
+\item Edit distance: The edit distance between two strings is the minimum number of deletions and insertions required to turn one string to the other.
+\end{itemize}
+
+\paragraph{Locality-Sensitive Functions} We consider a family $\mathbf{F}$ of functions which hash items. We also use a measure function $d$.
+
+A family $\mathbf{F}$ of functions is said to be $(d_1,d_2,p_1,p_2)$-sensitive ($d_1<d_2$) if for all $f\in\mathbf{F}$, $d(x,y)\le d_1$ implies $\mathrm{Prob}[f(x)=f(y)]\ge p_1$ and $d(x,y)\ge d_2$ implies $\mathrm{Prob}[f(x)=f(y)]\le p_2$.
+
+Then we can amplify a locality-sensitive family by combining AND-constructions and OR-constructions. A combination of an AND-construction and an OR-construction will result in an S-curve, and if we select $p_1$ and $p_2$ such that they lie on different sides of the fixed point of the S-curve, we can raise $p_1$ and reduce $p_2$ by applying such a combination. In other words, we reduce both false-positiveness and false-negativeness. What's more, we can cascade such constructions as much as we like. However, as we combine more and more such constructions and make $p_1$ and $p_2$ apart from each other, we also need to suffer more and more computation.
+
+Below are some locality-sensitive families for some distance measures:
+\begin{itemize}
+\item Hamming distance: We pick a random position and see if two strings agree on this position. This is a $(d_1,d_2,1-d_1/d,1-d_2/d)$ family. However, there are only $d$ members in such a family, which can make them hard to be combined.
+\item Cosine distance: Given two vector $\mathbf{x}$ and $\mathbf{y}$, We pick a random vector $\mathbf{v}$ and see if $\mathbf{v}\cdot\mathbf{x}$ and $\mathbf{v}\cdot\mathbf{y}$ have the same sign. This is a $(d_1,d_2,(180-d_1)/180,(180-d_2)/180)$ family.
+\item Euclidean distance: We focus on the two-dimensional case. First we pick a random line and divide it into segments of length $a$. Then points on the plane are projected onto this line and given the number of the corresponding segments as their bucket numbers. This is a $(a/2,a,1/2,1/3)$ family. Such a family can still be generated to high-dimensional case, but it is hard to derive exact parameters for the family.
+\end{itemize}
+
+\paragraph{Methods for High Degrees of Similarity}
+When we try to find items of high degree of similarity, there are some methods other than locality-sensitive hashing. In particular, such methods are faster and introduce no false-negatives.
+
+At first, we assign an order to the set of elements and turn sets into strings according to this order. Assume we want to find items of Jaccard similarity no less than $J$. Then we can perform the following operations:
+\begin{itemize}
+\item Length-based filtering: We sort the strings according to their lengths. For a certain string $s$, we compare it with every string whose length is no less than $L_s$ and no more than $L_s/J$.
+\item Prefix Indexing: For a string $s$, we first pick a prefix of length $p$ with which we can determine which other strings should be compared with $s$. More precisely, $s$ and $t$ need to be compared if and only if their chosen prefixes have no-empty intersection. $p$ is determined by $L_s$ and $J$: $p=p(L_s)=\lfloor(1-J)L_s\rfloor+1$. To prove this property, first note that $L_s-p(L_s)$ is a non-decreasing function. Fix $L_s\ge L_t$. Now given $s$, consider how to generate a string $t$ of length $L_t$ which has the maximum Jaccard similarity with $s$. Assume $s=s_1+s_2$, where $s_1$ is the chosen prefix of $s$. Then first we want to add elements in $s_2$ into $t$, since every operation will increase the Jaccard similarity by $1/L_s$, which is the maximum possible.After adding all of $s_2$ into $t$, if we want to further increase the Jaccard similarity, we must include elements in $s_1$. However, in such a way no element in $s_2$ can be in the chosen prefix of $t$ since the prefixes of $s$ and $t$ share no common element. Notice that $L_s-p(L_s)$ is non-decreasing, we get that all elements in $t$ before $s_2$ is in the chosen prefix of $t$; in other words, no elements in $s_1$ can be included in $t$.
+\item Using position information: The above method helps us remove strings with different prefixes. However, even if the prefixes of two strings share some common elements, we may still not need to compare them. When doing hashing, we not only record the elements in prefixes but also their position. Suppose in string $s$, the element on position $i$ is element $x$. Now we only need to compare $s$ with strings which have $x$ on position $j$, with $j\le(L_s(1-J)-i+1+J)/J$.
+\item Using position and length in indexes: We can further record the length of suffix when doing hashing to eliminate more candidate pairs.
+\end{itemize}
+
+\section*{Mining Data Streams}
+
+\paragraph{Counting Ones in a Window}
+Now suppose we are given a stream of 0 and 1 and keep some representations of the last $N$ elements. We may be asked how many 1's are there in the last $k$ elements, where $k<N$. If we want to give the exact answers, then a representation of $N$ bits is necessary.
+
+The DGIM algorithm can give an approximation result with an no more than $50\%$ error using $O(\log^2N)$ bits, or an approximation result with an no more than $\epsilon$ error using $O(\log^2N/\epsilon)$ bits. 
+
+The idea is to divide the sliding window into buckets. The buckets satisfy the following properties:
+\begin{itemize}
+\item The rightmost end of each bucket is 1.
+\item Each 1 is in some bucket.
+\item The number of 1's in each bucket is a power of 2.
+\item There are one or two buckets for each size.
+\item The size of buckets is no-decreasing from the right to the left.
+\end{itemize}
+
+To answer a query, find the leftmost bucket which contains part of the last $k$ elements. Estimate the number of 1's in this bucket and in the last $k$ elements by half of the size of the bucket. Updating is easy. 
+
+To give a $(1+\epsilon)$-approximation, we can require each size other than 1 and the largest size corresponds to $(r-1)$ or $r$ buckets. Then the error is within $1/(r-1)$ of the true answer.
+
+
+\section*{Frequent Item-sets}
+\paragraph{Frequent Item-sets} 
+A frequent item-set is a set of items whose support is no less than a certain support threshold. Often such a discovery is described using an association rule $I\rightarrow j$ which means that the existence of $I$ in a basket tells us $j$ is likely to appear as well. The confidence of $I\rightarrow j$ is defined to be the ratio of the support for $I\cup\{j\}$ to the support for $I$. The interest of $I\rightarrow j$ is defined as the difference between its confidence and the fraction of baskets containing $j$.
+
+\paragraph{A-Priori Algorithm}
+The performance of the algorithm is largely determined by the number of passes taken by the algorithm.
+
+Given a support threshold $s$, an item-set is called maximal if none of its supersets is frequent.
+
+First let us focus on the computation of frequent pairs. If we have enough memory to count every pairs, it is easy to complete the job in one pass. However, if the memory cannot hold a counter for every pair, the A-priori algorithm can reduce the number of counted pairs at the expense of performing two passes.
+
+More formally, in the first pass we build a hash table from items to integers and count the frequency of each item. After this pass, we eliminate infrequent items and rebuild the hash table. In the second pass, we count pairs whose two items are both frequent.
+
+This method can be further extended to count frequent triples, quadruples, etc.
+
+\paragraph{Handling Larger Datasets in Main Memory}
+The A-priori algorithm requires that the counting of candidate pairs should be completed without much thrashing. There are some methods which can further reduce the number of candidate pairs.
+\subparagraph{PCY Algorithm} In the first pass of A-priori algorithm, we can add another hash table which hash pairs of items to buckets which serves as a counter. After the first pass, we eliminate infrequent buckets and thus some infrequent pairs. However, PCY algorithm forces us to use triple method when counting pairs.
+
+\subparagraph{The Multistage Algorithm} The multistage algorithm is similar to the PCY algorithm except that it insert another pass before the final count of frequent pairs and uses another hash table to further eliminate infrequent pairs.
+
+\subparagraph{The Multi-hash Algorithm} Instead of adding another state, we can add another hash table in the first pass. This will reduce the number of buckets in each of the hash table, but will give a more strict criterion for a pair to be considered in the second pass.
+
+\paragraph{Limited-Pass Algorithms}
+\subparagraph{The Simple, Randomized Algorithm}
+We can pick a random sample of the baskets and then apply one of the previous algorithms such as the A-Priori algorithm. However, such an algorithm may introduce false negatives and false positives. False positives can be eliminated by one more pass while false negatives can be reduced to a low level by lower the sample support threshold.
+
+\subparagraph{The Algorithm of Savasere, Omiecinski, and Navathe}
+In the SON algorithm, first the whole file is divided into several chunks. We treat each chunk as a sample and invoke the previous algorithm. Each item-set that appears in at least one chunk as a frequent item-set is a candidate item-set. Then we use another pass to find all the frequent item-set on the whole. This algorithm can be implemented using MapReduce.
+
+\subparagraph{Toivonen’s Algorithm}
+First pick a sample, and find the frequent item-set and negative borders (item-sets which is not frequent but whose immediate subsets are all frequent). Now go through the whole set and see if frequent item-sets in the sample are really frequent on the whole and if item-sets in the negative borders are not frequent.
+
+\paragraph{Counting Frequent Items in a Stream}
+\subparagraph{Sampling Methods for Streams}
+We can periodically make a sample of the stream, compute the frequent item-sets in the sample, and keep on checking if it is still eligible when new baskets come.
+
+\section*{Clustering}
+Clustering is the process of examining points from some space and group them according to some distance measure.
+
+Basically there are two kinds of algorithms. The first class is called hierarchical algorithms, which start with each point in its own cluster and try to combine them using certain definitions of "closeness" until some criterion is satisfied. The second class is called point assignment algorithm, which first estimate the clusters and then try to assign each point to one of the clusters.
+
+There are some other properties of clustering algorithms:
+\begin{itemize}
+\item Whether the algorithm assumes a Euclidean space; if so, we can summarize a cluster using its centroid.
+\item Whether the algorithm assumes that the data can be stored in main memory; if not, we must avoid much thrashing and try to summarize each cluster in main memory.
+\end{itemize}
+
+What's more, we need to be careful with the curse of dimensionality. In high-dimensional Euclidean space, the distance between two random points from a unit ball or cube is almost a constant, and the angle between then is almost surely 90 degrees.
+
+\paragraph{Hierarchical Clustering}
+In a hierarchical clustering algorithm, we are concerned with three problems:
+\begin{itemize}
+\item How to represent a cluster?
+\item How to define closeness between two clusters?
+\item When to stop combining clusters?
+\end{itemize}
+In an Euclidean space, a cluster can be represented by its centroid. 
+
+The distance between two clusters can be defined as the distance between its centroids. However, we may have other methods to combine clusters:
+\begin{itemize}
+\item Take the distance between two clusters to be the minimum distance between any two points, one from each cluster (which may be able to find clusters with strange shapes).
+\item Take the distance between two clusters to be the average distance of all pairs of points.
+\item Combine two clusters which will result in a new cluster with the lowest radius or average radius.
+\item Combine two clusters which will result in a new cluster with the lowest diameter.
+\end{itemize}
+
+We can stop a combining process when:
+\begin{itemize}
+\item a certain number of clusters are achieved;
+\item further combination will result in unsatisfactory clusters according to some belief, such as
+\begin{itemize}
+\item the diameter or radius of any cluster should not exceed a certain threshold;
+\item the diameter or radius should change gradually in the process of merging:
+\item the density (which can be estimated by the number of points divided by some power of the diameter or radius) of every cluster should exceed a certain threshold.
+\end{itemize}
+\item when there is only one cluster and the combining tree is returned. (This result can be useful sometimes; for example, if each point represent a species then we can estimate the evolution process from a common ancestor.)
+\end{itemize}
+
+The hierarchical clustering algorithm can be implemented with a priority queue using $O(n^2\log n)$ time.
+
+In a non-Euclidean space, we may not have a natural centroid for a cluster. Thus we turn to the clustroid, which is defined as the point in the cluster that is close to all points of the cluster. More concretely, we can select the point which minimizes
+\begin{itemize}
+\item the sum of distance to all the other points;
+\item the average distance to all the other points;
+\item the sum of squares of the distance to all the other points.
+\end{itemize}
+The notion of radius and diameter can be defined similarly, but make sure to be consistent with the choice of clustroid.
+
+\paragraph*{K-Means Algorithms}
+In the K-means algorithm, we assume the number of clusters $k$ is known in advance. To find the right value of $k$, sometimes we can use binary search.
+
+First, we pick $k$ initial points which may belong to $k$ different clusters. Then at each time step, pick one point which has not been assigned to a cluster, find the cluster whose centroid is closet to the point, add the point to the cluster, and adjust the centroid of the cluster. An optional operation is to fix the $k$ centroid and reassigned all points.
+
+To pick the initial $k$ points, we can choose $k$ points which are as far away from one another as possible, or make a sample of the whole set of points, run another clustering algorithm such as the hierarchical clustering algorithm, and pick points which are closet to the centroids of clusters.
+
+\subparagraph{The Algorithm of Bradley, Fayyad, and Reina}
+The BFR algorithm assumed the underlying space is an Euclidean space, data in a cluster are normally distributed and different dimensions are independent.
+
+This algorithm is a slight modification of the K-means algorithm which can deal with large amount of data. We add a point to a cluster when the related probability is high enough, which is done by the representations stored in main memory for each cluster. For the other points, we adopt the hierarchical clustering and try to combine them with the main clusters in the end.
+
+In the main memory, we maintain three kinds of information:
+\begin{itemize}
+\item The Discard Set: Each discard set represents a cluster, for which only a summary is stored in main memory.
+\item The Compressed Set: Each compressed set represent a mini-cluster whose points are not close enough to any cluster but are close to one another. For each mini-cluster, only a summary is stored in main memory.
+\item The Retained Set: the isolated points.
+\end{itemize}
+For each discard set and compressed set, the number of points, the sum of components of all points in each direction, and the sum of squares of components of all points in each direction are stored.
+
+We read the whole file in chunks and build the three kinds of information progressively. For each chunk, we first try to assign points to clusters which are close enough, and then try to add them into the compressed set and retained set. After the process is completed, we can either discard the compressed set and retained set or assign them to the nearest cluster.
+
+To decide whether a point is close enough to a cluster, we can compute the Mahalanobis distance between the point and the centroid and see if the distance is below some threshold.
+
+\paragraph{GRGPF Algorithm}
+The GRGPF algorithm also absorb the ideas from hierarchical clustering and K-means, and works for an arbitrary space.
+
+The main points of this algorithm is the following two:
+\begin{itemize}
+\item We build an indexing tree to find the nearest cluster for a new point quickly.
+\item We store an approximated representation for each cluster which can be updated easily when new points are added or clusters are merged without thrashing.
+\end{itemize}
+
+The basic structure is a tree. Each leaf stores features or representations of clusters. For each cluster, the following features are stored:
+\begin{itemize}
+\item The number of points in that cluster;
+\item The clustroid of that cluster and the \textsc{RowSum} of the clustroid (the sum of squares of distances from the clustroid to the other points in that cluster);
+\item For some chosen constant $k$, the $k$ points in that cluster which are (roughly) closet to the clustroid and their \textsc{RomSum}s;
+\item The $k$ points in that cluster which are (roughly) furthest to the clustroid and their \textsc{RomSum}s;
+\end{itemize}
+(Note that points we store as the closet points to the clustroid may not be the true closet points to the clustroid. What's more, the closet points are stored since we assume that if the clustroid shifts, then one of the $k$ closet points will be the new clustroid, which is in fact not a true assumption. The same is true for the $k$ furthest points. However, we only use them heuristically and thus the above problem is not severe.) Each interior node of the tree stores samples of the clustroids in its subtrees and pointers to those subtrees.
+
+To initialize the tree, we make a sample of the whole set and use hierarchical clustering algorithm. Take each node in the output tree $T$ which represents a cluster whose size is roughly some desirable size. Those are the initial clusters and are stored in the leaves of the tree for the GRGPF algorithm. Then we combine clusters if they have a common ancestors in $T$ and build the interior points. At last we re-balance like the B-tree if necessary.
+
+Then we can add a point to the nearest cluster recursively. The \textsc{RowSum} of the new point can be computed easily since in high-dimensional space almost all angles are right angles. Then we can try to replace one of the closet or furthest points by the new point if necessary, and if one of the closet points turns out to have the minimum \textsc{RowSum} then switch it with the original clustroid. 
+
+Only the features of a cluster are stored in main memory. Sometimes the whole cluster is read into the main memory in order to:
+\begin{itemize}
+\item Recompute and get the exact features of the cluster;
+\item To split clusters if necessary;
+\item To merge clusters if the whole tree cannot be stored in main memory (which can also be done using the features if we assume the new clustroid lies in the furthest points to the original clustroids).
+\end{itemize}
+
+\paragraph{Clustering for Streams}
+Here it is required to maintain some information for the last $N$ elements in a stream to answer queries about clusters in the last $k$ elements with $k<N$.
+
+For each cluster in each bucket, we store the number of points, the centroid or clustroid, and any other information which is needed to merge clusters.
+
+\section*{Recommendation Systems}
+\paragraph{Content-Based Recommendations}
+First, we build an item profile containing feature-value pairs. Then a user profile with the same components is needed; it is built by taking an average of the profiles of items which show up in the row of the user in the utility matrix. Sometimes it also makes sense to subtract the average value for the user, since in this way we can also exclude factor which the user may dislike. Then a recommendation can be made by finding similar profiles, maybe in the sense of cosine distance.
+
+\paragraph{Collaborative Filtering}
+The first problem is how to measure similarity between sets. One way is to use the Jaccard distance, but it doesn't work well with ratings. To fix such a problem, we can round the data and turn ratings above a certain threshold to 1's and others to 0's. Another method is to use cosine distance. However, it treats unrated movies as if the user doesn't like them. To fix this problem, we can normalize the ratings.
+
+Then we can estimate a blank entry of the matrix by looking for similar users or similar items. The first method needs less computation, while the second method may be more accurate since it is generally easier to classify the items.
+
+However ,the utility matrix may be so sparse that it is hard to find similar users or items. One way is to first cluster the users and items until the resulting cluster-cluster matrix has enough non-blank entries, and then invoke the above algorithm.
+
+\paragraph{UV-Decomposition}
+At first, we can normalize the rating matrix.
+
+We start from two arbitrary matrices and update their entries to minimize the root mean square error locally. Blank entries are not counted. Many different initial matrices may be chosen to get closer to the global minimum.
+
+
+\end{document}

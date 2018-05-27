@@ -1,0 +1,3 @@
+The cost function maps the number of goods which are produced by the seller to the cost. It is usually assumed to be convex in economics, since you know if the production is already large, then it will be expensive to produce more goods.
+
+Actually quasi-linear utility is not so realistic since usually buyers also have budget constraints. In other words, the buyer can only spend a limited amount of money on goods. However, today I will mainly discuss the quasi-linear case since it can be modeled naturally using a primal-dual method.

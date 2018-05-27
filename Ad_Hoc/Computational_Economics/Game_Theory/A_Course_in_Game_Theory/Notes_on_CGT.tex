@@ -1,0 +1,436 @@
+\documentclass[openany]{book}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}{Lemma}[chapter]
+\newtheorem{corollary}{Corollary}[chapter]
+\newtheorem{example}{Example}[chapter]
+% When giving labels for above environments or algorithm environments, use the initials.
+% For equations, do use the initial "e".
+% When labeling the same object more than once, include the chapter name.
+% Using camel case.
+
+\author{Ziwei Ji}
+\title{Notes on A Course in Game Theory}
+
+\begin{document}
+
+\maketitle
+
+\chapter{Introduction}
+\section{Game Theory}
+Game theory studies the interaction between decision-makers. The basic assumptions of game theory are that decision-makers are rational and they act strategically. (They take into account their knowledge and expectation of the behavior of the other decision-makers.)
+
+\section{Games and Solutions}
+A game is a description of actions that players can take and the resulting payoffs. A solution is a description of outcomes that may emerge in the game.
+
+We can partition games into different groups. Here are some of the possible divisions:
+\paragraph{Noncooperative and Cooperative Games}
+
+\paragraph{Strategic Games and Extensive Games}
+In strategic games, players choose their actions simultaneously and once and for all. In extensive games, players may act sequentially.
+
+\paragraph{Games with Perfect and Imperfect Information}
+
+\section{Game Theory and the Theory of Competitive Equilibrium}
+In game theory, players act strategically. Before making their own decisions, they will try to reason about behaviors of the other players.
+
+On the contrary, in the theory of competitive equilibrium, players are assumed to be only interested in some global parameters, which in turn are determined by the players' behaviors. We would like to study the resulting equilibrium states.
+
+\section{Rational Behavior}
+We assume players are rational. More concretely, each player is aware of his choices, forms expectations about the uncertainty, has clear preferences, and makes decisions from some optimization precesses.
+
+\section{The Steady State and Deductive Interpretations}
+In a steady state interpretation, each participant “knows” the equilibrium and tests the optimality of his behavior given this knowledge, which he has acquired from his long experience.
+
+By contrast, the deductive interpretation treats a game in isolation and attempts to infer the restrictions that rationality imposes on the outcome; it assumes that each player deduces how the other players will behave simply from principles of rationality.
+
+\section{Bounded Rationality}
+
+\chapter{Nash Equilibrium}
+\section{Strategic Games}
+\begin{definition}
+A strategic game (normal-form game) $\langle N,(A_i),(\succeq_i)\rangle$consists of
+\begin{itemize}
+\item A finite set $N$ of players
+\item For each player $i$ a set $A_i$ of actions
+\item For each player $i$ a preference $\succeq_i$ on $A=\times_{j\in N}A_j$
+\end{itemize}
+If $A_i$'s are all finite, we call the game a finite game.
+\end{definition}
+Usually the preference is given by a payoff function $u_i:A\rightarrow\mathbb{R}$, where we denote the game by $\langle N,(A_i),(u_i)\rangle$.
+
+\section{Nash Equilibrium}
+\begin{definition}
+A Nash equilibrium of a strategic game $\langle N,(A_i),(\succeq_i)\rangle$ is an action profile $a^*\in A$ such that for any $i\in N$ and any $a_i\in A_i$,
+$$(a_i^*,a_{-i}^*)\succeq(a_i,a_{-i}^*)$$
+\end{definition}
+The following restatement is sometimes useful. Given $a_{-i}\in A_{-i}$, we define the set of best responses of player $i$ to $a_{-i}$ as
+$$B_i(a_{-i})=\{a_i\in A_i|(a_i,a_{-i})\succeq(a_i',a_{-i})\ \textrm{for all}\ a_i'\in A_i\}$$
+And then $a^*$ is a Nash equilibrium if and only if for any $i\in N$,
+$$a_i^*\in B_i(a_{-i}^*)$$
+
+\section{Examples}
+Followed are some classical games:
+\begin{itemize}
+\item The Battle of the Sexes, or Bach or Stravinsky
+\item The coordination games, or common-payoff games
+\item Matching Pennies, or zero-sum games
+\item The Prisoner's Dilemma
+\item Hawk-Dove
+\end{itemize}
+
+Followed are more complex games which have been studied extensively:
+\begin{itemize}
+\item Auction. Assume the valuations of different players are also different, and the item is given to the player with the highest bid and lowest index. In the first-price auction, in an equilibrium the item is always given to the player with the highest valuation. In the second-price auction, the bids consisting of each player's valuation is weakly-dominant, but there also exists an equilibrium where the player with the highest valuation doesn't get the item.
+\item Consider the war of attrition. In any equilibrium, one player concedes immediately.
+\item Consider the location game. If there are only two candidates, then the only Nash equilibrium is that both of them choose the median position. If there are three candidates, there is no pure Nash equilibrium.
+\end{itemize}
+
+\section{Existence of a Nash Equilibrium}
+\begin{theorem}
+The strategic game $\langle N,(A_i),(\succeq_i)\rangle$ has a Nash equilibrium if for all $i\in N$
+\begin{itemize}
+\item $A_i$ is a nonempty compact convex set of a Euclidean space
+\item $\succeq_i$ is continuous and quasi-concave.
+\end{itemize}
+\end{theorem}
+
+\section{Strictly Competitive Games (Zero-sum Games)}
+
+\section{Bayesian Games: Strategic Games with Imperfect Information}
+\begin{definition}
+A Bayesian game $\langle N,\Omega,(A_i),(T_i),(\tau_i),(p_i),(\succeq_i)\rangle$ consists of
+\begin{itemize}
+\item a finite set $N$ of players
+\item a finite set $\Omega$ of states of nature
+\end{itemize}
+and for each player $i\in N$
+\begin{itemize}
+\item a set $A_i$ of actions
+\item a finite set $T_i$ of signals that may be observed by player $i$ and a signal function $\tau_i:\Omega\rightarrow T_i$
+\item a probability measure $p_i$ on $\Omega$ (the prior belief) such that $p_i(\tau_i^{-1}(t_i))>0$ for all $t_i\in T_i$ (which enables us to define the posterior belief)
+\item a preference $\succeq_i$ on the set of probability measures over $A\times\Omega$.
+\end{itemize}
+\end{definition}
+The preference can be specified by giving a payoff function $u_i:A\times\Omega\rightarrow\mathbb{R}$.
+
+\begin{definition}
+The Nash equilibrium of the Bayesian game $\langle N,\Omega,(A_i),(T_i),(\tau_i),(p_i),(\succeq_i)\rangle$ is defined as the Nash equilibrium of the following strategic game:
+\begin{itemize}
+\item The set of players is $\{(i,t_i)|i\in N,t_i\in T_i\}$.
+\item The set of actions of player $(i,t_i)$ is $A_i$.
+\item The preference $\succeq_{(i,t_i)}^*$ is defined as following:
+$$a^*\succeq_{(i,t_i)}^*b^*\textrm{ if and only if }L_i(a^*,t_i)\succeq_iL_i(b^*,t_i)$$
+where $L_i(a^*,t_i)$ is a probability measure on $A\times\Omega$ which assigns probability $p_i(\omega)/p_i(\tau_i^{-1}(t_i))$ to $((a^*(j,\tau_j(\omega)))_{j\in N},\omega)$ for any $\omega\in\tau_i^{-1}(t_i)$
+\end{itemize}
+\end{definition}
+In other words, in a Nash equilibrium of a Bayesian game, for each player and each possible signal he or she receives, the player chooses the best response to others' actions, taking into account his or her posterior belief of the state of nature.
+
+Followed is another explanation of Bayesian games: Actually one Bayesian game can be seen as many strategic games, indexed by $\Omega$. In different games the action sets are the same, but the utility functions are different, or dependent on the state of nature and types of players. For one player, at the beginning he or she doesn't know which game is being played. After his or her type is revealed, part of the uncertainty is removed but he is still unsure about the states of nature and types of other players. Now in a Nash equilibrium, each player must choose a strategy for each of his or her type. Then for each player and each type, his or her strategy is the best response taking into account his uncertainty of others' types conditioned on his or her own type.
+
+Now let us consider the help of more information. If there is only one player, this is actually Exercise 71.2. Although more information may not help in every state, it does help in expectation. However, if there is more than one player, then more information may reduce the payoff in every state. The reason is that the strategic game involves interaction among players; more information given to player $i$ may result in a change of behavior of player $j$ too, which in turn will hurt player $i$'s payoff. For a concrete example, refer to Exercise 28.2.
+
+\chapter{Mixed, Correlated, and Evolutionary Equilibrium}
+\section{Mixed Strategy Nash Equilibrium}
+Let $\Delta(A_i)$ denote the set of probability distributions over $A_i$. We refer to a member of $\Delta(A_i)$ as a mixed strategy of $i$ and a member of $A_i$ as a pure strategy of $i$.
+
+\begin{theorem}
+Every finite strategic game has a mixed strategy Nash equilibrium.
+\end{theorem}
+
+\section{Interpretations of Mixed Strategy Nash Equilibrium}
+\paragraph{Mixed Strategies as Pure Strategies in a Perturbed Game}
+In this interpretation, we consider a series of Bayesian games $G(\gamma\boldsymbol{\epsilon})$. Here $\gamma$ is a factor which tends to $0$, and $\boldsymbol{\epsilon}=(\boldsymbol{\epsilon}_i)_{i\in N}=(\boldsymbol{\epsilon}_i(a))_{i\in N,a\in A}$ is a random perturbation variable serving as the states of nature for the Bayesian game. Different $\boldsymbol{\epsilon}_i$'s are independent. The prior distribution of $\boldsymbol{\epsilon}$ is a common belief.
+
+Roughly speaking, for a strategic game $G$, one of its mixed strategies $S$ and a random variable $\boldsymbol{\epsilon}$, $S$ is the limit of the pure strategies of the Bayesian games $G(\gamma\boldsymbol{\epsilon})$
+
+\section{Correlated Equilibrium}
+\begin{definition}
+A correlated equilibrium of a strategic game $\langle N,(A_i),(u_i)\rangle$ consists of
+\begin{itemize}
+\item a finite probability space $(\Omega, \pi)$ ($\Omega$ is the set of states and $\pi$ is a probability measure on $\Omega$)
+\item for each player $i$ a partition $\mathcal{P}_i$ of $\Omega$ (player $i$'s information partition)
+\item for each player $i$ a function $\sigma_i:\Omega\rightarrow A_i$ such that $\sigma_i(\omega)=\sigma_i(\omega')$ whenever $\omega\in P_i$ and $\omega'\in P_i$ for some $P_i\in\mathcal{P}_i$ ($\sigma_i$ is player $i$'s srtategy)
+\end{itemize}
+such that for every player $i\in N$ and every strategy $\tau_i$ of player $i$ we have
+\begin{equation}
+\sum_{\omega\in\Omega}\pi(\omega)u_i(\sigma_i(\omega),\sigma_{-i}(\omega))\ge\sum_{\omega\in\Omega}\pi(\omega)u_i(\tau_i(\omega),\sigma_{-i}(\omega))
+\end{equation}
+\end{definition}
+
+About correlated equilibria we have the following results:
+\begin{theorem}
+Every mixed strategy  Nash equilibrium is also a correlated equilibrium.
+\end{theorem}
+
+\begin{theorem}[Informal]
+It is enough to consider the state set $A$ and information partition $\{a\in A|a_i=b_i\}$ for some $b_i\in A_i$.
+\end{theorem}
+
+\begin{theorem}
+Convex combinations of correlated equilibria is still a correlated equilibrium.
+\end{theorem}
+
+\section{Evolutionary Equilibrium}
+\begin{definition}
+Let $G=\langle\{1,2\},(B,B),(u_1,u_2)\rangle$ be a symmetric strategic game with $u_1(a,b)=u_2(b,a)=u(a,b)$. An evolutionary stable strategy is an action $b^*\in B$ (or a mixed strategy $b^*\in\Delta(B)$) such that $(b^*,b^*)$ is a Nash equilibrium of the strategic game and $u(b,b)<u(b^*,b)$ for every best response $b$ to $b^*$ with $b\ne b^*$.
+\end{definition}
+
+By definition, an ESS must be a Nash equilibrium. However, the reverse is not true; in other words, there exists a strategic game which has no ESS.
+
+\chapter{Rationalizability and Iterated Elimination of Dominated Actions}
+\section{Rationalizability}
+There are two definitions of rationalizability. The first one is too long and thus is not included here. However, this definition is more helpful when we try to derive rationalizable actions of a game. The second definition is
+\begin{definition}
+An action $a_i\in A_i$ is rationalizable in the strategic game $\langle N,(A_i),(u_i)\rangle$ if for each $j\in N$ there exists a $Z_j\subset A_j$ such that
+\begin{itemize}
+\item $a_i\in Z_i$
+\item each action $a_j\in Z_j$ is a best response to a belief $\mu_j(a_j)$ of player $j$ whose support is a subset of $Z_{-j}$.
+\end{itemize}
+\end{definition}
+
+From this definition, we can get some properties of rationalizable actions:
+\begin{itemize}
+\item If $(Z_j)_{j\in N}$ and $(Z_j')_{j\in N}$ satisfy the definition, then so does $(Z_j\cup Z_j')_{j\in N}$.
+\item Every action with positive support in a mixed Nash equilibrium or a correlated equilibrium is rationalizable.
+\end{itemize}
+
+If we require that each player believe that other players act independently, generally we get a more restrict definition of rationalizability. In the two-player case, the two definitions coincide. Also, the new definition is always satisfied by mixed Nash equilibria.
+
+\section{Iterated Elimination of Strictly Dominated Actions}
+In this section, we develop two equivalence results.
+\begin{definition}
+An action of player $i$ in a strategic game is a never-best response if it is not a best response to any belief of player $i$.
+\end{definition}
+\begin{definition}
+The action $a_i\in A_i$ in the strategic game $\langle N,(A_i),(u_i)\rangle$ is strictly dominated if there exists an mixed strategy $s_i$ of player $i$ such that for every $a_{-i}\in A_{-i}$, $u_i(s_i,a_{-i})>u_i(a_i,a_{-i})$.
+\end{definition}
+\begin{theorem}
+An action of player $i$ is never-best if and only if it is strictly dominated.
+\end{theorem}
+The above theorem can be proved using LP-duality. Below is the equivalence of rationalizable actions and actions which survive iterated elimination of strictly dominated actions.
+\begin{theorem}
+If $X=\times_{j\in N}X_j$ survives iterated elimination of strictly dominated actions in a strategic game then $X_j$ is the set of rationalizable actions of player $j$ for each $j\in N$.
+\end{theorem}
+What's more, from the above theorem we know that the result of iterated elimination of strictly dominated actions does not depend on the order of elimination.
+
+By contrast, in the iterated elimination of weakly dominated actions the order does matter. We also have the following equivalence: An action of player $i$ is weakly dominated if and only if it is not a response to any belief of player $i$ in which every action profile of the other players is assigned a positive probability. (This result can still be shown using LP duality.)
+
+\chapter{Knowledge and Equilibrium}
+\section{A Model of Knowledge}
+At the basis of the model is a set $\Omega$ of states. A decision-maker may be in any state of $\Omega$. However, the decision-maker may not know exactly which state he or she is in. To model such an uncertainty, we introduce the \textbf{information function}:
+\begin{definition}
+An information function for the set of states $\Omega$ is a function $P:\Omega\rightarrow2^{\Omega}$. If a decision-maker is in fact in state $\omega$, then he or she can only be sure that the state is in $P(\omega)$.
+\end{definition}
+Usually we are interested in information function which satisfy the following two conditions:
+\begin{enumerate}
+\item $\omega\in P(\omega)$ for every $\omega\in\Omega$.
+\item If $\omega'\in P(\omega)$, then $P(\omega)=P(\omega')$.
+\end{enumerate}
+The first condition says that although there is some uncertainty in the decision-maker's knowledge of the true state, he or she never exclude the true state from the belief. One motivation for the second condition is the following: Suppose the decision-maker is sure that he or she is in one of the state of $P(\omega)$. If $\omega'\in P(\omega)$ but $P(\omega)\ne P(\omega')$, then the decision-maker can be sure that he or she cannot be in state $\omega'$, which makes such an information function less meaningful. Information functions satisfying the above two conditions are called \textbf{information partitions}.
+
+A set of states, or a subset of $\Omega$, is called an \textbf{event}. We say a decision-maker in state $\omega$ knows an event $E$, if $P(\omega)\subset E$.
+\begin{definition}
+Given an information function of the decision-maker, the knowledge function $K:2^{\Omega}\rightarrow2^{\Omega}$ is defined as
+\begin{equation}
+K(E)=\{\omega\in\Omega|P(\omega)\in E\}
+\end{equation}
+\end{definition}
+For any knowledge function, the following conditions are satisfied:
+\begin{enumerate}
+\item $K(\Omega)=\Omega$.
+\item If $E\subset F$, then $K(E)\subset K(F)$.
+\item $K(E)\cap K(F)=K(E\cap F)$.
+\end{enumerate}
+
+In fact, from a given knowledge function, we can also derive the related information function:
+\begin{equation}
+P(\omega)=\bigcap_{\omega\in K(E)}E
+\end{equation}
+One can show that the set of information functions is in one-to-one correspondence with the set of knowledge functions satisfying the above three conditions.
+
+If the information function satisfies its first condition, then the derived knowledge function satisfies the following condition:
+\begin{enumerate}\setcounter{enumi}{3}
+\item $K(E)\subset E$.
+\end{enumerate}
+
+If the information function is indeed an information partition, then the knowledge function meet the next two conditions:
+\begin{enumerate}\setcounter{enumi}{4}
+\item $K(E)\subset K(K(E))$.
+\item $\Omega\,\backslash\,K(E)\subset K(\Omega\,\backslash\,K(E))$.
+\end{enumerate}
+One can also show that the set of information partitions is in one-to-one correspondence with the set of knowledge functions which satisfy the above six conditions.
+
+\section{Common Knowledge}
+An event is called \textbf{mutual knowledge} in some state if in this state each individual knows this event. It is called \textbf{common knowledge} in some state if in this state it is mutual knowledge, and each individual knows that other individuals know it, and each individual knows that other individuals know that other individuals know it, etc. Suppose there are only two individuals, then formally
+\begin{definition}
+Let $K_1$ and $K_2$ be the knowledge functions of individuals $1$ and $2$ and $\Omega$ be the set of states. An event $E$ is common knowledge between $1$ and $2$ in state $\omega$ if $\omega$ is a member of every set in the infinite sequence $K_1(E),K_2(E),K_1(K_2(E)),K_2(K_1(E)),\ldots$.
+\end{definition}
+Below is an alternative definition:
+\begin{definition}
+Let $P_1$ and $P_2$ be the information functions of individuals $1$ and $2$ and $\Omega$ be the set of states. An event $F$ is self-evident between $1$ and $2$ if for any $\omega\in F$, $P_1(\omega)\subset F$ and $P_2(\omega)\subset F$. An event $E$ is common knowledge between $1$ and $2$ if there exists an event $F$ which is self-evident between $1$ and $2$ and $\omega\in F\subset E$.
+\end{definition}
+
+If $\Omega$ is finite and the information functions involved are actually information partitions, then the above two definitions coincide.
+
+\section{Can People Agree to Disagree?}
+Let $\rho$ be the prior belief of an individual on $\Omega$ and let $P$ be his or her information function. Then the event ``event $E$ is assigned a probability of $\eta$'' is $\{\omega\in\Omega|\rho(E|P(\omega))=\eta\}$.
+\begin{theorem}
+Suppose the set of states $\Omega$ is finite and there are two individuals $1$ and $2$ with a common belief $\rho$ on $\Omega$. Let $P_1$ and $P_2$ be their information partitions, respectively. If in some state the event``individual $1$ assigns probability $\eta_1$ to some event $E$ while individual $2$ assigns probability $\eta_2$ to $E$'' is a common knowledge, then $\eta_1=\eta_2$.
+\end{theorem}
+
+Similarly, we can show that under the same conditions it is possible for the two individuals to have a common knowledge that they assign different probabilities to an event $E$, but it is impossible for them to agree that individual $1$ assigns a higher probability to $E$. Otherwise, suppose $F$ is the underlying self-evident event. Then $|E\cap F|=\sum_{\omega\in F}\rho(E|P_1(\omega))>\sum_{\omega\in F}\rho(E|P_2(\omega))=|E\cap F|$, which is a contradiction.
+
+\section{Knowledge and Solution Concepts}
+In this section, we focus on a strategic game $\langle N,(A_i),(u_i)\rangle$. Let $\Omega$ be the set of states, each of which is a description of the environment, or a description of each player's knowledge, action, and belief. More formally, from a state $\omega\in\Omega$, we can derive
+\begin{itemize}
+\item $P_i(\omega)\subset\Omega$, which is player $i$'s knowledge
+\item $a_i(\omega)$, which is player $i$'s action in state $\omega$ and is consistent with $P_i$
+\item $\mu_i(\omega)$, which is a probability distribution over $A_{-i}$, or player $i$'s belief about the actions of the other players.
+\end{itemize}
+
+We may give many descriptions of players.
+\begin{itemize}
+\item The event ``player $i$ is rational'' is $\{\omega\in\Omega\,|\,a_i(\omega)\textrm{ is a best response to }\mu_i(\omega)\}$.
+\item The event ``player $i$ has a belief that is consistent with his or her knowledge'' is $\big\{\omega\in\Omega\,|\,\textrm{The support of }\mu_i(\omega)\textrm{ is a subset of }\{a_{-i}(\omega')\,|\,\omega'\in P_i(\omega)\}\big\}$.
+\end{itemize}
+
+We now isolate properties of a state which imply that actions in that state is consistent with various solution concepts.
+\begin{itemize}
+\item In state $\omega$, if each player knows the actions of the other players, has a belief consistent with his or her knowledge, and is rational, then $(a_i(\omega))_{i\in N}$ is a Nash equilibrium.
+\item In state $\omega$ and in a two-player strategic game, if each player knows the belief of the other player, has a belief consistent with his or her knowledge, and knows that the other player is rational, then $(\mu_2(\omega),\mu_1(\omega))$ is a mixed strategy Nash equilibrium.
+\item In state $\omega$ and in a two-player strategic game, if it is common knowledge that each player is rational and has a belief consistent with his or her knowledge, then for each player $i\in N$ $a_i(\omega)$ is rationalizable.
+\item Suppose in every state every player is rational, and for each $i\in N$ $\mu_i$ is derived from $P_i$, $a_i$ and a common prior $\rho$ on $\Omega$ for which $\rho(P_i(\omega))>0$ for all $i\in N$ (which is a stronger assumption than consistency of belief and knowledge), $\omega\in\Omega$, then $\langle(\Omega,\rho),(P_i),(a_i))$ is a correlated equilibrium.
+\end{itemize}
+
+Below we also give a comparison between two similar notions: Nash equilibrium of a Bayesian game and correlated equilibrium of a strategic game. Basically there are three differences:
+\begin{itemize}
+\item In a Bayesian game, the utility function depend on the state.
+\item In a Bayesian game, different player may have different prior on $\Omega$.
+\item In a Bayesian game, the priors and information partitions of players are specified in the input while in a strategic game those are parts of the correlated equilibrium.
+\end{itemize}
+If we eliminate all the above three differences, then the two notions coincide in fact.
+
+\chapter{Extensive Games with Perfect Information}
+\section{Extensive Games with Perfect Information}
+\begin{definition}
+An \textbf{Extensive Game with Perfect Information} has the following components:
+\begin{itemize}
+\item a set $N$ of \textbf{players};
+\item a set $H$ of finite or infinite sequences (\textbf{histories}) satisfying the following properties:
+\begin{itemize}
+\item $\varnothing\in H$;
+\item If $(a^k)_{k=1,\ldots,K}\in H$ (where $K$ may be $\infty$), then for any $1\le L\le K$, $(a^k)_{k=1,\ldots,L}\in H$;
+\item If for any positive integer $L$, $(a^k)_{k=1,\ldots,L}\in H$ , then $(a^k)_{k=1}^{\infty}\in H$.
+\end{itemize}
+(Each component of a history is an \textbf{action} taken by a player. A history $(a^k)_{k=1,\ldots,K}\in H$ is \textbf{terminal} if no $(a^k)_{k=1,\ldots,K+1}\in H$. The set of terminal histories is denoted by $Z$.)
+\item a \textbf{player function} $P:H\,\backslash\,Z\rightarrow N$;
+\item For each player $i$ a preference relation $\succeq_i$ on $Z$.
+\end{itemize}
+\end{definition}
+
+An extensive game with perfect information can also be represented by a tree, where each node corresponds to a history and a player while an edge between two nodes corresponds to an action.
+
+If $H$ is finite, then the game is said to be finite. If only the longest history is finite, then the game has a finite horizon. The empty history $\varnothing$ is sometimes refered to as the initial history.
+
+After an nonterminal history $h$, $P(h)$ can choose his or her action from the following set
+\begin{equation}
+A(h)=\left\{a\middle|(h,a)\in H\right\}
+\end{equation}
+
+A strategy of player $i$ is a function that assigns every nonterminal history $h$ for which $P(h)=i$ an action in $A(h)$.
+For strategy profile $(s_i)_{\i\in N}$ we define the outcome $O(s)$ to be the terminal history that results if each player $i$ follows $s_i$.
+
+Then we can define naturally the notion of Nash equilibrium. However, this notion is not reasonable since the requirements in it are too weak, which leads to the definition of sub-game perfect equilibrium.
+
+\section{Sub-game Perfect Equilibrium}
+\begin{definition}
+A \textbf{sub-game perfect equilibrium} of an extensive game with perfect information $\Gamma=\langle N,H,P,(\succeq_i)\rangle$ is a strategy profile $s^*$ such that for every player $i$, every nonterminal history $h$ for which $P(h)=i$ and every strategy $s_i$ of player $i$ in the subgame $\Gamma_h$, we have
+\begin{equation}
+O_h(s^*_{-i}|_h,s^*_i|_h)\succeq_i|_hO_h(s^*_{-i}|_h,s_i)
+\end{equation}
+\end{definition}
+We also have the following property (which is actually a dynamic programming on a tree):
+\begin{lemma}[One Deviation Property]
+Let $\Gamma=\langle N,H,P,(\succeq_i)\rangle$ be a \textbf{finite-horizon} extensive game with perfect information. Then the strategy profile $s^*$ is a sub-game perfect equilibrium if for every player $i$, every nonterminal history $h$ for which $P(h)=i$ and every strategy $s_i$ of player $i$ in the subgame $\Gamma_h$ which only differs from $s^*_i|_h$ by the first action, we have
+\begin{equation}
+O_h(s^*_{-i}|_h,s^*_i|_h)\succeq_i|_hO_h(s^*_{-i}|_h,s_i)
+\end{equation}
+\end{lemma}
+
+By the same dynamic programming process, we have the following theorem:
+\begin{theorem}[Kuhn's Theorem]
+Every \textbf{finite} extensive game with perfect information has a sub-game perfect equilibrium.
+\end{theorem}
+
+\section{Two Extensions of the Definition of a Game}
+First, we may introduce some exogenous uncertainty into our model. Concretely, at some histories a "chance" player will randomly choose an action according to some probability distributions. The one deviation property and Kuhn's theorem still hold in this extension.
+
+Second, simultaneous moves can be allowed by assign more than one player to a history and let each history be a sequence of vectors. The one deviation property still holds, but the Kuhn's theorem is not true in this extension.
+
+\section{The Interpretation of a Strategy}
+Note that part of the strategy of a given player may be never used if this player does follow his or her strategy. An interpretation of such an unused part is that it is the belief of the other players about what the given player will do if he or she does not follow the original plan.
+
+However, such an interpretation will introduce some other problems. First, we had to be careful when saying a player "choose" a strategy, since he or she cannot choose the belief of the other players. Second, for the same reason, when giving constraints on strategies, we are actually also giving constraints on beliefs. Third, it is implicitly assumed that for a given player, every other player has an identical belief about his or her behavior.
+
+What's more, some inconsistency may appear in the game. For example, if a player is assumed to be rational then he or she should never choose some actions. If in fact such actions are observed, then it is possible that this player is not completely rational, which means that our basic assumption is wrong.
+
+\section{Two Notable Finite Horizon Games}
+In the chain-store game, the unique sub-game perfect equilibrium says that at each time period the competitor should choose to enter the market and the chain-store should cooperate. However, if the time horizon is long enough, then the chain-store may benefit from fighting since the later competitor may take the aggressive behavior of the chain store into account and may choose not to enter.
+
+In the centipede game, the unique sub-game perfect equilibrium says that both players will choose to stop after every history. However, if in fact both players choose to continue for a while, their beliefs may be changed.
+
+\section{Iterated Elimination of Weakly Dominated Strategies}
+Suppose no player is indifferent between any two outcomes. According to the process of elimination of weakly dominated strategies induced by the backward induction, the unique sub-game perfect equilibrium will survive and all the remaining strategies generate the sub-gam perfect equilibrium outcome (since if an interior node is really reached, then the best outcome in that subtree is selected). However, some order of elimination may remove the sub-game perfect equilibrium.
+
+\chapter{Bargaining Games}
+\section{Bargaining and Game Theory}
+
+\section{A Bargaining Game of Alternating Offers}
+In a bargain game, two players make proposals alternatively and the other player can either reject or accept it. Formally, the set of possible proposal is $X$. The set of players is $\{1,2\}$, and the set of histories contains sequences of the following types:
+\begin{itemize}
+\item $\varnothing$;
+\item $x^0,R,x^1,R,\ldots,x^t$;
+\item $x^0,R,x^1,R,\ldots,x^t,R$;
+\item $x^0,R,x^1,R,\ldots,x^t,A$.
+\item $x^0,R,x^1,R,\ldots$;
+\end{itemize}
+Sequences of the last two categories are terminal. We assume that players only care about which agreement is achieved and when to achieve it. Thus each terminal history of the fourth category can be represented by $(x^t,t)$. For $\varnothing$ and histories of the second or third category where $t$ is odd it is the turn of the first player; otherwise it's the second player's turn.
+
+The following properties are assumed to be satisfied by the preference relationship: No agreement is worse than disagreement; Time is valuable; Preferences are stationary; Preferences are continuous. Every preference satisfying the above properties can be implemented by a utility function $\delta_i^tu_i(x)$ where $0<\delta<1$ and $u_i:X\rightarrow\mathbb{R}$ is continuous.
+
+Such a game is referred to the \textbf{bargaining game of alternating offers} $\langle X,(\succeq_i)\rangle$.
+
+\section{Subgame Perfect Equilibrium}
+We restrict our attention to bargaining games satisfying the following axioms:
+\begin{itemize}
+\item For no agreements $x$ and $y$, $x\sim_iy$ for $i=1,2$.
+\item $(b^i,0)\sim_j(b^i,1)\sim_jD$ for $i=1,2,j\ne i$ where $D$ is the infinite history and $b^i$ is the best agreement for player $i$.
+\end{itemize}
+The Pareto frontier of $X$ is defined as the set of agreements $x$ such that no other agreement $y$ satisfies $(y,0)\succ_i(x,0)$ for $i=1,2$. An agreement in the Pareto frontier is said to be efficient.
+\begin{itemize}
+\item For an efficient agreement $x$, there is no other agreement $y$ such that $y\succeq_ix$ for both players. In other words, for two efficient agreement $x$ and $y$, either $x\succ_1y$ and $x\prec_2y$, or $x\prec_1y$ and $x\succ_2y$.
+\item There is a unique pair of efficient agreements $(x^*,y^*)$ such that $(x^*,1)\sim_1(y^*,0)$ and $(x^*,0)\sim_2(y^*,1)$.
+\end{itemize}
+
+For a bargaining game satisfying the above axioms, the strategy profile in which the first player always proposes $x^*$ and accept a proposal no worse than $y^*$ while the second player always proposes $y^*$ and accepts a proposal no worse than $x^*$ is essentially the only sub-game perfect equilibrium. If all agreements are efficient, then it is exactly the only sub-game perfect equilibrium. (Every bargaining game with alternating offers satisfies the one deviation property since the infinite history is the worst outcome.)
+
+The above equilibrium has the following properties:
+\begin{itemize}
+\item The outcome is efficient and is achieved immediately.
+\item The strategies for both players are stationary.
+\item The first mover benefits more from the game.
+\item The more impatient a player is, the worse off he or she is.
+\end{itemize}
+
+\end{document}

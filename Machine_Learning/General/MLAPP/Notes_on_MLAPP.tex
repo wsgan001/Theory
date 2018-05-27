@@ -1,0 +1,450 @@
+\documentclass[openany]{book}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}{Lemma}[chapter]
+\newtheorem{corollary}{Corollary}[chapter]
+\newtheorem{example}{Example}[chapter]
+% When giving labels for above environments or algorithm environments, use the initials.
+% For equations, do use the initial "e".
+% When labeling the same object more than once, include the chapter name.
+% Using camel case.
+
+\author{Ziwei Ji}
+\title{Notes on Machine Learning A Probabilistic Perspective}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}
+\begin{tabular}{|c|c|}
+\hline
+$\mathcal{D}$ & the data set \\
+\hline
+$N$ & the number of training examples in $\mathcal{D}$ \\
+\hline
+$i$ & the variable used to index training examples \\
+\hline
+$\mathcal{X}$ & the set of possible feature or attribute vectors \\
+\hline
+$\mathcal{Y}$ & the label space \\
+\hline
+$D$ & the number of dimensions \\
+\hline
+$j$ & the variable used to index dimensions \\
+\hline
+$C$ & the number of categories in classification problem \\
+\hline
+$c$ & the variable used to index categories \\
+\hline
+\end{tabular}
+\caption{Notations}
+\end{table}
+
+\begin{equation*}
+\begin{array}{rcl}
+\displaystyle\frac{\partial(\mathbf{b}^{\mathrm{T}}\mathbf{a})}{\partial\mathbf{a}} & = & \mathbf{b} \\
+ & & \\
+\displaystyle\frac{\partial \mathbf{a}^{\mathrm{T}}A\mathbf{a}}{\partial\mathbf{a}} & = & (A+A^{\mathrm{T}})\mathbf{a} \\
+ & & \\
+\displaystyle\frac{\partial}{\partial A}\log|A| & = & A^{-\mathrm{T}}=(A^{-1})^{\mathrm{T}} \\
+ & & \\
+\displaystyle\frac{\partial}{\partial A}\mathrm{tr}(BA) & = & B^{\mathrm{T}} \\
+\end{array}
+\end{equation*}
+
+\setcounter{chapter}{2}
+
+\chapter{Generative Models for Discrete Data}
+\section{Introduction}
+Generative classifiers are based on the Bayes formula:
+\begin{equation}\label{bayesform}
+p(y=c|\mathbf{x},\boldsymbol{\theta})=\frac{p(\mathbf{x}|y=c,\boldsymbol{\theta})p(y=c|\boldsymbol{\theta})}{\sum_{c'\in C}\mathbf{x}|y=c',\boldsymbol{\theta})p(y=c'|\boldsymbol{\theta}}.
+\end{equation}
+To get a good generative classifier, one need to specify a suitable class prior $p(y=c|\boldsymbol{\theta})$ and class-conditional density $p(\mathbf{x}|y=c,\boldsymbol{\theta})$.
+
+\section{Bayesian Concept Learning}
+
+\section{The Beta-Binomial Model}
+Here we are trying to do parameter inference. We observe samples of a coin and try to infer the probability of heads.
+
+The likelihood looks like
+\begin{equation}
+p(\mathcal{D}|\theta)\propto\theta^{N_1}(1-\theta)^{N_0},
+\end{equation}
+where $N_1=\sum_{i=1}^N\mathbb{I}(x_i=1)$ and $N_0=\sum_{i=1}^N\mathbb{I}(x_i=0)$.
+
+The conjugate prior is the Beta distribution
+\begin{equation}
+\mathrm{Beta}(\theta|a,b)=\frac{1}{\mathrm{B}(a,b)}\theta^{a-1}(1-\theta)^{b-1},
+\end{equation}
+where $\mathrm{B}(a,b)$ is the Beta function.
+
+Thus the posterior distribution is still a Beta distribution $\mathrm{Beta}(a+N_1,b+N_0)$. ($N=N_0+N_1$.)
+
+The MAP estimate is $\hat{\theta}_{\mathrm{MAP}}=(a+N_1-1)/(a+b+N-2)$. If we take $a=b=1$, then we get the ML estimate $\hat{\theta}_{\mathrm{MLE}}=N_1/N$. However, those estimate may suffer from the zero-count problem. Thus it is more appropriate to use the posterior mean, $\bar{\theta}=(a+N_1)/(a+b+N)$. The variance of the posterior distribution is roughly $\sqrt{\hat{\theta}_{\mathrm{MLE}}(1-\hat{\theta}_{\mathrm{MLE}})/N}$ if $N\gg a,b$. We can see that the variance goes down at a rate of $1/\sqrt{N}$, and it is easier to be sure that a coin is biased than to be sure that it is unbiased.
+
+If we want to make predictions using the posterior distribution, we had better take a average over the posterior distribution, which gives the posterior mean.
+
+To do model selection, the marginal likelihood is $\binom{N}{N_1}\mathrm{B}(a+N_1,b+N_0)/\mathrm{B}(a,b)$.
+
+\section{The Dirichlet-Multinomial Model}
+The likelihood looks like
+\begin{equation}
+p(\mathcal{D}|\boldsymbol{\theta})=\prod_{c=1}^C\theta_c^{N_c}.
+\end{equation}
+where $N_c=\sum_{i=1}^N\mathbb{I}(x_i=c)$.
+
+We use the Dirichlet distribution as the conjugate prior $\mathrm{Dir}(\boldsymbol{\theta}|\boldsymbol{\alpha})$.
+
+The posterior is then $\mathrm{Dir}(\boldsymbol{\theta}|\boldsymbol{\alpha}+\boldsymbol{N})$.
+
+The MAP estimate is given by $\hat{\theta}_{\mathrm{MAP},c}=(\alpha_c+N_c-1)/(\alpha_0+N_0-C)$. If we take $\boldsymbol{\alpha}=\boldsymbol{1}$, then we get the ML estimate. The posterior mean is given by $\bar{\theta}_c=(\alpha_c+N_c)/(\alpha_0+N_0)$. ($\alpha_0=\sum_{c=1}^C\alpha_c$ and $N_0\sum_{c=1}^CN_c$.)
+
+The marginal likelihood is given by $\binom{N}{N_1\,N_2\,\cdots\,N_C}\mathrm{B}(\boldsymbol{\alpha}+\boldsymbol{N})/\mathrm{B}(\boldsymbol{\alpha})$.
+
+\section{Naive Bayes Classifiers}
+Suppose we are faced with a classification problem from a $D$-dimensional vector to a category. We adopt a generative method, where a class conditional distribution $p(\boldsymbol{x}|y=c)$ is needed. Here the assumption is difference components of $\boldsymbol{x}$ is conditionally independent given the class label. In other words,
+\begin{equation}
+p(\boldsymbol{x}|y=c,\boldsymbol{\theta})=\prod_{j=1}^Dp(x_j|y=c,\theta_{jc}).
+\end{equation}
+
+To fit the model, notice that
+\begin{equation}
+p(\boldsymbol{x}_i,y_i)=p(y_i|\boldsymbol{\pi})\prod_{j=1}^D\prod_{c=1}^Cp(x_{ij}|\theta_{jc})^{\mathbb{I}(y_i=c)},
+\end{equation}
+thus
+\begin{equation}
+\log p(\mathcal{D}|\boldsymbol{\theta})=\sum_{c=1}^CN_clog\pi_c+\sum_{j=1}^D\sum_{c=1}^C\sum_{i|y_i=c}\log p(x_{ij}|\theta_{jc}).
+\end{equation}
+The ML estimate for $\pi_c$ is $N_c/N$. For $\boldsymbol{\theta}$, suppose each component of $\boldsymbol{x}$ is binary-valued and follows a Bernoulli distribution, then the ML estimate is given by $\theta_{jc}=N_{jc}/N_c$.
+
+To avoid overfitting, we can give a prior $p(\boldsymbol{\theta})=p(\boldsymbol{\pi})\prod_j\prod_cp(\theta_{jc})$. Usually we use $\mathrm{Dir}(\boldsymbol{\alpha})$ for $\boldsymbol{\pi}$ and $\mathrm{Beta}(\beta_1,\beta_0)$ for $\theta_{jc}$. The posterior is given by
+\begin{eqnarray}
+p(\boldsymbol{\theta}|\mathcal{D}) & = & p(\boldsymbol{\pi}|\mathcal{D})\prod_{j=1}^D\prod_{c=1}^Cp(\theta_{jc}|\mathcal{D}), \\
+p(\boldsymbol{\pi}|\mathcal{D}) & = & \mathrm{Dir}(\alpha_1+N_1,\alpha_2+N_2,\ldots,\alpha_C+N_C), \\
+p(\theta_{jc}|\mathcal{D}) & = & \mathrm{Beta}(\beta_1+N_{jc},\beta_0+N_c-N_{jc}).
+\end{eqnarray}
+
+If we want to predict using the posterior distribution, then $\boldsymbol{\theta}$ needed to be integrated out:
+\begin{eqnarray}
+p(y=c|\boldsymbol{x},\mathcal{D}) & \propto & \bar{\pi}_c\prod_{j=1}^D\bar{\theta}_{jc}^{\mathbb{I}(x_j=1)}(1-\bar{\theta}_{jc})^{\mathbb{I}(x_j=0)}, \\
+\bar{\pi}_c & = & (\alpha_c+N_c)/(\alpha_0+N), \\
+\bar{\theta}_{jc} & = & (N_{jc}+\beta_1)/(N_c+\beta_1+\beta_0).
+\end{eqnarray}
+We can also approximate the posterior distribution by a single point such as the MAP estimate, but typically this will result in overfitting.
+
+\chapter{Gaussian Models}
+\section{Introduction}
+In this chapter, we discuss the multivariate Gaussian or multivariate normal (MVN), which is the most widely used joint probability density function for continuous variables.
+
+The probability density function of an MVN is
+\begin{equation}\label{mvnden}
+\mathcal{N}(\mathbf{x}|\boldsymbol{\mu},\Sigma)=\frac{1}{(2\pi)^{D/2}|\Sigma|^{1/2}}\exp[-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu})^{\mathrm{T}}\Sigma^{-1}(\mathbf{x}-\boldsymbol{\mu})].
+\end{equation}
+
+The expression inside the exponent, except for the constant, is called the Mahalanobis distance between $\mathbf{x}$ and $\boldsymbol{\mu}$. Actually, suppose $\Sigma$ is non-singular, and $\Sigma=\sum_{j=1}^D\lambda_j\mathbf{u}_j\mathbf{u}_j^{\mathrm{T}}$. Then $\Lambda^{-1}=\sum_{j=1}^D\frac{1}{\lambda_j}\mathbf{u}_j\mathbf{u}_j^{\mathrm{T}}$, and $(\mathbf{x}-\boldsymbol{\mu})^{\mathrm{T}}\Sigma^{-1}(\mathbf{x}-\boldsymbol{\mu})=\sum_{j=1}^D\frac{1}{\lambda_j}\|\mathbf{u}_i^{\mathrm{T}}(\mathbf{x}-\boldsymbol{\mu})\|_2^2$. The contours are ellipses, with $1/\sqrt{\lambda_1},\ldots,1/\sqrt{\lambda_D}$ as the axis lengths.
+
+In expression \eqref{mvnden}, $\boldsymbol{\mu}$ and $\Sigma$ are called moment parameters because they equal the expectation and covariance. Sometimes the canonical or natural parameters are also helpful:
+\begin{equation}\label{canonical}
+\Lambda=\Sigma^{-1},\quad\boldsymbol{\xi}=\Sigma^{-1}\boldsymbol{\mu}
+\end{equation}
+One can also make a conversion:
+\begin{equation}\label{moment}
+\Sigma=\Lambda^{-1},\quad\boldsymbol{\mu}=\Lambda^{-1}\boldsymbol{\xi}
+\end{equation}
+And the probability density function of an MVN in information form is:
+\begin{equation}\label{mvndeninf}
+\mathcal{N}_c(\mathbf{x}|\Lambda,\boldsymbol{\xi})=(2\pi)^{-D/2}|\Lambda|^{1/2}\exp[-\frac{1}{2}(\mathbf{x}^{\mathrm{T}}\Lambda\mathbf{x}+\boldsymbol{\xi}^{\mathrm{T}}\Lambda^{-1}\boldsymbol{\xi}-2\mathbf{x}^{\mathrm{T}}\boldsymbol{\xi})]
+\end{equation}
+
+When given samples of an MVN, then MLE is just the empirical  mean and empirical covariance:
+\begin{theorem}\label{mvnmlet}
+Suppose we have $N$ i.i.d. samples $\mathbf{x}_i\sim\mathcal{N}(\boldsymbol{\mu},\Sigma)$. Then the MLE is given by
+\begin{equation}\label{mvnmle}
+\begin{array}{rcl}
+\boldsymbol{\mu}_{\mathrm{MLE}} & = & \frac{1}{N}\sum_{i=1}^N\mathbf{x}_i=\overline{\mathbf{x}} \\
+\Sigma_{\mathrm{MLE}} & = & \frac{1}{N}\sum_{i=1}^N(\mathbf{x}_i-\overline{\mathbf{x}})(\mathbf{x}_i-\overline{\mathbf{x}})^{\mathrm{T}} \\
+\end{array}
+\end{equation}
+\end{theorem}
+
+What's more, when the first and second moments are given, MVN gives the maximum entropy:
+\begin{theorem}\label{mvnentropyt}
+Suppose $q(\mathbf{x})$ is a density satisfying $\int q(\mathbf{x})x_ix_j\mathrm{d}\mathbf{x}=\Sigma_{ij}$ for all $1\le i,j\le D$. Let $p=\mathcal{N}(\mathbf{0},\Sigma)$, then $H(q)\le H(p)$.
+\end{theorem}
+
+\section{Gaussian Discriminative Analysis}
+With the help of MVN, one can specify a more complicated class conditional density:
+\begin{equation}\label{mvnclasscond}
+p(\mathbf{x}|y=c,\boldsymbol{\theta})=\mathcal{N}(\mathbf{x}|\boldsymbol{\mu}_c,\Sigma_c)
+\end{equation}
+This is called the Gaussian discriminative analysis, or GDA. (Pay attention that this method is generative, even though there is a "discriminative" in the name.) If $\Sigma_c$'s are all diagonal, this is equivalent to naive Bayes. If a uniform class prior is given, actually we are trying to minimize the Mahalanobis distance from $\mathbf{x}$ to the center of each class $\boldsymbol{\mu}_c$, and this generative classifier can be thought as a nearest centroids classifier.
+
+More formally, the posterior (for the class prior $\boldsymbol{\pi}$) looks like:
+\begin{equation}\label{qda}
+p(y=c|\mathbf{x},\boldsymbol{\theta})=\frac{\pi_c|2\pi\Sigma_c|^{-1/2}\exp[-(\mathbf{x}-\boldsymbol{\mu}_c)^{\mathrm{T}}\Sigma_c^{-1}(\mathbf{x}-\boldsymbol{\mu}_c)/2]}{\sum_{c'=1}^C\pi_c'|2\pi\Sigma_{c'}|^{-1/2}\exp[-(\mathbf{x}-\boldsymbol{\mu}_{c'})^{\mathrm{T}}\Sigma_{c'}^{-1}(\mathbf{x}-\boldsymbol{\mu}_{c'})/2]}
+\end{equation}
+We have a quadratic boundary with a QDA classifier.
+
+A special case is that $\Sigma_c=\Sigma$ for all $1\le c\le C$. In this case,
+\begin{equation}\label{linearda}
+p(y=c|\mathbf{x},\boldsymbol{\theta})=\frac{\exp(\boldsymbol{\beta}_c^{\mathrm{T}}\mathbf{x}+\gamma_c)}{\sum_{c'=1}^C\exp(\boldsymbol{\beta}_{c'}^{\mathrm{T}}\mathbf{x}+\gamma_{c'})}
+\end{equation}
+where $\boldsymbol{\beta}_c=\Sigma^{-1}\boldsymbol{\mu}_c$, $\gamma_c=-\frac{1}{2}\boldsymbol{\mu}_c^{\mathrm{T}}\Sigma^{-1}\boldsymbol{\mu}_c+\log\pi_c$. If we let $\boldsymbol{\eta}=[\boldsymbol{\beta}_1^{\mathrm{T}}\mathbf{x}+\gamma_1,\ldots,\boldsymbol{\beta}_C^{\mathrm{T}}\mathbf{x}+\gamma_C]$, then $p(y=c|\mathbf{x},\boldsymbol{\theta})=\mathcal{S}(\boldsymbol{\eta})_c$, where $\mathcal{S}$ is the softmax function originated from Boltzmann function in statistical physics defined as follows:
+\begin{equation}\label{softmax}
+\mathcal{S}(\boldsymbol{\eta})_c=\frac{e^{\eta_c}}{\sum_{c'=1}^Ce^{\eta_{c'}}}
+\end{equation}
+$\mathcal{S}$ is called softmax function because it behaves like the max function. Actually, $\mathcal{S}(\boldsymbol{\eta})$ is a distribution and $\mathcal{S}(\boldsymbol{\eta}/T)$ will concentrate on the maximum component of $\boldsymbol{\eta}$ as the temperature $T$ tends to 0.
+
+An even more special case is that in LDA the common covariance matrix is also diagonal. Using pooled empirical variance (an unbiased estimator of the variance), this model can perform better than LDA in high-dimensional setting.
+
+\section{Inference in Jointly Gaussian Distributions}
+\begin{theorem}{mvncondt}
+Suppose $\mathbf{x}=(\mathbf{x}_1^{\mathrm{T}}\ \mathbf{x}_2^{\mathrm{T}})^{\mathrm{T}}$ is jointly Gaussian with parameters
+\begin{equation}\label{jointmvn}
+\boldsymbol{\mu}=\left(
+\begin{array}{c}
+\boldsymbol{\mu}_1 \\
+\boldsymbol{\mu}_2 \\
+\end{array}
+\right),\quad
+\Sigma=\left(
+\begin{array}{cc}
+\Sigma_{11} & \Sigma_{12} \\
+\Sigma_{21} & \Sigma_{22} \\
+\end{array}
+\right),\quad
+\Lambda=\Sigma^{-1}=\left(
+\begin{array}{cc}
+\Lambda_{11} & \Lambda_{12} \\
+\Lambda_{21} & \Lambda_{22} \\
+\end{array}
+\right),
+\end{equation}
+Then we have the marginal distribution
+\begin{equation}\label{mvnmargin}
+p(\mathbf{x}_1)=\mathcal{N}(\mathbf{x}_1|\boldsymbol{\mu}_1,\Sigma_{11}),
+\end{equation}
+and the conditional distribution
+\begin{equation}\label{mvncond}
+\begin{array}{rcl}
+p(\mathbf{x}_1|\mathbf{x}_2) & = & \mathcal{N}(\mathbf{x}_1|\boldsymbol{\mu}_{1|2},\Sigma_{1|2}), \\
+\boldsymbol{\mu}_{1|2} & = & \boldsymbol{\mu}_1+\Sigma_{12}\Sigma_{22}^{-1}(\mathbf{x}_2-\boldsymbol{\mu}_2) \\
+ & = & \boldsymbol{\mu}_1-\Lambda_{11}^{-1}\Lambda_{12}(\mathbf{x}_2-\boldsymbol{\mu}_2) \\
+ & = & \Sigma_{1|2}(\Lambda_{11}\boldsymbol{\mu}_1-\Lambda_{12}(\mathbf{x}_2-\boldsymbol{\mu}_2)), \\
+\Sigma_{1|2} & = & \Lambda_{11}^{-1}=\Sigma_{11}-\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21}. \\
+\end{array}
+\end{equation}
+One can also write the above formula in the information form:
+\begin{equation}
+\begin{array}{rcl}
+p(\mathbf{x}_1) & = & \mathcal{N}_c(\mathbf{x}_1|\boldsymbol{\xi}_1-\Lambda_{12}\Lambda_{22}^{-1}\boldsymbol{\xi}_2, \Lambda_{11}-\Lambda_{12}\Lambda_{22}^{-1}\Lambda_{21}) \\
+p(\mathbf{x}_1|\mathbf{x}_2) & = & \mathcal{N}_c(\mathbf{x}_1|\boldsymbol{\xi}_1-\Lambda_{12}\mathbf{x}_2,\Lambda_{11})
+\end{array}
+\end{equation}
+\end{theorem}
+One intuitive explanation is that, if $mbf{x}_1$ and $\mathbf{x}_2$ are correlated, then an observation of $\mathbf{x}_2$ will give us some information of $\mathbf{x}_1$, distort the expectation and decrease the uncertainty.
+
+To prove this result, one need the matrix inversion formula:
+\begin{theorem}\label{matrixinvt}
+Given a square matrix
+\begin{equation}
+M=\left(
+\begin{array}{cc}
+A & B \\
+C & D \\
+\end{array}
+\right),
+\end{equation}
+define the Schur complement of $M$ with respect to $D$ and $A$ as
+\begin{equation}\label{schurcomp}
+M/D=A-BD^{-1}C,\quad M/A=D-CA^{-1}B. \\
+\end{equation}
+Now suppose $A$, $D$, $M/A$, and $M/D$ are all invertible. Then we have
+\begin{equation}\label{maxtrixinv}
+\begin{array}{rcl}
+M^{-1} & = & \left(
+\begin{array}{cc}
+(M/D)^{-1} & -(M/D)^{-1}BD^{-1} \\
+-D^{-1}C(M/D)^{-1} & D^{-1}+D^{-1}C(M/D)^{-1}BD^{-1} \\
+\end{array}
+\right) \\
+ & = & \left(
+ \begin{array}{cc}
+ A^{-1}+A^{-1}B(M/A)^{-1}CA^{-1} & -A^{-1}B(M/A)^{-1} \\
+-(M/A)^{-1}CA^{-1} & (M/A)^{-1} \\
+ \end{array}
+ \right) \\
+\end{array}
+\end{equation}
+\end{theorem}
+
+From Theorem \ref{matrixinvt} we can get the following matrix inversion lemma and matrix determinant lemma:
+\begin{lemma}\label{matrixinvl}
+Under the same conditions in Theorem \ref{matrixinvt}, we have
+\begin{equation}
+\begin{array}{rcl}
+(A-BD^{-1}C)^{-1} & = & A^{-1}+A^{-1}B(D-CA^{-1}B)CA^{-1} \\
+(A-BD^{-1}C)^{-1}BD^{-1} & = & A^{-1}B(D-CA^{-1}B)^{-1} \\
+|D||M/D| & = & |A||M/A|=|M| \\
+\end{array}
+\end{equation}
+\end{lemma}
+The first formula in this lemma is widely used. Suppose $D=-I$, $A^{-1}$ is easy to compute or has already been computed. and the number of columns in $A$, $N$, is much larger than the number of columns in $B$, $K$. Then the direct algorithm to compute $(A+BC)^{-1}$ needs $O(N^3)$ time, but if matrix inversion lemma is used, at most $O(N^2K)$ is needed.
+
+\section{Linear Gaussian Systems}
+Let $\mathbf{x}\in\mathbb{R}^{D_x}$ and $\mathbf{y}\in\mathbb{R}^{D_y}$ be two random variables. Here $\mathbf{x}$ is a hidden variable and $\mathbf{y}$ is a noisy measurement of $\mathbf{x}$. More formally, assume
+\begin{equation}\label{linGauss}
+\begin{array}{rcl}
+p(\mathbf{x}) & = & \mathcal{N}(\mathbf{x}|\boldsymbol{\mu}_x,\Sigma_x) \\
+p(\mathbf{x}|\mathbf{y}) & = & \mathcal{N}(\mathbf{y}|A\mathbf{x}+\mathbf{b}, \Sigma_y) \\
+\end{array}
+\end{equation}
+Now we want to infer $\mathbf{x}$ given observation of $\mathbf{y}$. The posterior distribution of $\mathbf{x}$ and the marginal distribution of $\mathbf{y}$ is
+\begin{equation}\label{linGausspost}
+\begin{array}{rcl}
+p(\mathbf{x}|\mathbf{y}) & = & \mathcal{N}(\mathbf{x}|\boldsymbol{\mu}_{x|y},\Sigma_{x|y}) \\
+\boldsymbol{\mu}_{x|y} & = & \Sigma_{x|y}[\Sigma_x^{-1}\boldsymbol{\mu}_x+A^{\mathrm{T}}\Sigma_y^{-1}(\mathbf{y}-\mathbf{b})] \\
+\Sigma_{x|y}^{-1} & = & \Sigma_x^{-1}+A^{\mathrm{T}}\Sigma_y^{-1}A \\
+p(\mathbf{y}) & = & \mathcal{N}(\mathbf{y}|A\boldsymbol{\mu}_x+\mathbf{b},\Sigma_y+A\Sigma_xA^{\mathrm{T}})\\
+\end{array}
+\end{equation}
+Intuitively, the precision of $\mathbf{x}$ increases after observing $\mathbf{y}$, and the posterior expectation of $\mathbf{x}$ will be a combination of $\boldsymbol{\mu}_x$ and $\mathbf{y}$.
+
+To prove this result, notice that $p(\mathbf{x},\mathbf{y})$ is a joint Gaussian distribution. The marginal expectation is $\boldsymbol{\mu}_x$ for $\mathbf{x}$ and $A\boldsymbol{\mu}_x+\mathbf{b}$ for $\mathbf{y}$. The precision matrix is the following:
+\begin{equation}
+\left[
+\begin{array}{cc}
+\Sigma_x^{-1}+A^{\mathrm{T}}\Sigma_y^{-1}A & A^{\mathrm{T}}\Sigma_y^{-1} \\
+\Sigma_y^{-1}A & \Sigma_y^{-1} \\
+\end{array}
+\right]
+\end{equation}
+And then we can use the formula for conditional Gaussian distribution to derive $p(\mathbf{x}|\mathbf{y})$. The marginal distribution of $\mathbf{y}$ can be derived directly.
+
+\section{Digression: The Wishart distribution}
+The Wishart distribution is the generalization of Gamma distribution over symmetric positive definite matrices. Formally, for $\Lambda\succ0$,
+\begin{equation}\label{wishart}
+\mathcal{W}(\Lambda|S,\nu)\propto|\Lambda|^{(\nu-D-1)/2}\exp\left(-\frac{1}{2}\mathrm{tr}(\Lambda S^{-1})\right)
+\end{equation}
+Here $\nu>D-1$ is called the degree of freedom and $S\succ0$ is called the scale matrix. From the notation we can infer that the Wishart distribution will be used as the prior distribution of the precision matrix.
+
+We have $\mathbb{E}[\Lambda]=\nu S$, $\mathrm{Mode}[\Lambda]=(\nu-D-1)S$ (mode exists when $\nu>D+1$). Let $S_1,S_2,\ldots,S_n$ be independent Wishart distributed random variables with $S_i\sim\mathcal{W}(\Sigma,\nu_i)$, then $\sum_{i=1}^nS_i\sim\mathcal{W}(\Sigma,\sum_{i=1}^n\nu_i)$.
+
+The Wishart distribution also has some relationship with MVN distributions. If $\mathbf{x}\sim\mathcal{N}(0,\Sigma)$, then $\mathbf{x}\mathbf{x}^{\mathrm{T}}\sim\mathcal{W}(\Sigma,1)$.
+
+If $\Sigma^{-1}\sim\mathcal{W}(S^{-1},\nu)$, we also have
+\begin{equation}\label{invwishart}
+\Sigma\sim\mathcal{W}^{-1}(S,\nu)\propto|\Sigma|^{-(\nu+D+1)/2}\exp\left(-\frac{1}{2}\mathrm{tr}(\Sigma^{-1}S)\right)
+\end{equation}
+We have $\mathbb{E}[\Sigma]=S/(\nu-D-1)$ (when $\nu>D+1$), $\mathrm{Mode}[\Sigma]=S/(\nu+D+1)$.
+
+\section{Inferring the Parameters of an MVN}
+\subsection{Posterior Distribution of $\boldsymbol{\mu}$}
+Let's now assume that the parameter $\Sigma$ is known, and a Gaussian prior $\mathcal{N}(\mathbf{m}_0,V_0)$ is given to the parameter $\boldsymbol{\mu}$. Then all data points can be seen as forming a linear system of $\boldsymbol{\mu}$. The posterior distribution is:
+\begin{equation}\label{postmu}
+\begin{array}{rcl}
+p(\boldsymbol{\mu}|\mathcal{D},\Sigma) & = & \mathcal{N}(\boldsymbol{\mu}|\mathbf{m}_N,V_N) \\
+V_N^{-1} & = & V_0^{-1}+N\Sigma^{-1} \\
+\mathbf{m}_N & = & V_N(\Sigma^{-1}(N\overline{\mathbf{x}})+V_0^{-1}\mathbf{m}_0) \\
+\end{array}
+\end{equation}
+
+\chapter*{Comments on Bayesian statistics and frequentist statistics}
+In Bayesian statistics, the underlying state, parameter or label is assumed to follow some prior distribution. We can decide the action function case by case: On seeing a data point, we derive the related posterior distribution, and then the optimal estimator for this observed data point can then be computed.
+
+However, in frequentist statistics, the unknown parameter is assumed to be unique. And only one observation is usually not enough; we need multiple data points to approximate the sampling distribution, with which we can assess the performance of the estimator. Otherwise we must need to know the distribution of the data points given the underlying parameter; however by the definition the parameter is unknown to us! Thus we must come up with some substitution for the underlying parameter, such as the average-case or worst-case parameter.
+
+\setcounter{chapter}{6}
+
+\chapter{Linear Regression}
+\section{Introduction}
+
+\section{Model Specification}
+The linear regression model can be summarized as
+\begin{equation}
+p(y|\mathbf{x},\boldsymbol{\theta})=\mathcal{N}(\mathbf{w}^{\mathrm{T}}\mathbf{x},\sigma^2)
+\end{equation}
+The linear regression model can be modified to model some non-linear relationships by replacing $\mathbf{x}$ with some non-linear basis function $\phi(\mathbf{x})$. In other words, we use
+\begin{equation}
+p(y|\mathbf{x},\boldsymbol{\theta})=\mathcal{N}(\mathbf{w}^{\mathrm{T}}\phi(\mathbf{x}),\sigma^2)
+\end{equation}
+This is known as the basis function expansion.
+
+\section{Maximum Likelihood Estimation (Least Squares)}
+To infer $\mathbf{w}$, usually we just use the ML estimate (or the MAP estimate with a uniform prior). We maximize the log-likelihood, under the assumption that different training examples are independent and identically distributed:
+\begin{equation}
+\ell(\boldsymbol{\theta})=\log p(\mathcal{D}|\boldsymbol{\theta})=\sum_{i=1}^N\log p(y_i|\mathbf{x}_i,\boldsymbol{\theta})
+\end{equation}
+Equivalently, we can minimize the negative log-likelihood:
+\begin{equation}
+\mathrm{NLL}(\boldsymbol{\theta})=-\sum_{i=1}^N\log p(y_i|\mathbf{x}_i,\boldsymbol{\theta})=\frac{1}{2\sigma^2}\mathrm{RSS}(\mathbf{w})+\frac{N}{2}\log (2\pi\sigma^2)
+\end{equation}
+Here $\mathrm{RSS}(\mathbf{w})=\sum_{i=1}^N(y_i-\mathbf{w}^{\mathrm{T}}\mathbf{x}_i)^2$ is called the residual sum of squares, or sum of squared errors. Similarly, $\mathrm{RSS}(\mathbf{w})/N$ is called the mean squared error.
+
+If the matrix form is used, then $\mathrm{RSS}(\mathbf{w})=(\mathbf{y}-X\mathbf{w})^{\mathrm{T}}(\mathbf{y}-X\mathbf{w})$ (here the rows of $X$ consist of $\mathbf{x}_1$ through $\mathbf{x}_N$). Take the derivative and set it to be 0, we get that $X^{\mathrm{T}}X\mathbf{w}=X^{\mathrm{T}}\mathbf{y}$. This is called the normal equation. There is always a solution for this equation which says $\hat{\mathbf{w}}=X^{\dagger}\mathbf{y}$.
+
+A geometric interpretation is that we try to find the projection of $\mathbf{y}$ onto the space generated by the columns of $X$.
+
+\section{Robust Linear Regression}
+The Gaussian distribution is sensitive to outliers in the data. To fix such a problem, the Laplace distribution can be used:
+\begin{equation}
+p(y|\mathbf{x},\mathbf{w},b)=\mathrm{Lap}(y|\mathbf{x}^{\mathrm{T}}\mathbf{w},b)\propto\exp(-|y-\mathbf{x}^{\mathrm{T}}\mathbf{w}|/b)
+\end{equation}
+Maximizing the Laplacian likelihood corresponds to minimizing the sum of absolute errors. Such a problem can be reduced to a linear program.
+
+It is also a good idea to try to minimize the Huber loss function which has a continuous first derivative and which also admits a (unnatural) probabilistic interpretation.
+
+\section{Ridge Regression}
+The ML estimate may suffer from overfitting. To avoid such a problem, one can give a prior on the parameters. This method is called regularization.
+
+For example, suppose we give a Gaussian prior to the weight parameters:
+\begin{equation}
+p(\mathbf{w})=\prod_{j=1}^N\mathcal{N}(w_j|0,\tau^2)
+\end{equation}
+To maximize the negative log-likelihood, it is equivalent to minimize the following:
+\begin{equation}
+\mathrm{J}(\mathbf{w})=\sum_{i=1}^N(y_i-\mathbf{w}^{\mathrm{T}}\mathbf{x}_i)^2+\lambda\Vert\mathbf{w}\Vert^2
+\end{equation}
+Here $\lambda=\sigma^2/\tau^2$ is a complexity penalty. (Note that we had better not penalize the constant term.) The solution is given by $\hat{\mathbf{w}}_{\mathrm{ridge}}=(\lambda I+X^{\mathrm{T}}X)^{-1}X^{\mathrm{T}}\mathbf{y}$. This method is called ridge regression or $\ell_2$ regularization.
+
+To compute the solution, we need to inverse $X^{\mathrm{T}}X$, which needs about $O(D^3)$ time. However, we can first apply the QR decomposition to $X$ and then $\hat{\mathbf{w}}=R^{-1}Q\mathbf{y}$. $R$ is easy to inverse since it is upper triangular and QR decomposition is numerically stable which needs $O(ND^2)$ time.
+
+\setcounter{chapter}{9}
+
+\chapter{Directed Graphical Models (Bayes Nets)}
+\section{Introduction}
+Here basically we are dealing with 3 kinds of problems:
+\begin{itemize}
+\item Representation: How to compactly represent a joint distribution $p(\mathbf{x}|\boldsymbol{\theta})$?
+\item Inference (Similar to generalization but has a different concentration): How to infer one set of variables given another?
+\item Learning (Similar to Optimization): How to learn parameters of the distribution?
+\end{itemize}
+
+A \textbf{directed graphical model} or \textbf{DGM} is a GM whose graph is a DAG, which is also called Bayesian networks, belief networks or causal networks. The nodes in a DAG can be ordered such as a parent always comes earlier than its children. Given this order, we can define the ordered Markov property of DGM's:
+\begin{equation}
+\mathbf{x}_s\bot\mathbf{x}_{\mathrm{pred}(s)-\mathrm{pa}(s)}|\mathbf{x}_{\mathrm{pa}(s)}.
+\end{equation}
+In other words, a node only depends on its parents.
+
+\section{Examples}
+\subsection{Naive Bayes classifiers}
+To model a Naive Bayes classifier, we just use a two-level tree. The tree structure also allows more dependency between features (even when the class label is given).
+
+Usually we use shaded nodes to represent observed nodes and unshaded nodes to represent hidden nodes.
+
+\subsection{Markov and Hidden Markov Models}
+The DGM can easily model a (first-order, second-order, ...) Markov chain. It can also model a hidden Markov chain where there is a hidden Markov process and at each time step a noisy observation is made.
+
+\end{document}

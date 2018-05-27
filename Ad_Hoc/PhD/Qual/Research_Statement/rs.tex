@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{commath}
+\usepackage{dsfont}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage[margin=1.25in]{geometry}
+
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{theorem}{Theorem}[section]
+
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}{Example}[section]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+% Global consistency is subject to local consistency.
+
+% When giving labels for above environments or algorithm environments,
+% use def:, thm:, lemma:, cor:, prop:, e.g.:, asm:, alg:, etc., as the prefix.
+% When labeling the same object more than once, use     ag{}.
+% Use camel case.
+
+% Try to avoid sizes that are smaller than normal by at least two levels.
+% Use $\left\right$ only with fractions. However, if fractions are far away from
+% delimiters, it is also possible to use normal delimiters.
+
+\author{Ziwei Ji}
+\title{Research Statement}
+
+\begin{document}
+
+\maketitle
+
+My research interest lies in machine learning theory, since I want to understand why certain methods like neural nets work so well in practice and how to make them even better. In this statement I describe my past work and potential future work.
+
+\section{Past Work}
+My past work mainly focuses on optimization. Optimization has been widely studied since last century, and I have been interested in and studied much classical optimization theory, such as linear programming, convex optimization, convex analysis, etc. I have done two projects on optimization:
+\begin{itemize}
+    \item The first one is an application of classical convex optimization to an economic problem \citep{JRM17}. To design good economic mechanisms, classical economic theory usually assumes that consumers' personal preferences, or their minds, are known to us, which is of course not true in practice. However, consumers' behaviors, or \emph{revealed preferences}, are indeed observable. We notice that revealed preference is actually the subgradient of the dual function, and to maximize social welfare we can just optimize the dual.
+
+    \item The second one is an analysis of gradient descent on logistic regression, especially unbounded linear predictors are considered. Notice that the logistic loss $\ell(t)=\ln\left(1+\exp(t)\right)$ has infimum $0$ but never achieves it. In some cases, for example, when the data set is well-separated, there will be no finite optimum solution, while in classical convex optimization, espeically smooth optimization, it is usually assumed that an optimum solution exists. We show that the classical analysis can be adapted to this scenario, and give a $\widetilde{O}(1/t)$ rate.
+
+    Moreover, for a linear predictor $w$, if we use $\|w\|_2$ to describe its complexity, we show that gradient descent gives predictor with low complexity, which can be interpreted as an \emph{implicit regularization} property. Furthermore, if data is well-separated, we show that $w_t/\|w_t\|_2$ converges to the norm vector to the max-margin hyperplane. (This is still true if data is not well-separated, and the limit can be described using some structural lemma.) Those results have some implications in generalization, and thus may lead to more future work.
+
+    This work is submitted to COLT 2018.
+\end{itemize}
+
+\section{Future Work}
+Potential future work that I am interested in include:
+\begin{itemize}
+    \item Optimization. I am still interested in designing and applying optimization methods to machine learning and many othe real-world problems. One ambitious and hard goal is to understand why stochastic gradient descent works well for neural nets.
+
+    \item Generalization. Given a predictor of low training error, we also want it to have low testing error. For example, recently there have been many papers on neural nets generalization \citep{BFT17, GRS17, AGNZ18}. In practice the number of parameters in a neural net is usually larger than the number of data points\citep{ZBHRV17}, but neural nets still generalize well. Understanding why this happens, and designing certain principles for good generalization, is an interesting problem.
+
+    Also recall that we show gradient descent has some implicit regularization property when learning linear predictors. It would be very nice if we can extend this result to neural nets.
+\end{itemize}
+
+\bibliography{rs}
+\bibliographystyle{plainnat}
+
+\end{document}

@@ -1,0 +1,673 @@
+\documentclass[openany]{book}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{commath}
+\usepackage{dsfont}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{natbib}
+\usepackage{nicefrac}
+%\usepackage[margin=1.25in]{geometry}
+
+\newtheorem{corollary}{Corollary}[chapter]
+\newtheorem{lemma}{Lemma}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}[chapter]
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{example}{Example}[chapter]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{question}{Question}
+\newtheorem*{trick}{Trick}
+
+% Global consistency is subject to local consistency.
+
+% When giving labels for above environments or algorithm environments,
+% use def:, thm:, lemma:, cor:, prop:, e.g.:, asm:, alg:, etc., as the prefix.
+% When labeling the same object more than once, use \tag{}.
+% Use camel case.
+
+% Try to avoid sizes that are smaller than normal by at least two levels.
+% Use $\left\right$ only with fractions. However, if fractions are far away from
+% delimiters, it is also possible to use normal delimiters.
+
+\author{Ziwei Ji}
+\title{Notes on Machine Learning}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\chapter*{Notations}
+\begin{table}[h]
+    \centering
+\begin{tabular}{|c|c|}
+\hline
+$\mathcal{D}$ & the data set \\
+\hline
+$n$ & the number of training examples in $\mathcal{D}$ \\
+\hline
+$i$ & the variable used to index training examples \\
+\hline
+$\mathcal{X}$ & the set of possible feature or attribute vectors \\
+\hline
+$d$ & the number of dimensions \\
+\hline
+$j$ & the variable used to index dimensions \\
+\hline
+$\mathcal{Y}$ & the label space \\
+\hline
+$C$ & the number of categories in classification problem \\
+\hline
+$c$ & the variable used to index categories \\
+\hline
+\end{tabular}
+\caption{Notations}
+\end{table}
+
+\part{Basic Concepts}
+\chapter{The Statistical Learning Framework}
+\section{A General Framework}
+In machine learning, generally we are given a data set $\mathcal{D}=\{z_1,\ldots,z_n\}$, which is assumed to be sampled\footnote{We will use $D$ when considering the corresponding random variable.} i.i.d. from some unknown\footnote{The adjective "unknown" might have different interpretations in different cases.} distribution $P$ over $\mathcal{Z}$.
+\begin{itemize}
+    \item In \textbf{supervised learning}, we have $\mathcal{Z}=\mathcal{X}\times \mathcal{Y}$, where $\mathcal{X}$ is called the \textbf{input space} and $\mathcal{Y}$ is called the \textbf{output space}. Typically, $\mathcal{X}\subset \mathbb{R}^d$, and in \textbf{regression} problems, $\mathcal{Y}$ consists of continuous real numbers, while in \textbf{classification} problems, $\mathcal{Y}$ consists of discrete integers. Specifically, in \textbf{binary classification}, we generally take $\mathcal{Y}=\{-1,+1\}$.
+
+    In this case, we further use $\mathcal{D}_{\mathcal{X}}$ and $\mathcal{D}_{\mathcal{Y}}$ to describe the two parts of $\mathcal{D}$. Note that there is a one-to-one correspondence between them.
+
+    \item In \textbf{unsupervised learning}, $\mathcal{Z}$ is assumed to be some general subset of $\mathbb{R}^d$.
+\end{itemize}
+
+We are further given a function class $\mathcal{F}$ and a \textbf{loss function} $\ell:\mathcal{F}\times \mathcal{Z}\to \mathbb{R}_+$ (or $\mathbb{R}$ in general).
+\begin{remark}
+    The above definition is kind of asymmetric, since $\mathcal{Z}$ is associated with a distribution while $\mathcal{F}$ is not. In the Bayesian setting, $\mathcal{F}$ is also associated with a distribution.
+\end{remark}
+
+At a very high level, learning is trying to find a function $f\in \mathcal{F}$ which minimizes (or nearly minimizes) the \textbf{risk}
+\begin{equation}\label{risk}
+    R(f)=\mathbb{E}_{Z\sim P}\left[\ell(f,Z)\right].
+\end{equation}
+However, as $P$ is usually unknown to us, we cannot compute the risk exactly. Instead, the following \textbf{empirical risk} is considered
+\begin{equation}\label{empRisk}
+    R_{\mathcal{D}}(f)=\frac{1}{n}\sum_{i=1}^{n}\ell(f,z_i).
+\end{equation}
+
+However, one also need to be careful about \textbf{overfitting}: Even if we can find a function with small empirical risk or training error, the true risk or test error might still be high. In other words, there is a large gap between the training error and test error. One way to deal with overfitting is to restrict the function class $\mathcal{F}$. Another way is to use \textbf{regularization}: Deciding some parameter $\lambda>0$ and some complexity measure $C$ and minimizing $R(f)+\lambda C(f)$ or $R_{\mathcal{D}}(f)+\lambda C(f)$. Sometimes certain algorithm like stochastic gradient descent will favor simple $f$, and thus gives \textbf{implicit regularization}.
+
+However, one should also notice that those methods are not perfect. For example, regularization is kind of a global constraint, but the predictor may work the best with part of it smooth and part of it sharp. There is definitely no end in such an exploration.
+
+\subsection{Bayesian Methods}
+ML estimator and MAP estimator can both be expressed in the above general framework, if we let the function class be the parameter class, and the regularizer encode the prior. Prediction using the full posterior can also be incorporated, if instead of looking for one function, we want to compute a distribution on the function class. In other words, the computations are the same, but there are different interpretations, which might give us different inspirations.
+
+\textbf{Discriminative methods} and \textbf{generative methods} are further considered.
+\begin{itemize}
+    \item Discriminative methods are used for supervised learning, where we try to learn a parameter $\lambda$ and thus a conditional distribution $P(Y|X,\lambda)$.\footnote{In the following we actually abuse the notation a little: We use $P$ to indicate either a probability or a probability density, depends on whether the problem is discrete or not.} The prior is some $P(\lambda)$, the likelihood is $L_{\mathcal{D}}(\lambda)=P(\mathcal{D}_{\mathcal{Y}}|\mathcal{D}_{\mathcal{X}},\lambda)$, and the posterior $P(\lambda|\mathcal{D})$ is normalized $P(\lambda)L_{\mathcal{D}}(\lambda)$.
+
+    For supervised learning, discriminative methods tend to have better performance, perhaps since it has fewer parameters.
+
+    \item Generative methods can be used for both unsupervised learning and supervised learning (through Bayes' rule). Here we try to model the joint distribution $P(X,Y|\pi,\lambda)$. The prior is some $P(\pi,\lambda)$. The likelihood is $L_{\mathcal{D}}(\pi,\lambda)=P(\mathcal{D}_{\mathcal{Y}}|\pi)P(\mathcal{D}_{\mathcal{X}}|\mathcal{D}_{\mathcal{Y}},\lambda)$. the posterior $P(\pi,\lambda|\mathcal{D})$ is normalized $P(\pi,\lambda)L_{\mathcal{D}}(\pi,\lambda)$.
+
+    Generative methods can be used for unsupervised learning. For supervised learning, it can model complex relations between $X$ and $Y$, and thus is not necessarily worse than discriminative methods.
+\end{itemize}
+\begin{remark}
+    It should be noted that ML estimator actually minimizes the KL divergence between the empirical distribution and the model distribution. For generative methods, the latter is just the joint distribution given by the model; for discriminative methods, the latter is the composition of the conditional distribution given by the model and some unknown distribution on $\mathcal{X}$.
+\end{remark}
+
+\subsection{Learning a Predictor Deterministically}
+The name of this subsection is given by Ziwei. However, the idea is echoed in many places. For example, in statistics, a statistic or statistical algorithm is usually a deterministic algorithm independent of the data.
+
+Here the goal is to learn a function $f_{\mathcal{D}}\in \mathcal{F}$ given the data set $\mathcal{D}$. Let $f_{D}$ denote the output of our algorithm, which is a random variable depending on $D$. Furthermore, suppose $f^{\star}$ is some benchmark predictor in $\mathcal{F}$ and $g^{\star}$ is some benchmark predictor not necessarily in $\mathcal{F}$. Then we want to bound
+\begin{equation}\label{riskRegret}
+    R(f_{D})-R(g^{\star}).
+\end{equation}
+
+Our algorithm is said to be \textbf{consistent} w.r.t. $P$ if $R(f_{D})$ converges to $R(g^{\star})$ in probability: For any $\epsilon>0$,
+\begin{equation}
+    \lim_{n\to\infty}\mathrm{Pr}_{D}\left[R(f_{D})-R(g^{\star})\ge\epsilon\right]=0.
+\end{equation}
+Usually we establish consistency by showing certain inequality: For any $\epsilon>0$,
+\begin{equation}
+    \mathrm{Pr}_{D}\left[R(f_{D})-R(g^{\star})\ge\epsilon\right]\le\delta(\epsilon,n,P),
+\end{equation}
+and $\delta(\epsilon,n,P)\to0$ as $n\to\infty$. If our algorithm is consistent for any $P$, it is called \textbf{universally consistent}. However, note that the convergence rate might depend on both $\epsilon$ and $P$.
+
+We can decompose \eqref{riskRegret} into two parts:
+\begin{equation}
+    R(f_D)-R(g^{\star})=\left(R(f_D)-R(f^{\star})\right)+\left(R(f^{\star})-R(g^{\star})\right).
+\end{equation}
+The second part is representation. In certain cases we might be able to analyze the first part directly, such as SGD.
+
+We can further write \eqref{riskRegret} in four parts:
+\begin{equation}\label{fullRiskBound}
+    \begin{split}
+        R(f_{D})-R(g^{\star}) & =\left(R(f_{D})-R_{D}(f_{D})\right) \\
+         & \quad+\left(R_{D}(f_{D})-R_{D}(f^{\star})\right) \\
+         & \quad+\left(R_{D}(f^{\star})-R(f^{\star})\right) \\
+         & \quad+\left(R(f^{\star})-R(g^{\star})\right).
+    \end{split}
+\end{equation}
+We can analyze them respectively:
+\begin{itemize}
+    \item The first term on the right hand side correspond to \textbf{generalization}. It is tricky as both $R_{D}$ and $f_{D}$ depend on $D$. In other words, when viewed as a function of $D$, its expectation may not be $0$. (By contrast, the third term does have mean 0.) To argue that the first term is small, statistical learning theory usually looks at
+    \begin{equation}\label{capacity}
+        \sup_{f\in \mathcal{F}}\left(R(f)-R_D(f)\right).
+    \end{equation}
+    \eqref{capacity} can be more naturally interpreted as a \textbf{capacity measure}.
+
+    \item The second term corresponds to \textbf{optimization}. Even though we often consider generalization and optimization separately, the relationship between them is supported by empirical evidence.
+
+    \item The third part corresponds to \textbf{concentration}. By the Strong Law of Large Numbers, this term always converges to $0$ a.s. as $n$ goes to infinity. We can further get some quantitive bound by making use of concentration inequality.
+
+    \item The last term corresponds to \textbf{representation}.
+\end{itemize}
+
+\chapter{Generalization Bounds}
+At first, we summarize some settings which will be consirdered very often in this chapter. Only the binary classification problem is considered, and we usually assume $\|x\|\le1$ (or $\le B$ in general) for some norm $\|\cdot\|$ (usually $\|\cdot\|_2$) and $y\in\{-1,+1\}$.
+
+With a little abuse of notation, the loss function can be expressed as $\ell(f,z)=\ell\left(-yf(x)\right)$. When $f(\cdot)=\langle w,\cdot\rangle$, we have $\ell(-yf(x))=\ell\left(\langle w,-xy\rangle\right)$, and thus it is also convenient to redefine $z=-xy$. For non-linear predictors, we need to consider the full form.
+
+Common loss functions include:
+\begin{itemize}
+    \item $\ell_{\mathrm{exp}}(t)=\exp(t)$.
+    \item $\ell_{\mathrm{log}}(t)=\ln\left(1+\exp(t)\right)$.
+    \item $\ell_{\mathrm{sgn}}(t)=\mathds{1}_{t>0}$.
+    \item $\ell_{\gamma}(t)=\max\{0,\min\{1,1+t/\gamma\}\}$, $\gamma>0$.
+    \item $\ell_{\mathrm{ReLU}}(t)=\max\{0,t\}$.
+\end{itemize}
+
+\section{Finite Case}
+\begin{theorem}
+    Suppose $\mathcal{F}$ is finite, and for any $f\in \mathcal{F}$, $z\in \mathcal{Z}$, $\ell(f,z)\in[a,b]$. Then with probability at least $1-\delta$ over $D$,
+    \begin{equation*}
+        \sup_{f\in \mathcal{F}}\left(R(f)-R_{D}(f)\right)\le(b-a)\sqrt{\frac{\ln|\mathcal{F}|+\ln(1/\delta)}{2n}}.
+    \end{equation*}
+\end{theorem}
+\begin{remark}
+    The proof makes use of direct union bound.
+\end{remark}
+
+\section{Covering Number}
+\begin{definition}
+    Given a set $U$, a norm $\|\cdot\|$, an $\epsilon$-(proper )cover is $V\subset U$ such that
+    \begin{equation*}
+        \sup_{u\in U}\inf_{v\in V}\|u-v\|\le\epsilon.
+    \end{equation*}
+    The $\epsilon$-(proper )covering number $\mathcal{N}(U,\epsilon,\|\cdot\|)$ is defined as the minimum cardinality of an $\epsilon$-(proper )cover of $U$.
+\end{definition}
+\begin{theorem}
+    Suppose for any $f\in \mathcal{F}$, $z\in \mathcal{Z}$, $\ell(f,z)\in[a,b]$. Then with probability at least $1-\delta$ over $D$, for any $\epsilon>0$,
+    \begin{equation*}
+        \sup_{f\in \mathcal{F}}\left(R(f)-R_{D}(f)\right)\le2\epsilon+(b-a)\sqrt{\frac{\ln \mathcal{N}\left(\ell_{\mathcal{F}}(\mathcal{Z}),\epsilon,\|\cdot\|_{\mathrm{u}}\right)+\ln(1/\delta)}{2n}}.
+    \end{equation*}
+\end{theorem}
+\begin{remark}
+    We need $\|\cdot\|_{\mathrm{u}}$ instead of $\|\cdot\|_{\infty}$ due to empirical loss. The proof idea is to first cover $\mathcal{F}$ with a finite class, then make use of union bound.
+\end{remark}
+\begin{remark}
+    One disadvantage of the covering argument is that it does not handle the 0-1 loss $\ell_{\mathrm{sgn}}$ directly.
+\end{remark}
+
+\section{Rademacher Complexity}
+When dealing with infinite $\mathcal{Z}$ and infinite $\mathcal{F}$, the covering argument tries to focus on a finite subset of $\mathcal{F}$. It is also natural to consider a finite subset of $\mathcal{Z}$, which leads to the notion of Rademacher complexity.
+
+Let $D,D'$ denote two data sets (r.v.), both containing $n$ i.i.d. samples from $P$.
+\begin{lemma}
+    \begin{equation*}
+        \mathbb{E}_{D}\left[\sup_{f\in \mathcal{F}}\left(R(f)-R_{D}(f)\right)\right]\le \mathbb{E}_{D,D'}\left[\sup_{f\in \mathcal{F}}\left(R_{D'}(f)-R_{D}(f)\right)\right].
+    \end{equation*}
+\end{lemma}
+Now fix $\epsilon\in\{-1,+1\}^n$. We have
+\begin{equation*}
+    \begin{split}
+         & \mathbb{E}_{D,D'}\left[\sup_{f\in \mathcal{F}}\left(R_{D'}(f)-R_{D}(f)\right)\right] \\
+        = & \mathbb{E}_{D,D'}\left[\sup_{f\in \mathcal{F}}\frac{1}{n}\sum_{i=1}^{n}\left(\ell(f,Z_i')-\ell(f,Z_i)\right)\right] \\
+        = & \mathbb{E}_{D,D'}\left[\sup_{f\in \mathcal{F}}\frac{1}{n}\sum_{i=1}^{n}\epsilon_i\left(\ell(f,Z_i')-\ell(f,Z_i)\right)\right]
+    \end{split}
+\end{equation*}
+The reason is that all $Z_i,Z_i'$ are i.i.d. Now let $\epsilon$ be a random variable, such that for any $1\le i\le n$, $\mathrm{Pr}[\epsilon_i=-1]=\mathrm{Pr}[\epsilon_i=+1]=1/2$. We have
+\begin{equation*}
+    \begin{split}
+         & \mathbb{E}_{D,D'}\left[\sup_{f\in \mathcal{F}}\left(R_{D'}(f)-R_{D}(f)\right)\right] \\
+        = & \mathbb{E}_{D,D',\epsilon}\left[\sup_{f\in \mathcal{F}}\frac{1}{n}\sum_{i=1}^{n}\epsilon_i\left(\ell(f,Z_i')-\ell(f,Z_i)\right)\right] \\
+        \le & \mathbb{E}_{D,D',\epsilon}\left[\sup_{f,f'\in \mathcal{F}}\frac{1}{n}\sum_{i=1}^{n}\epsilon_i\left(\ell(f,Z_i')-\ell(f',Z_i)\right)\right] \\
+        = & \mathbb{E}_{D',\epsilon}\left[\sup_{f\in \mathcal{F}}\frac{1}{n}\sum_{i=1}^{n}\epsilon_i\ell(f,Z_i')\right]+\mathbb{E}_{D,\epsilon}\left[\sup_{f'\in \mathcal{F}}\frac{1}{n}\sum_{i=1}^{n}-\epsilon_i\ell(f',Z_i)\right] \\
+        = & 2 \frac{1}{n}\mathbb{E}_{D}\mathbb{E}_{\epsilon}\left[\sup_{f\in \mathcal{F}}\sum_{i=1}^{n}\epsilon_i\ell(f,Z_i)\right] \\
+        = & \frac{2}{n}\mathbb{E}_{D}\,\mathrm{Rad}\left[\ell_{\mathcal{F}}(D)\right],
+    \end{split}
+\end{equation*}
+where for $U\subset \mathbb{R}^n$, $\mathrm{Rad}[U]=\mathbb{E}_{\epsilon}\left[\sup_{u\in U}\sum_{i=1}^{n}\epsilon_iu_i\right]$.
+\begin{remark}
+    In literature, sometimes the $1/n$ factor is included in the definition of Rademacher complexity.
+\end{remark}
+
+Using McDiarmid's inequality, we can get the following result.
+\begin{theorem}
+    Suppose for all $z\in \mathcal{Z}$, $f\in \mathcal{F}$, $\ell(f,z)\in[a,b]$. Then with probability at least $1-\delta$ over the data set $D$,
+    \begin{equation*}
+        \sup_{f\in \mathcal{F}}\left(R(f)-R_{D}(f)\right)\le \mathbb{E}_{D}\left[\sup_{f\in \mathcal{F}}\left(R(f)-R_{D}(f)\right)\right]+(b-a)\sqrt{\frac{\ln(1/\delta)}{2n}},
+    \end{equation*}
+    \begin{equation*}
+        \mathbb{E}_{D}\,\mathrm{Rad}[\ell_{\mathcal{F}}(D)]\le \mathrm{Rad}[\ell_{\mathcal{F}}(D)]+(b-a)\sqrt{\frac{n\ln(1/\delta)}{2}},
+    \end{equation*}
+    and
+    \begin{equation*}
+        \sup_{f\in \mathcal{F}}\left(R(f)-R_{D}(f)\right)\le \frac{2}{n}\mathrm{Rad}[\ell_{\mathcal{F}}(D)]+3(b-a)\sqrt{\frac{\ln(2/\delta)}{2n}}.
+    \end{equation*}
+\end{theorem}
+
+By definition, we can already see that $\mathrm{Rad}[U]\ge0$, $\mathrm{Rad}[\{u\}]=0$, $\mathrm{Rad}[U+\{u\}]=\mathrm{Rad}[U]$.
+\begin{theorem}
+    Suppose $U\subset \mathbb{R}^n$ is finite. Then
+    \begin{equation*}
+        \mathrm{Rad}[U]\le\sup_{u\in U}\|u\|_2\sqrt{2\ln|U|}.
+    \end{equation*}
+\end{theorem}
+\begin{theorem}\label{thm:RadLinear}
+    Let $A$ denote the matrix whose rows are data points in $\mathcal{D}$. Then
+    \begin{equation*}
+        \mathrm{Rad}\left[\{z\to \langle w,z\rangle|\|w\|_2\le M\}(\mathcal{D})\right]\le M\|A\|_2\le MB\sqrt{n}.
+    \end{equation*}
+\end{theorem}
+\begin{theorem}\label{thm:RadLipschitz}
+    Let $\ell:\mathbb{R}^n\to \mathbb{R}^n$ be a vector of univariate $\lambda$-Lipschitz functions. Then for any $U\subset \mathbb{R}^n$,
+    \begin{equation*}
+        \mathrm{Rad}\left[\ell\circ U\right]\le\lambda \mathrm{Rad}\left[U\right].
+    \end{equation*}
+\end{theorem}
+\begin{remark}
+    \Cref{thm:RadLinear} and \Cref{thm:RadLipschitz} enable us to show generalization bounds for $\ell_{\mathrm{log}}$, $\ell_{\gamma}$ and $\ell_{\mathrm{ReLU}}$. It also works for $\ell_{\mathrm{exp}}$ if we consider Lipschitz continuity on sublevel sets.
+\end{remark}
+
+Since $\ell_{\mathrm{sgn}}$ is not Lipschitz, it has to be treated in some other way. One way is to use $\ell_{\mathrm{sgn}}\le\ell_{\gamma}$, and thus with probability at least $1-\delta$ over $D$, for any $f\in \mathcal{F}$,
+\begin{align*}
+    R_{\mathrm{sgn}}(f) & \le R_{\gamma}(f) \\
+     & \le R_{\gamma,D}(f)+\frac{2}{n\gamma}\mathrm{Rad}\left[\left\{(-y_1f(x_1),\ldots,-y_nf(x_n))\middle|f\in \mathcal{F}\right\}\right] \\
+     & \quad+3\sqrt{\frac{\ln(2/\delta)}{2n}}.
+\end{align*}
+
+Another way to deal with 0-1 loss is to consider VC dimension as introduced in \Cref{sec:VCDim}.
+
+\section{VC Dimension}\label{sec:VCDim}
+In this section, we consider $\mathcal{Y}=\{-1,+1\}$, and $\ell(f,z)=\mathds{1}[\mathrm{sgn}(f(x))\ne y]$. We define
+\begin{align*}
+    \mathrm{sgn}[U] & =\{(\mathrm{sgn}(u_1),\ldots,\mathrm{sgn}(u_n))|u\in U\}, \\
+    \mathrm{Sh}[U] & =|\mathrm{sgn}[U]|, \\
+    \mathcal{F}(\mathcal{D}) & =\{(f(x_1),\ldots,f(x_n))|f\in \mathcal{F}\}, \\
+    \mathrm{Sh}[\mathcal{F};n] & =\max_{\mathcal{D}\in \mathcal{Z}^n}\mathrm{Sh}[\mathcal{F}(\mathcal{D})], \\
+    \mathrm{VC}[\mathcal{F}] & =\max\{i\in \mathbb{Z}_+|\mathrm{Sh}[\mathcal{F};i]=2^i\}.
+\end{align*}
+We have the following results.
+\begin{lemma}
+    \begin{equation*}
+        \mathrm{Rad}[\ell_{\mathcal{F}}(\mathcal{D})]\le \frac{1}{2}\mathrm{Rad}[\mathrm{sgn}(\mathcal{F}(\mathcal{D}))].
+    \end{equation*}
+\end{lemma}
+\begin{lemma}
+    Let $V$ denote $\mathrm{VC}(\mathcal{F})$. Then
+    \begin{equation*}
+        \mathrm{Sh}[\mathcal{F};n]\le\left\{
+        \begin{array}{ll}
+            2^n & \quad n\le V, \\
+            (en/V)^V & \quad\textrm{o.w.}
+        \end{array}
+        \right.
+    \end{equation*}
+    Also, $\mathrm{Sh}[\mathcal{F};n]\le n^V+1$.
+\end{lemma}
+\begin{theorem}[VC Theorem]
+    With probability at least $1-\delta$ over the data set $D$,
+    \begin{equation*}
+        \sup_{f\in \mathcal{F}}\left(R(f)-R_{D}(f)\right)\le \frac{1}{n}\mathrm{Rad}[\mathrm{sgn}(\mathcal{F}(D))]+3\sqrt{\frac{\ln(2/\delta)}{2n}},
+    \end{equation*}
+    and furthermore,
+    \begin{equation*}
+        \mathrm{Rad}[\mathrm{sgn}(\mathcal{F}(D))]\le\sqrt{2n\ln\left(\mathrm{Sh}[\mathcal{F}(D)]\right)}\le\sqrt{2nV\ln(n+1)}.
+    \end{equation*}
+\end{theorem}
+
+\chapter{Gradient Descent and Variants}
+
+
+\part{Basic Representations}
+\chapter{The Perceptron Algorithm}
+Assume we want to learn $w\in \mathbb{R}^d$, such that $\mathrm{sgn}(\langle w,x\rangle)$ gives a good prediction for a binary classification problem. We do not consider constant term here, since we can add one dummy coordinate of $1$ to the data points. Also w.l.o.g., we assume that $\|x_i\|=1$.
+
+We assume that there exists a unit weight vector $w^{\star}$ which is consistent with all data points; in other words, for all $1\le i\le n$, $\langle w^{\star},y_ix_i\rangle>0$. Moreover, we assume $\min_{1\le i\le n}\langle w^{\star},y_ix_i\rangle=\gamma>0$.
+
+The perceptron algorithm is the following. Let $w_0=0$. On receving $x_i$, we predict $\mathrm{sgn}(\langle w_{i-1},x_i\rangle)$. (If $\langle w_{i-1},x_i\rangle=0$, we can choose a sign arbitrarily.) If our prediction is wrong, we update $w_i=w_{i-1}+y_ix_i$, otherwise $w_i=w_{i-1}$. Note that if the $i$-th prediction is wrong, then $\langle w_i,x_i\rangle=\langle w_{i-1},x_i\rangle+y_i$, which is intuitive.
+
+\begin{lemma}
+    For $1\le i\le n$, suppose the prediction is wrong at step $i$. Then
+    \begin{align*}
+        \langle w_i,w^{\star}\rangle & \ge \langle w_{i-1},w^{\star}\rangle+\gamma, \\
+        \|w_i\|_2^2 & \le\|w_{i-1}\|_2^2+1.
+    \end{align*}
+\end{lemma}
+\begin{theorem}\label{thm:perceptron}
+    Let $M$ denote the number of mistakes the perceptron algorithm makes. Then
+    \begin{equation*}
+        M\le \frac{1}{\gamma^2}.
+    \end{equation*}
+\end{theorem}
+\begin{remark}
+    Sometimes \Cref{thm:perceptron} is referred to as a ``dimension-free'' result. However, there is a dependency on $\gamma$, and as the dimension goes higher and higher, the volumn of data points $\gamma$-far from the equator becomes smaller and smaller and eventually goes to $0$.
+\end{remark}
+
+\chapter{Nearest Neighbors}
+In the general setting of nearest neighbors, we consider a separable metric space $(\mathcal{X},\rho)$, and a Borel probability measure $\mu$ on this space. (For a concrete example, one can consider the Euclidean space $\mathbb{R}^n$ and the Euclidean distance.) Given an instance $x\in \mathcal{X}$, the corresponding label $y\in\{0,1\}$ is sampled according to the conditional probability function $\eta:\mathcal{X}\to[0,1]$, which is integrable over $\mathcal{X}$.
+
+Consider a training set $\mathcal{D}=\{(x_i,y_i)\}_{i=1}^n$, whose data points are sampled i.i.d. from $\mu$ and $\eta$, and a query point $x\sim\mu$. We use $x_{(i)}(x)$ to denote the $i$-th nearest neighbor to $x$ in $\mathcal{D}$ (ties can be broken according to labels), and $y_{(i)}(x)$ to denote the corresponding label. The k-NN classifier is defined by
+\begin{equation*}
+    g_{\mathcal{D},k}(x)=\mathds{1}\left[\sum_{i=1}^{k}y_{(i)}(x)\ge \frac{k}{2}\right],
+\end{equation*}
+while the optimal Bayes classifier is given by
+\begin{equation*}
+    g(x)=\mathds{1}\left[\eta(x)\ge \frac{1}{2}\right].
+\end{equation*}
+We will try to compare the performance of those two classifiers.
+
+Below are some technical definitions.
+\begin{itemize}
+    \item Since $\mu$ is Borel, for $x\in \mathcal{X}$, $r\ge0$, the closed ball
+    \begin{equation*}
+        \bar{B}(x,r)=\{y\in \mathcal{X}|\rho(x,y)\le r\}
+    \end{equation*}
+    is measurable. Furthermore, let $r_p(x)=\inf\{r|\mu(\bar{B}(x,r))\ge p\}$. Due to continuity from above of a probability measure, we have $\mu(\bar{B}(x,r_p(x)))\ge p$.
+
+    \item The support of $\mu$ is defined by
+    \begin{equation*}
+        \mathrm{supp}[\mu]=\{x\in \mathcal{X}|\mu(\bar{B}(x,r))>0\textrm{ for all }r>0\}.
+    \end{equation*}
+    For separable metric space $\mathcal{X}$, it can be shown that $\mu(\mathrm{supp}[\mu])=1$.
+
+    \item For a measurable set $A$ with $\mu(A)>0$, define
+    \begin{equation*}
+        \eta(A)=\frac{1}{\mu(A)}\int_A\eta \mathrm{d}\mu.
+    \end{equation*}
+    $A$ which will be considered below will have the form $\bar{B}(x,r)$ with $x\in \mathrm{supp}[\mu]$ and $r>0$, and thus is always defined.
+
+    \item Finally, we define
+    \begin{equation*}
+        \mathcal{X}_{p,\Delta}^+=\left\{x\in \mathrm{supp}[\mu]\middle|\eta(x)>\frac{1}{2},\eta(\bar{B}(x,r))\ge \frac{1}{2}+\Delta\textrm{ for all }r\le r_p(x)\right\},
+    \end{equation*}
+    and similarly
+    \begin{equation*}
+        \mathcal{X}_{p,\Delta}^-=\left\{x\in \mathrm{supp}[\mu]\middle|\eta(x)<\frac{1}{2},\eta(\bar{B}(x,r))\le \frac{1}{2}-\Delta\textrm{ for all }r\le r_p(x)\right\},
+    \end{equation*}
+    and finally
+    \begin{equation*}
+        \partial_{p,\Delta}=\mathcal{X}-(\mathcal{X}_{p,\Delta}^+\cup \mathcal{X}_{p,\Delta}^-).
+    \end{equation*}
+\end{itemize}
+
+\begin{theorem}[\cite{CD14} Theorem 1]
+    Pick any $0<\delta<1$ and integers $0<k<n$. With probability at least $1-\delta$ over the data set $\mathcal{D}$, we have
+    \begin{equation*}
+        \mathrm{Pr}_x[(g_{\mathcal{D},k}(x)\ne g(x))\wedge(x\not\in\partial_{p,\Delta})]\le\delta,
+    \end{equation*}
+    where
+    \begin{equation*}
+        p=\frac{k}{n}\cdot \frac{1}{1-\sqrt{(4/k)\ln(2/\delta)}},\quad\Delta=\min\left\{\frac{1}{2},\sqrt{\frac{1}{k}\ln \frac{2}{\delta}}\right\}.
+    \end{equation*}
+\end{theorem}
+
+Next we establish a universal consistency result. Notice that
+\begin{equation*}
+    R(g_{\mathcal{D},k})-R(g)\le \mathrm{Pr}_x\left[\left(\eta(x)\ne \frac{1}{2}\right)\wedge(g_{\mathcal{D},k}(x)\ne g(x))\right],
+\end{equation*}
+and thus
+\begin{equation*}
+    \mathrm{Pr}_{\mathcal{D}}\left[R(g_{\mathcal{D},k})-R^*>\delta+\mu(\partial_{p,\Delta}\!-\partial)\right]\le\delta,
+\end{equation*}
+where $\partial=\{x\in \mathcal{X}|\eta(x)=1/2\}$.
+
+We assume that $(\mathcal{X},\rho,\mu)$ satisfies the Lebesgue Differentiation Theorem: For any bounded integrable $f:\mathcal{X}\to \mathbb{R}$,
+\begin{equation*}
+    \lim_{r\downarrow0}\frac{1}{\mu(\bar{B}(x,r))}\int_{\bar{B}(x,r)}f \mathrm{d}\mu=f(x)
+\end{equation*}
+holds for almost all $x\in \mathrm{supp}[\mu]$. We then have the following lemma.
+\begin{lemma}[\cite{CD14} Lemma 12 and 13]
+    For all $x\in \mathrm{supp}[\mu]$ satisfying the Lebesgue Differentiation Theorem, if $\eta(x)\ne1/2$, then $x\in \mathcal{X}_{p,\Delta}^+\cup \mathcal{X}_{p,\Delta}^-$ for some $p,\Delta>0$. As a result, if $p_n,\Delta_n\downarrow0$, we have
+    \begin{equation*}
+        \lim_{n\to\infty}\mu(\partial_{p_n,\Delta_n}\!-\partial)=0.
+    \end{equation*}
+\end{lemma}
+As a result, we have the following universal consistency result.
+\begin{theorem}
+    If $k_n\to\infty$ and $k_n/n\to0$, then for any $\epsilon>0$,
+    \begin{equation*}
+        \lim_{n\to\infty}\mathrm{Pr}_{\mathcal{D}}[R(g_{\mathcal{D},k_n})-R^*>\epsilon]=0.
+    \end{equation*}
+\end{theorem}
+
+\part{Bandits}
+Bandit problem characterizes the basic trade-off between exploration and exploitation. Basically, suppose there are $K(\ge2)$ arms and $T(\ge K)$ steps. The reward of arm $i$ at step $t$ is $X_{i,t}$, which is unknown in advance, and is revealed if arm $i$ is chosen at step $t$. Suppose the player chooses arm $i_t$ at step $t$. We are interested in the \emph{regret}
+\begin{equation}\label{regret}
+    \mathrm{Regret}(T)=\max_{1\le i\le K}\sum_{t=1}^{T}X_{i,t}-\sum_{t=1}^{T}X_{i_t,t}.
+\end{equation}
+At step $t$, the \emph{history} consists of $i_1,X_{i_1,1},\ldots,i_{t-1},X_{i_{t-1},t-1}$. The \emph{forecaster}, or \emph{learning algorithm}, is basically a mapping from the history visible at the current step to the arm chosen at this step. However, it is also of our concern whether such a mapping can be computed efficiently.
+
+In general, $X_{i,t}$'s and $i_t$'s may both be random variables. In this case we are interested in the \emph{expected regret}
+\begin{equation}\label{expectedRegret}
+    \mathbb{E}[\mathrm{Regret}(T)]=\mathbb{E}\left[\max_{1\le i\le K}\sum_{t=1}^{T}X_{i,t}-\sum_{t=1}^{T}X_{i_t,t}\right],
+\end{equation}
+and the \emph{pseudo-regret}
+\begin{equation}\label{pseudoRegret}
+    \overline{\mathrm{Regret}(T)}=\max_{1\le i\le K}\mathbb{E}\left[\sum_{t=1}^{T}X_{i,t}-\sum_{t=1}^{T}X_{i_t,t}\right].
+\end{equation}
+It can be seen that $\overline{\mathrm{Regret}(T)}\le \mathbb{E}[\mathrm{Regret}(T)]$.
+
+Many can be discussed about the above model. First, regret compares the reward of a fixed arm to the reward obtained by the algorithm. If the reward of each arm is \emph{non-stationary} across steps, such a benchmark might not look very reasonable, and at the first glance even negative regret can be achieved. In fact, there are indeed extended definitions of regret in the non-stationary case.
+
+The number of steps $T$ may also be unknown beforehand. In this case, the algorithm is called an \emph{anytime} algorithm.
+
+Different assumptions can be made on the nature of rewards. There are three fundamental formalizations of the bandit problem, with different assumptions on the reward process: \emph{stochastic bandits} (or more precisely, stochastic stationary bandits), \emph{adversarial bandits}, and \emph{Markovian bandits}. Efficient algorithms have also been designed for each case: The UCB algorithm for the stochastic case, the Exp3 randomized algorithm for the adversarial case, and the Gittins indices for the Markovian case.
+
+In the following chapters, we will present different formulations of the bandit problem based on the above general description. The contents are based on \cite{BC12}.
+
+\chapter{Stochastic Bandits}
+In the stochastic bandit problem, the known parameters are the number of arms $K(\ge2)$, and possibly the number of steps $T(\ge K)$. The unknown parameters are $K$ distributions $\nu_1,\ldots,\nu_K$ on $[0,1]$. It is assumed that if arm $i$ is played at any time, a reward is sampled from $\nu_i$. For any $1\le i\le K$, let $\mu_i=\mathbb{E}[\nu_i]$, $\mu^*=\max_{1\le i\le K}\mu_i$, and $i^*\in\arg\max_{1\le i\le K}\mu_i$. Then the pseudo-regret becomes
+\begin{equation}\label{stochPseudoRegret}
+    \overline{\mathrm{Regret}(T)}=T\mu^*-\sum_{t=1}^{T}\mathbb{E}[\mu_{i_t}].
+\end{equation}
+Let $S_{i,t}=\sum_{\tau=1}^{t}\mathds{1}_{i_{\tau}=i}$, and $\Delta_i=\mu^*-\mu_i$. Then the pseudo-regret can also be expressed as
+\begin{equation}\label{stochPseudoRegretAlt}
+    \overline{\mathrm{Regret}(T)}=\sum_{i=1}^{K}\Delta_i \mathbb{E}[S_{i,T}].
+\end{equation}
+We also define $\mu_{i,t}=\frac{1}{S_{i,t}}\sum_{\tau=1}^{t}X_{i_{\tau},\tau}\mathds{1}_{i_{\tau}=i}$. Note that one implicit assumption in the previous definition is that $S_{i,t}>0$.
+
+\section{The Explore-Then-Exploit Algorithm}
+The explore-then-exploit strategy is very simple and intuitive: At first each arm is pulled $m$ times. In the following steps, the arm which gives the maximum reward sample mean is always pulled.
+
+\paragraph{Analysis}
+By \eqref{stochPseudoRegretAlt}, we know that
+\begin{equation}
+    \overline{\mathrm{Regret}(T)}=m \sum_{i=1}^{K}\Delta_i+(T-mK)\sum_{i=1}^{K}\Delta_i \mathrm{Pr}[i=\arg\max_{1\le j\le K}\mu_{j,mK}].
+\end{equation}
+As each $\nu_i$ is sub-Gaussian with parameter $\frac{1}{2}$, and sub-Gaussianity is preserved under independent sum, for any $i\ne1$, we have
+\begin{equation}
+    \begin{array}{rcl}
+        \displaystyle\mathrm{Pr}[i=\arg\max_{1\le j\le K}\mu_{j,mK}] & \le & \mathrm{Pr}[\mu_{i,mK}\ge\mu_{i^*,mK}] \\
+         & = & \mathrm{Pr}[\mu_{i,mK}-\mu_i+\mu_{i^*}-\mu_{i^*,mK}\ge\Delta_i] \\
+         & \le & e^{-m\Delta_i^2}.
+    \end{array}
+\end{equation}
+In other words, we have
+\begin{equation}\label{exploreThenExploitBound}
+    \overline{\mathrm{Regret}(T)}=m \sum_{i=1}^{K}\Delta_i+(T-mK)\sum_{i=1}^{K}\Delta_ie^{-m\Delta_i^2}.
+\end{equation}
+
+One can see from \eqref{exploreThenExploitBound} that there is a tradeoff in choosing a good value for $m$. Now suppose $K=2$. Assume $\mu_1\ge\mu_2$, and let $\Delta=\Delta_2$. We can set $m=\frac{\ln(\Delta^2T)}{\Delta^2}$, and get an upper bound of the regret $\frac{1}{\Delta}(1+\ln(\Delta^2T))$. Of course, we have to make sure that the value of $m$ is feasible, and we can get a better guarantee by taking the minimum of the previous upper bound and another trivial upper bound $T\Delta$. However, to set the optimal value of $m$ one need to now both $T$ and $\Delta_i$, which is a too strong requirement.
+
+\section{The Upper Confidence Bound Algorithm}
+The UCB strategy is based on the \emph{optimism in the face of uncertainty} principle. At each step, we assume the mean reward of each arm is as much as possible as long as it is consistent with the history.
+
+Assuming $S_{i,t}>0$, then by Hoeffding's inequality, we have that
+\begin{equation}
+    \mathrm{Pr}[\mu_i-\mu_{i,t}\ge\epsilon]\le\exp(-2S_{i,t}\epsilon^2).
+\end{equation}
+In other words, with probability at least $1-\delta$, we have
+\begin{equation}\label{UCB}
+    \mu_i\le\mu_{i,t}+\sqrt{\frac{1}{2S_{i,t}}\ln \frac{1}{\delta}}.
+\end{equation}
+
+The above bound will be used to decide which arm to choose at each step. In other words, in the UCB algorithm, we pull each arm once in the first $K$ steps, and then at step $t$, we pull the arm
+\begin{equation}
+    i_t\in\arg\max_{1\le i\le K}\left(\mu_{i,t-1}+\sqrt{\frac{1}{2S_{i,t-1}}\ln \frac{1}{\delta}}\right).
+\end{equation}
+Here the parameter $\delta$ can be set to different values, which will be discussed later.
+
+Intuitively, the UCB algorithm favors arms which have large sample reward mean or which have not been explored very well. It also requires no knowledge of $T$ or $\Delta_i$ (if $\delta$ does not depend on $T$ or $\Delta_i$), which makes it an anytime algorithm.
+
+\paragraph{Analysis}
+In the following analysis, we take $\delta=t^{-\alpha}$ for some parameter $\alpha>2$, and we use $\epsilon_{i,t}$ to denote $\sqrt{\frac{1}{2S_{i,t}}\ln \frac{1}{\delta}}=\sqrt{\frac{\alpha\ln t}{2S_{i,t}}}$.
+
+If for some $K<t\le T$, we have $i_t=i$ for some $i$ such that $\Delta_i>0$, then at least one of the following three statements is true:
+\begin{itemize}
+    \item $\mu_{i^*,t-1}\le\mu^*-\epsilon_{i^*,t-1}$.
+    \item $\mu_{i,t-1}\ge\mu_i+\epsilon_{i,t-1}$.
+    \item $\Delta_i\le2\epsilon_{i,t-1}$.
+\end{itemize}
+In fact, if all of the above three statements are false, then we have
+\begin{equation*}
+    \begin{array}{rcl}
+        \mu_{i^*,t-1}+\epsilon_{i^*,t-1} & > & \mu^* \\
+         & = & \mu_i+\Delta_i \\
+         & > & \mu_i+2\epsilon_{i,t-1} \\
+         & > & \mu_{i,t-1}+\epsilon_{i,t-1},
+    \end{array}
+\end{equation*}
+which means that arm $i$ should not be pulled at step $t$, a contradiction. Also note that $\Delta_i\le2\epsilon_{i,t-1}$ only if $S_{i,t-1}\le \frac{2\alpha\ln(t-1)}{\Delta_i^2}\le \frac{2\alpha\ln T}{\Delta_i^2}$. Let $s_i=\left\lfloor \frac{2\alpha\ln T}{\Delta_i^2}\right\rfloor$.
+
+Now we have
+\begin{equation}
+    \begin{array}{cl}
+         & \mathbb{E}[S_{i,T}] \\
+        = & \displaystyle1+\sum_{t=K+1}^{T}\mathbb{E}[\mathds{1}_{i_t=i}] \\
+        = & \displaystyle1+\sum_{t=K+1}^{T}\mathbb{E}[\mathds{1}_{(i_t=i)\wedge(S_{i,t-1}\le s_i})]+\sum_{t=K+1}^{T}\mathbb{E}[\mathds{1}_{(i_t=i)\wedge(S_{i,t-1}\ge s_i+1)}] \\
+        \le & \displaystyle1+s_i+\sum_{t=K+1}^{T}\mathbb{E}[\mathds{1}_{(i_t=i)\wedge(\Delta_i>2\epsilon_{i,t-1})}] \\
+        \le & \displaystyle1+s_i+\sum_{t=K+1}^{T}(\mathrm{Pr}[\mu_{i^*,t-1}\le\mu^*-\epsilon_{i^*,t-1}]+\mathrm{Pr}[\mu_{i,t-1}\ge\mu_i+\epsilon_{i,t-1}]).
+    \end{array}
+\end{equation}
+Now we try to bound the last probabilities. If we first try to fix $S_{i,t-1}$, then those $S_{i,t-1}$ samples of $\nu_i$ might not be independent. However, independence is required to apply Hoeffding's inequality. Thus we argue in the following way: First we get $T$ independent samples for each arm. For a fixed arm $i$, if any prefix of length less than or equal to $t-K$ of the sample sequence has an average far from $\mu_i$, then such a sample sequence $\mu_i$ is called "bad". We can use a union bound and Hoeffding's inequality to get an upper bound of the probability of bad sample sequence. In other words, for any $K<t\le T$,
+\begin{equation}
+    \begin{array}{cl}
+         & \displaystyle \sum_{t=K+1}^{T}\mathrm{Pr}[\mu_{i^*,t-1}\le\mu^*-\epsilon_{i^*,t-1}] \\
+        \le & \displaystyle \sum_{t=K+1}^{T}\sum_{s=1}^{t-K}t^{-\alpha} \\
+        \le & \displaystyle \sum_{t=K+1}^{T}t^{-\alpha+1} \\
+        \le & \displaystyle \frac{1}{\alpha-2}\frac{1}{K^{\alpha-2}} \\
+        \le & \displaystyle \frac{1}{\alpha-2}.
+    \end{array}
+\end{equation}
+Similar bounds hold for the other probability. And thus we have
+\begin{equation}
+    \mathbb{E}[S_{i,T}]\le \frac{2\alpha\ln T}{\Delta_i^2}+\frac{\alpha}{\alpha-2}.
+\end{equation}
+Recall \eqref{stochPseudoRegretAlt}, we have
+\begin{theorem}[\cite{ACF02}]\label{thm:UCBBound}
+    The UCB algorithm has the following guarantee:
+    \begin{equation}\label{UCBBound}
+        \overline{\mathrm{Regret}(T)}\le \sum_{i|\Delta_i>0}^{}\left(\frac{2\alpha\ln T}{\Delta_i}+\frac{\alpha}{\alpha-2}\Delta_i\right).
+    \end{equation}
+\end{theorem}
+
+\paragraph{Lower Bound}
+\begin{theorem}[\cite{LR85}]
+    Suppose $\nu_i$ is the Bernoulli distribution with mean $\mu_i$. Given an algorithm, suppose for any sub-optimal arm $i$ such that $\Delta_i>0$ and for any $a>0$, we have
+    \begin{equation}
+        \mathbb{E}[S_{i,t}]=o(t^a).
+    \end{equation}
+    Then for such an algorithm, we have
+    \begin{equation}
+        \lim\inf_{T\to\infty}\frac{\overline{\mathrm{Regret}(T)}}{\ln T}\ge \sum_{i|\Delta_i>0}^{}\frac{\Delta_i}{D_{\mathrm{KL}}(\nu_i\Vert\nu^*)}.
+    \end{equation}
+\end{theorem}
+In fact, the above lower bound can be nearly exactly matched by the KL-UCB algorithm (\cite{GC11}\cite{MMS11}).
+
+\paragraph{Distribution-Free Bounds}
+Note that \eqref{UCBBound} depends on $\Delta_i$ and $\nu_i$. However, a distribution-free bound can also be obtained from \eqref{UCBBound}. Below we give two different derivations.
+
+First, note that \eqref{UCBBound} will get very large if $\Delta_i$ is very small. However, for arm $i$, $\Delta_i \mathbb{E}[S_{i,T}]\le\Delta_iT$ is also an upper bound of the regret given by arm $i$. Thus we can take the minimum of the two upper bound to get a better bound.
+
+Suppose for any $1\le i\le K$, $\mathbb{E}[S_{i,T}]=\omega(1)$, and $T$ is very large. Then the pseudo-regret is roughly
+\begin{equation}
+    \sum_{i|\Delta_i>0}^{}\sqrt{2\alpha \mathbb{E}[S_{i,T}]\ln T}\le\sqrt{2\alpha KT\ln T}.
+\end{equation}
+Here the inequality is due to the concavity of the square root function.
+
+Alternatively, suppose $T$ is large enough such that $\ln T\ge \frac{1}{2(\alpha-2)}\Delta_i^2$ for any $1\le i\le K$. Then we have
+\begin{equation}
+    \begin{array}{rcl}
+        \overline{\mathrm{Regret}(T)} & = & \displaystyle \sum_{i|\Delta_i>0}^{}\Delta_i \mathbb{E}[S_{i,T}] \\
+         & = & \displaystyle \sum_{i|\Delta_i>0}^{}\Delta_i\sqrt{\mathbb{E}[S_{i,T}]}\sqrt{\mathbb{E}[S_{i,T}]} \\
+         & \le & \displaystyle \sum_{i|\Delta_i>0}^{}\Delta_i\sqrt{\mathbb{E}[S_{i,T}]}\sqrt{\frac{2\alpha\ln T}{\Delta_i^2}+\frac{\alpha}{\alpha-2}} \\
+         & \le & \displaystyle \sum_{i|\Delta_i>0}^{}\Delta_i\sqrt{\mathbb{E}[S_{i,T}]}\sqrt{\frac{4\alpha\ln T}{\Delta_i^2}} \\
+         & = & \displaystyle2\sqrt{\alpha\ln T}\sum_{i|\Delta_i>0}^{}\sqrt{\mathbb{E}[S_{i,T}]} \\
+         & \le & \displaystyle2\sqrt{\alpha\ln T}\sqrt{K}\sqrt{\sum_{i|\Delta_i>0}^{}\mathbb{E}[S_{i,T}]} \\
+         & = & \sqrt{2\alpha KT\ln T}.
+    \end{array}
+\end{equation}
+
+A lower bound of $\sqrt{KT}$ can be shown, and in fact can be achieved (\cite{AB09}).
+
+\section{Thompson Sampling}
+The Thompson sampling method is a Bayesian method. Suppose for each arm $1\le i\le K$, $\nu_i$ is a Bernoulli distribution with mean $\mu_i$. We give a uniform prior to every $\mu_i$, and let $\nu_{i,t}$ denote the posterior distribution of $\mu_i$ after $t$ steps and $\theta_{i,t}$ denote a sample from $\nu_{i,t}$. The Thompson sampling method just chooses
+\begin{equation}
+    i_t\in\arg\max_{1\le i\le K}\theta_{i,t}.
+\end{equation}
+
+The Thompson sampling method is also asympototically optimal:
+\begin{theorem}[\cite{KKM12} Theorem 1]
+    For every $\epsilon>0$, there exists a constant $C(\epsilon,\mu_1,\ldots,\mu_K)$ such that the regret of Thompson sampling satisfies
+    \begin{equation}\label{ThompsonBound}
+        \overline{\mathrm{Regret}(T)}\le(1+\epsilon)\sum_{i|\Delta_i>0}^{}\frac{\Delta_i}{D_{\mathrm{KL}}(\nu_i\Vert\nu^*)}(\ln T+\ln\ln T)+C(\epsilon,\mu_1,\ldots,\mu_K).
+    \end{equation}
+\end{theorem}
+
+Also, in \cite{KKM12} it is claimed that the empirical performance of Thompson sampling is better than KL-UCB, and much better than UCB.
+
+\chapter{Adversarial Bandits}
+In bandit problems, of course we allow the algorithm to learn from past revealed reward. However, it is unclear how the reward process is to the algorithm. In adversarial bandit problem, we hold a pessimistic view of the reward process, which will lead us to a worse but safer guarantee.
+
+Here "adversary" may have different meanings in different settings. If the forecaster is deterministic, then adversary means that any possible reward sequence should be considered. This interpretation still applies if the forecaster is randomized and the reward is oblivious. However, when the forecaster is randomized, we may further allow non-oblivious, or adaptive reward (where the definition of regret in fact becomes ambiguous). In fact the first and the third are both too hard ???
+
+In the adversarial bandit problem, the known parameter are the number of arms $K(\ge2)$, and possibly the number of steps $T(\ge K)$. At each step $t$, the player will choose an arm $i_t$ to play, possibly with the help of some external randomness. At the same time, some adversary will decide a reward vector $X_t=(X_{1,t},\ldots,X_{K,t})\in[0,1]^K$ (or a loss vector $\ell_t=(\ell_{1,t},\ldots,\ell_{K,t})\in[0,1]^K$). Then $X_{i_t,t}$ (or $\ell_{i_t,t}$) is revealed to the player.
+
+Note that if oblivious reward is considered, then expected regret and pseudo-regret in fact coincide. However, if randomization is not allowed to the forecaster, then sub-linear regret is impossible. Thus only randomized learning algorithm is of interest.
+
+\section{The Exp3 Algorithm}
+We describe the exponential weights for exploration and exploitation (Exp3) algorithm.
+
+The parameter of Exp3 is a non-increasing sequence of real numbers $(\eta_t)_{t\ge1}$. Initially, let $p_1$ be the uniform distribution over $\{1,\ldots,K\}$, and for any $1\le i\le K$, let $\widetilde{L}_{i,0}=0$.
+
+At step $t$, we draw $i_t\sim p_t$, and compute $\widetilde{\ell}_{i,t}=\frac{\ell_{i,t}}{p_{i,t}}\mathds{1}_{i_t=i}$ and update $\widetilde{L}_{i,t}=\widetilde{L}_{i,t-1}+\widetilde{\ell}_{i,t}$. The distribution $p_{t+1}$ is computed as follows
+\begin{equation}
+    p_{i,t+1}=\frac{e^{-\eta_t\widetilde{L}_{i,t}}}{\sum_{k=1}^{K}e^{-\eta_t\widetilde{L}_{k,t}}}.
+\end{equation}
+
+\begin{theorem}[\cite{BC12} Theorem 3.1]
+    If $\eta_t=\sqrt{\frac{2\ln K}{TK}}$, then we have
+    \begin{equation}
+        \overline{\mathrm{Regret}(T)}\le\sqrt{2TK\ln K},
+    \end{equation}
+    while if $\eta_t=\sqrt{\frac{\ln K}{tK}}$, then we have
+    \begin{equation}
+        \overline{\mathrm{Regret}(T)}\le2\sqrt{TK\ln K}.
+    \end{equation}
+\end{theorem}
+
+\bibliography{Notes_on_Machine_Learning}
+\bibliographystyle{plainnat}
+
+\end{document}

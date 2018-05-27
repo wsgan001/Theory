@@ -1,0 +1,243 @@
+\documentclass{article}
+\usepackage{comment}
+\usepackage[margin=1.25in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb,graphicx,dsfont}
+
+%hoping the following suffices to give me proper \qedhere placement..
+%http://tex.stackexchange.com/questions/2274/problem-with-qedhere
+\usepackage{amsthm}
+%%ntheorem gets mad at being combined with natbib?  as in, things break as soon
+%% as I make a citation?  it must at the core be some complaint with thmtools, I guess..
+%% for now just avoiding ntheorem..
+%\usepackage[amsmath,amsthm,thmmarks]{ntheorem}
+%thmtools documentation says some things break when ntheorem is used.. hmm
+\usepackage{thmtools}
+\usepackage{subfig} %must be after thmtools..
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{mathrsfs}
+\usepackage{wrapfig}
+\usepackage{mathtools}
+\usepackage{nicefrac}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\def\int{\textup{int}}
+\def\epi{\textup{epi}}
+\def\dom{\textup{dom}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{fact}{Fact}
+
+\author{}
+\title{Fast Algorithms for Social Welfare and Profit Maximization without Knowledge of Valuations}
+
+\begin{document}
+\newcommand{\tbf}[1]{\textbf{#1}}
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mbb}[1]{\mathbb{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\let\onlyif\Longleftarrow
+
+\maketitle
+
+\section{Problem and Preliminaries}
+\subsection{Problem Specification}
+The market we consider consists of two kinds of agents: Producer and consumer.
+
+Let us first discuss consumers. In our model, in total $m$ consumers participate in the market. The $i$-th consumer is assumed to have a valuation function $v_i$
+
+Here we consider a market where one seller interacts with $m$ buyers in $T$ steps.
+
+The seller has $m$ kinds of divisible goods and a cost function $c:\mbb{R}_+^m\rightarrow\mbb{R}_+$ which is convex, Lipschitz continuous, and known to the seller. The buyer has a valuation function $v:\mbb{R}_+^m\rightarrow\mbb{R}$, which is $\alpha$-strongly concave, Lipschitz continuous, monotonically non-decreasing (i.e., for any $0\le x\le y$, $v(x)\le v(y)$), and unknown to the seller.
+
+At step $t$, the seller posts a price vector $p^{(t)}\in \mathbb{R}_+^m$ for goods, after which the buyer chooses a bundle $x(p^{(t)})$ maximizing the quasi-linear utility with respect to $p^{(t)}$ in a set $\mathcal{S}$ of feasible bundles:
+\begin{equation}
+    x(p^{(t)})=\arg\max_{x\in \mathcal{S}}u(x,p^{(t)})=\arg\max_{x\in \mathcal{S}}(v(x)-\langle p^{(t)},x\rangle).
+\end{equation}
+We call this the "buyer oracle", which takes a price $p$ as input and output a bundle $x(p)$. Here $\mathcal{S}$ is assumed to be convex compact, has non-empty interior and known to both the seller and the buyer. Also denote the diameter of $\mathcal{S}$ by $D=\max_{x,y\in \mathcal{S}}\|x-y\|_2$. Note that by the strong concavity of $v$ and compactness of $\mathcal{S}$, for each $p^{(t)}$, $x(p^{(t)})$ is unique.
+
+We are interested in finding an optimum price $p^*$ in order to maximizing certain objective, such as
+\begin{itemize}
+    \item social welfare, $v(x(p^*)-c(x(p^*))$;
+    \item profit, $\langle p^*,x(p^*)\rangle$.
+\end{itemize}
+Here the hardness lies in our ignorance of buyer's valuation $v$; however, we have the ability to post prices and observe buyer's reactions, through which some information of $v$ can be inferred and the optimum price $p^*$ can be approached.
+
+\subsection{Convexity}
+\subsubsection{Basic Definitions}
+Let $f:\mathbb{R}^d\to \mathbb{R}\cup\{\infty\}$ be convex, and define its effective domain $\dom(f)=\{x\in \mathbb{R}^d|f(x)<\infty\}$. $f$ is closed when $\epi(f)=\{(x,t)|f(x)\le t\}$ is a closed set. $f$ is proper when $\dom(f)\ne\emptyset$.
+
+\subsubsection{Subgradients}
+For differentiable function $f$, it is convex if and only if $\dom(f)$ is convex and for all $x,y\in\dom(f)$, $f(y)\ge f(x)+\langle\nabla f(x),y-x\rangle$. For non-differerntiable functions, a substitute for gradient called subgradient can be defined.
+
+For every $x\in\dom(f)$, define the subgradient
+\begin{equation}\label{subgrad}
+    \partial f(x) = \{g\in \mathbb{R}^d|\forall y\in \mathbb{R}^d,f(y)\ge f(x)+\langle g,y-x\rangle\}.
+\end{equation}
+We know that subgradient always exists in the interior of the effective domain:
+\begin{lemma}[\cite{N13} Theorem 3.1.13]\label{subgradExists}
+    Suppose $f$ is convex, then for all $x\in\int(\dom(f))$, $\partial f(x)\ne\emptyset$.
+\end{lemma}
+\begin{lemma}[\cite{N13} Theorem 3.1.15]
+    $x\in\arg\min f(x)\iff0\in\partial f(x)$.
+\end{lemma}
+\begin{lemma}
+    Suppose $f$ is convex and monotonically non-decreasing. Then for any $x\in\int(\dom(f))$ and any $g\in\partial f(x)$, we have $g\ge0$.
+\end{lemma}
+\begin{proof}
+    Fix $x\in\int(\dom(f))$ and $g\in\partial f(x)$. For all $1\le i\le d$, let $e^{(i)}$ denote the vector with $1$ in its $i$-th coordinate and $0$ in other coordinates, and find $\epsilon$ small enough such that $x-\epsilon e^{(i)}\in\dom(f)$. Since $0\ge f(x-\epsilon e^{(i)})-f(x)\ge \langle g,-\epsilon e^{(i)})\rangle=-\epsilon g_i$, we have $g\ge0$.
+\end{proof}
+Below are some properties of subgradients for Lipschitz continuous (convex) functions.
+\begin{lemma}[\cite{S11} Lemma 2.6]
+    Suppose $f$ is a convex function. If $f$ is $\lambda$-Lipschitz continuous w.r.t. the $\ell_2$-norm, then for any $x\in \int(\dom(f))$ and any $g\in\partial f(x)$ we have $\|g\|_2\le\lambda$. Conversely, if for all $x\in C$ and all $g\in\partial f(x)$, $\|g\|_2\le\lambda$, $f$ is $\lambda$-Lipschitz continuous w.r.t. the $\ell_2$-norm on $C$.
+\end{lemma}
+\begin{lemma}\label{LipschConvBd}
+    Suppose $f$ is $\lambda$-Lipschitz continuous and convex, and $\int(\dom(f))\ne\emptyset$. Then for any $x\in \dom(f)-\int(\dom(f))$, there exists $g\in\partial f(x)$ such that $\|g\|_2\le\lambda$. If $f$ is further monotonically non-decreasing, then there exists $g\in\partial f(x)$ such that $\|g\|_2\le\lambda$ and $g\ge 0$.
+\end{lemma}
+\begin{proof}
+    Define
+    \begin{equation}
+        \hat{f}(y)=\sup_{\substack{x\in\int(\dom(f)) \\ g\in\partial f(x)}}(f(x)+\langle g,y-x\rangle).
+    \end{equation}
+
+    First, since $\hat{f}$ is the pointwise supreme of linear functions, it is convex.
+
+    Next, fix a $x\in\int(\dom(f))$. Then for any $y\in \mathbb{R}^d$, any $x'\in\int(\dom(f))$, and any $g'\in\partial f(x')$, $f(x')+\langle g',y-x'\rangle\le f(x)+\langle g',x'-x\rangle+\langle g',y-x'\rangle=f(x)+\langle g',y-x\rangle\le f(x)+\lambda\|y-x\|_2$, which is finite. Thus $\dom(f)=\mathbb{R}^d$. For $y\in\int(\dom(f))$, $\hat{f}(y)=f(y)$. For $y\in \dom(f)-\int(\dom(f))$, by the definition of subgradients we know that $f(y)\ge\hat{f}(y)$. Furthermore, by Lipschitz continuity, $f(y)-f(x)-\langle g,y-x\rangle\le2\lambda\|y-x\|_2$ for $x\in\int(\dom(f))$ and $g\in\partial f(x)$, which means that $f(y)=\hat{f}(y)$ for $y$ in $\dom(f)-\int(\dom(f))$. To sum up, $\hat{f}$ has domain $\mathbb{R}^d$ and coincides with $f$ on $\dom(f)$.
+
+    Now for any $y,z\in \mathbb{R}^d$ and any $\epsilon>0$, let $x\in\int(\dom(f))$ and $g\in\partial f(x)$ satisfy $\hat{f}(y)\le f(x)+\langle g,y-x\rangle+\epsilon$. Then $\hat{f}(y)-\hat{f}(z)\le f(x)+\langle g,y-x\rangle+\epsilon-f(x)-\langle g,z-x\rangle=\langle g,y-z\rangle+\epsilon\le\lambda\|y-z\|+\epsilon$. Since $\epsilon$ is arbitrary, we conclude that $\hat{f}$ is $\lambda$-Lipschitz continuous.
+
+    Finally, suppose $f$ is monotonically non-decreasing. For any $y,z\in \mathbb{R}^d$ and $y\le z$, for any $x\in\int(\dom(f))$ and $g\in\partial f(x)$, $f(x)+\langle g,y-x\rangle-f(x)-\langle g,z-x\rangle=\langle g,y-z\rangle\le 0$. Thus $\hat{f}$ is monotonically non-decreasing.
+\end{proof}
+
+\subsubsection{Fenchel Conjugates}
+Given a convex proper function $f:\mathbb{R}^d\to \mathbb{R}\cup\{\infty\}$, its Fenchel conjugate $f^*:\mathbb{R}^d\to \mathbb{R}\cup\{\infty\}$ is defined as $f^*(y)=\max_{x\in \mathbb{R}^d}\{\langle y,x\rangle-f(x)\}$. Moreover, we have the following theorems:
+\begin{lemma}[Fenchel-Moreau Theorem]
+    For convex closed proper function $f$, $f^{**}=f$.
+\end{lemma}
+\begin{lemma}\label{primalDualVar}
+    Suppose $f$ is convex closed proper. For every pair $(x,y) \in \mathbb{R}^d\times \mathbb{R}^d$,
+    \begin{equation}
+        \begin{array}{cl}
+             & y \in \partial f(x) \\
+            \iff & x \in \partial f^*(y) \\
+            \iff & x \in \arg\max_{x'} ( \langle y,x'\rangle - f(x') ) \\
+            \iff & y \in \arg\max_{y'} ( \langle y',x\rangle - f^*(y') ) \\
+            \iff & f(x)+f^*(y)=\langle x,y\rangle.
+        \end{array}
+    \end{equation}
+\end{lemma}
+\begin{proof}
+    First,
+    \begin{equation}
+        y\in\partial f(x)\iff0\in\partial(\langle y,\cdot\rangle-f)(x)\iff x\in\arg\max_{x'}(\langle y,x'\rangle-f(x')),
+    \end{equation}
+    and similarly
+    \begin{equation}
+        x\in\partial f^*(y)\iff0\in\partial(\langle\cdot,x\rangle-f^*)(s)\iff y\in\arg\max_{y'}(\langle y',x\rangle-f^*(y')).
+    \end{equation}
+    Finally, since $f^{**}=f$,
+    \begin{equation}
+        x\in\arg\max_{x'}(\langle y,x'\rangle-f(x'))\iff f(x)+f^*(y)=\langle y,x\rangle\iff y\in\arg\max_{y'}(\langle y',x\rangle-f^*(y')).
+    \end{equation}
+\end{proof}
+\begin{lemma}[\cite{KST09} Theorem 6]\label{strConvSmoothDual}
+    Suppose $f$ is convex closed proper. Then $f$ is $\beta$-strongly convex if and only if $f^*$ is $\frac{1}{\beta}$-strongly smooth and convex.
+\end{lemma}
+
+\section{Social Welfare Maximization}
+In this section, we first reduce the social welfare maximization problem to a general convex optimization problem, and then give efficient algorithms under different assumptions.
+
+Recall that our problem is to maximize the social welfare $v(x(p)-c(x(p))$ when $p\in \mathbb{R}_+^m$. However, this optimization problem is non-convex in general. As suggested in \cite{RUW15}, we instead consider the convex optimization problem, maixmizing $v(x)-c(x)$, over the set $\mathcal{S}'=\{x\in \mathcal{S}|\exists p\in \mathbb{R}^m_+,x(p)=x\}$. Although it is still not clear what $\mathcal{S}'$ is, we can already solve some simple cases using this characterization:
+\begin{itemize}
+    \item If $c(x)=\langle c,x\rangle$, then $p^*=c$ is an optimum solution. The reason is that $x(c)$ maximizes $v(x)-\langle c,x\rangle=v(x)-c(x)$, and of course $x(c)\in \mathcal{S}'$. Although no seller will act in this way since no profit is made, it is a theoretical solution for the problem.
+
+    \item Suppose there is only one item, whose supply is at most $s$. Then we need to find $x$ where $v'(x)=c'(x)$. We can do binary search: At point $x$, we post $c'(x)$ as the price, and see which one is bigger, $x$ or $v(c'(x))$. This method can be extended to the case where the demand and supply of different goods are independent.
+\end{itemize}
+
+Now let us turn to the general case. As we discussed before, facing price $p$, the buyer oracle will tell us a bundle $x(p)$ which maximizes the quasi-linear utility $u(x,p)=v(x)-\langle p,x\rangle$ over $\mathcal{S}$. Let $s(p)=v(x(p))-\langle p,x(p)\rangle$ denote buyer's maximum utility, or surplus, given price $p$. We can find that there is some conjugate relationship between $v$ and $s$. In fact, denote $(-\infty,0]$ by $\mathbb{R}_-$ and define $f:\mathbb{R}_-^m\to \mathbb{R}$ as $f(x)=-v(-x)$, then $s=f^*$. Notice that in general $s$ or $f^*$ can be defined for any $p\in \mathbb{R}^m$. However, in this paper most of the time we restrict its domain to $\mathbb{R}^m_+$, since prices should generally be non-negative.
+
+Motivated by the above observation, for convenience we transform out problem so that only convex functions are used. Let $h:\mathbb{R}_-^m\to \mathbb{R}$ defined as $h(x)=c(-x)$. Now our goal is to maxmize $-f(x)-g(x)$, or to minimize $f(x)+g(x)$ over $-\mathcal{S}'=\{-x|x\in \mathcal{S}\}$. $f$ is strictly convex, Lipschitz continuous, and monotonically non-decreasing, while $g$ is convex and  Lipschitz continuous. Denote the Lipschitz parameter of $f$ and $g$ by $\lambda_f$ and $\lambda_g$, respectively.
+
+Recall that given a price $p$, the buyer oracle will output a bundle $x(p)$ maximizing $v(x)-\langle x,p\rangle$ over $\mathcal{S}$. Equivalently, $x(p)$ maximizing $\langle p,x\rangle-f(x)$ over $-\mathcal{S}$. The following lemma characterize $x(p)$ in another way, similar to Lemma \ref{primalDualVar}:
+
+\begin{lemma}\label{mainLemma}
+    For any $(x,p)\in-\mathcal{S}\times \mathbb{R}_+^m$,
+    \begin{equation}
+        p\in\partial f(x)\iff x\in\arg\max_{x'\in-\mathcal{S}}(\langle p,x'\rangle-f(x'))\iff x\in\partial f^*(p)\iff p\in\arg\max_{p'\in \mathbb{R}_+^m}(\langle p',x\rangle-f^*(p')).
+    \end{equation}
+\end{lemma}
+\begin{proof}
+    The proof of the first and third equivalence are much similar to that of Lemma \ref{primalDualVar}. Notice that in the condition $-x\in\partial s(p)$, the domain of $s$ is restricted to $\mathbb{R}_+^m$.
+
+    Also from Lemma \ref{primalDualVar}, we know that $p\in\partial f(x)\iff p\in\arg\max_{p'\in \mathbb{R}^m}(\langle p',x\rangle-f^*(p'))$, with $\mathbb{R}^m$ as the domain of $f^*$ temporarily. Thus we only need to prove $p\in\arg\max_{p'\in \mathbb{R}_+^m}(\langle p',x\rangle-f^*(p'))\implies p\in\arg\max_{p'\in \mathbb{R}^m}(\langle p',x\rangle-f^*(p'))$. The reason is that since $f$ is Lipschitz continuous and monotonically non-decreasing, by Lemma \ref{LipschConvBd} there must exist a non-negative $p\in\partial f(x)$.
+\end{proof}
+
+According to Lemma \ref{mainLemma}, for every $x\in-\mathcal{S}$, since $\partial f(x)$ contains at least one $p$, we have $x=x(p)$. As a result, $-\mathcal{S}=-\mathcal{S}'$, and our goal is to minimize $f(x)+g(x)$ over $-\mathcal{S}$. In the following we will replace $-\mathcal{S}$ with $\mathcal{C}$, since the non-positiveness of $-\mathcal{S}$ is actually never used.
+
+In our model, we cannot compute $f(x)$, $\partial f(x)$, or $f^*(p)$ directly, but can get $x(p)\in\partial f^*(p)$ directly from the buyer's choice. In the following we give two sets of algorithms, depending on our queries on $g$.
+
+\subsection{Queries on $g^*$}
+In this subsection, suppose we can compute the subgradients of $g^*$. From the definition of Fenchel conjugate, we know that $\min_{x\in \mathcal{C}}(f(x)+g(x))=-(f+g)^*(0)$. Inspired by this property and the fact that we can compute subgradients of $f^*$ and $g^*$ efficiently, we try to first optimize the conjugate function, in the hope that the solution can then be transformed into primal solution.
+
+By definition, for $y\in \mathbb{R}^m$, we have
+\begin{equation}
+    (f+g)^*(y)=\sup_{x\in \mathcal{C}}(\langle y,x\rangle-f(x)-g(x)).
+\end{equation}
+The right hand side can be expressed as the optimum value of the following convex program:
+\begin{equation}
+    \begin{array}{rl}
+        \displaystyle\max_{x,x'\in \mathcal{C}} & \langle y,x'\rangle-f(x)-g(x') \\
+        \mathrm{s.t.} & x\ge x'.
+    \end{array}
+\end{equation}
+Notice that since $f$ is monotonically non-decreasing, in the optimum solution $x$ must equal $x'$. By our assumption, $\int(\mathcal{C})\ne\emptyset$, the above program satisfies the Slater's condition, which means that strong duality holds and, since the optimum value is finite, the dual optimum solution exists. Since $\mathcal{C}$ is compact, the primal optimum solution also exists. Therefore we have
+\begin{equation}
+    \begin{array}{rcl}
+        (f+g)^*(y) & = & \sup_{x\in \mathcal{C}}(\langle y,x\rangle-f(x)-g(x)) \\
+         & = & \sup_{x,x'\in \mathcal{C}}\inf_{p\in \mathbb{R}_+^m,\|p\|_2\le\lambda_f+1}(\langle y,x'\rangle-f(x)-g(x')+\langle p,x-x'\rangle) \\
+         & = & \inf_{p\in \mathbb{R}_+^m,\|p\|_2\le\lambda_f+1}\sup_{x,x'\in \mathcal{C}}(\langle y,x'\rangle-f(x)-g(x')+\langle p,x-x'\rangle) \\
+         & = & \inf_{p\in \mathbb{R}_+^m,\|p\|_2\le\lambda_f+1}[\sup_{x\in \mathcal{C}}(\langle p,x\rangle-f(x))+\sup_{x'\in \mathcal{C}}\langle y-p,x'\rangle-g(x')] \\
+         & = & \inf_{p\in \mathbb{R}_+^m,\|p\|_2\le\lambda_f+1}(f^*(p)+g^*(y-p)).
+    \end{array}
+\end{equation}
+Let $(x^*,x'^*,p^*)$ denote the primal and dual optimum solutions. Then we have $x^*=x'^*$, and from Lemma \ref{mainLemma}, $p^*\in\partial f(x^*)$, and $y-p^*\in\partial g(x^*)$. Let $y=0$, then $x^*$ minimizes $f+g$, or $-x^*$ is the optimum bundle in the original problem, and $p^*$ is the optimum price. In other words, we only need to solve the following problem (Here $1$ can actually be any positive constant, and in the following for simplicity we \textbf{drop} this term):
+\begin{equation}\label{dualProb}
+    \begin{array}{rl}
+        \displaystyle\min_{p\in \mathbb{R}_+^m,\|p\|_2\le\lambda_f+1} & f^*(p)+g^*(-p)
+    \end{array}
+\end{equation}
+
+Since $f$ is $\beta$-strongly convex, $f^*$ is $\frac{1}{\beta}$-strongly smooth and convex. We know nothing about the strong smoothness of $g^*$ from the assumption, but since $g$ is known by us, we can make it strongly convex manually. Let $g_{\mu}(x)=g(x)+\frac{\mu}{2}\|x-x^{(0)}\|_2^2$, where $x^{(0)}$ is an arbitrary point in $\mathcal{C}$. Then $g_{\mu}$ is $\mu$-strongly convex and $g\le g_{\mu}\le g+\frac{\mu}{2}D^2$. Then instead of solving (\ref{dualProb}), we minimzing $f^*(p)+g_{\mu}^*(-p)$. Denote the optimum solution by $p_{\mu}^*$, and the solution outputed by accelerated gradient descent by $p_{\mu}^{(t)}$. Let $x_{\mu}^*=\nabla f(p_{\mu}^*)$, $x_{\mu}^{(t)}=\nabla f(p_{\mu}^{(t)})$, and $\tilde{x}_{\mu}^{(t)}=\nabla g_{\mu}(-p_{\mu}^{(t)})$. Denote $f^*(p_{\mu}^{(t)})+g_{\mu}^*(-p_{\mu}^{(t)})-f^*(p_{\mu}^*)-g_{\mu}^*(-p_{\mu}^*)$ by $\epsilon_t=O((\frac{1}{\beta}+\frac{1}{\mu})\frac{\lambda_f^2}{t^2})$. Then by strong smoothness of $f^*(p)+g^*(-p)$, $\|x_{\mu}^{(t)}-\tilde{x}_{\mu}^{(t)}\|_2\le\sqrt{2(\frac{1}{\beta}+\frac{1}{\mu})\epsilon_t}=O((\frac{1}{\beta}+\frac{1}{\mu})\frac{\lambda_f}{t})$. Now we have:
+\begin{equation}
+    \begin{array}{rcl}
+        (f+g_{\mu})(x_{\mu}^{(t)}) & \le & f(x_{\mu}^{(t)})+g_{\mu}(\tilde{x}_{\mu}^{(t)})+(\lambda_g+\mu D)\|x_{\mu}^{(t)}-\tilde{x}_{\mu}^{(t)}\|_2 \\
+         & = & \langle p_{\mu}^{(t)},x_{\mu}^{(t)}\rangle-f^*(p_{\mu}^{(t)})+\langle -p_{\mu}^{(t)},\tilde{x}_{\mu}^{(t)}\rangle-g_{\mu}^*(-p_{\mu}^{(t)})+(\lambda_g+\mu D)\|x_{\mu}^{(t)}-\tilde{x}_{\mu}^{(t)}\|_2 \\
+         & \le & -(f+g_{\mu})^*(0)+(\lambda_f+\lambda_g+\mu D)\|x_{\mu}^{(t)}-\tilde{x}_{\mu}^{(t)}\|_2 \\
+         & = & (f+g_{\mu})(x_{\mu}^*)+(\lambda_f+\lambda_g+\mu D)\|x_{\mu}^{(t)}-\tilde{x}_{\mu}^{(t)}\|_2.
+    \end{array}
+\end{equation}
+And also $(f+g_{\mu})(x_{\mu}^*)\le(f+g_{\mu})(x^*)$ and $(f+g_{\mu})(x^*)-(f+g)(x^*)\le \frac{\mu}{2}D^2$. The overall query complexity is thus $O(\frac{1}{\epsilon^2})$.
+
+\subsection{Queries on $g$}
+In this subsection, assume we can compute the subgradient of $g$. To optimize $f+g$ over $\mathcal{C}$, it is enough if we can also compute the subgradient of $f$. By Lemma \ref{mainLemma}, it is equivalent to minimize $\langle p,x\rangle-f^*(p)$. Thus conceptually, our algorithm will have 1 two-level optimization structure:
+\begin{itemize}
+    \item In the upper level, the algorithm optimize $f+g$ using some gradient-based optimization algorithm. At each step, the algorithm will query a subgradient $p(x)\in\partial f(x)$ for some $x\in \mathcal{C}$.
+    \item At each step of the upper level, the lower level will answer the query by optimizing $\langle p,x\rangle-f^*(p)$ using some gradient-based algorithm.
+\end{itemize}
+There is another subtle problem. When applying optimization aglrithms, there will always be some error. In our case, the error in the lower level optimization will be propogated to the upper level. As a result, the upper level algorithm may suffer from noise during the process of optimization. Fortunately, there do exist algorithms which can tolerate noises, such as subgradient descent, or gradient descent for strongly convex and smooth functions.
+
+\section{Profit Maximization}
+
+
+\bibliography{paper}
+\bibliographystyle{plain}
+
+\end{document}

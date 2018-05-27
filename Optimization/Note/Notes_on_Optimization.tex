@@ -1,0 +1,2845 @@
+\documentclass[openany]{book}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{commath}
+\usepackage{dsfont}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{natbib}
+\usepackage{nicefrac}
+%\usepackage[margin=1.25in]{geometry}
+
+\newtheorem{corollary}{Corollary}[chapter]
+\newtheorem{lemma}{Lemma}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}[chapter]
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{example}{Example}[chapter]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{question}{Question}
+\newtheorem*{trick}{Trick}
+
+% Global consistency is subject to local consistency.
+
+% When giving labels for above environments or algorithm environments,
+% use def:, thm:, lemma:, cor:, prop:, e.g.:, asm:, alg:, etc., as the prefix.
+% When labeling the same object more than once, use \tag{}.
+% Use camel case.
+
+% Try to avoid sizes that are smaller than normal by at least two levels.
+% Use $\left\right$ only with fractions. However, if fractions are far away from
+% delimiters, it is also possible to use normal delimiters.
+
+\author{Ziwei Ji}
+\title{Notes on Optimization}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\chapter*{Preface}
+This is Ziwei's note on optimization. Materials are taken from Prof. Niao He's course Big Data Optimization during Fall 2016, \cite{R15}, \cite{HL12}, \cite{BL10}, \cite{N13}, \cite{B14}, and \cite{BV04}.
+
+\chapter*{Notations}
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+$\mathbf{cl}\,C$ & the closure of set $C$ \\
+\hline
+$\mathbf{int}\,C$  & the interior of $C$ \\
+\hline
+$\partial\,C$ & the boundary of $C$ \\
+\hline
+$\mathbf{relint}\,C$ & the relative interior of $C$ \\
+\hline
+$\mathbf{relbd}\,C$ & the relative boundary of $C$ \\
+\hline
+$\mathbf{vol}\,C$ & the volume of $C$ \\
+\hline
+$\mathbf{cl}\,f$ & the closure of function $f$ \\
+\hline
+$\mathbf{dom}\,f$ & the (effective) domain of function $f$ \\
+\hline
+$f$ & the function being optimized \\
+\hline
+$g_i$ & the inequality constraint functions \\
+\hline
+$h_i$ & the equality constraint functions \\
+\hline
+$g$ & the gradient (subgradient) \\
+\hline
+$x,y,z,\ldots$ & vectors \footnotemark[1] \\
+\hline
+$x^*,y^*,z^*,\ldots$ & vectors in the dual space \\
+\hline
+$x^{\star}$ & optimal solution \\
+\hline
+$n$ & the number of dimensions \\
+\hline
+$j$ & the index of dimensions \\
+\hline
+$\mathbb{R}_+$ & the set of non-negative real numbers \\
+\hline
+$\mathbb{R}_{++}$ & the set of positive real numbers \\
+\hline
+$\Delta_n$ & $\{x\in \mathbb{R}_+^n|\|x\|_1=1\}$ \\
+\hline
+$H_{a,b}$ & The hyperplane given by $\langle a,x\rangle=b$ \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Notations}
+\end{table}
+\footnotetext[1]{In this note, generally we will work with vectors and for convenience we do not use the bold font.}
+
+\part{Basic Concepts}
+\chapter{Convex Sets}
+In this chapter, we introduce the notions and properties related to convex sets. Implicitly, the discussion is done in $\mathbb{R}^n$.
+
+\section{Definitions}
+\paragraph{Affinity}
+For points $x_1,\ldots,x_k$, $\sum_{i=1}^k\lambda_ix_i$ is called an \textbf{affine combination} of $x_1,\ldots,x_k$ iff $\sum_{i=1}^k\lambda_i=1$. A set $C$ is \textbf{affine} iff it contains every affine combination of its points. The set of all affine combinations of points in set $C$ is called the \textbf{affine hull} of $C$:
+\begin{equation}\label{affHullInner}
+    \mathbf{aff}\,C=\left\{\sum_{i=1}^k\lambda_ix_i\middle|x_1,\ldots,x_k\in C,\,\sum_{i=1}^k\lambda_i=1\right\}.
+\end{equation}
+Alternatively, the affine hull of $C$ can be defined as the intersection of all supersets of $C$ that are affine.
+\begin{equation}
+    \mathbf{aff}\,C=\cap\{C'|C'\supset C\textrm{ and }C'\textrm{ is affine}\}.
+\end{equation}
+\begin{remark}
+    $\mathbf{aff}\,C$ is the smallest affine set containing $C$. We cannot in general discuss the largest affine set contained in $C$, since affinity is not closed under union. The same is true for convexity and conic convexity defined below, and for closedness in topology.
+\end{remark}
+
+$k+1$ points $x_0,\ldots,x_k\in \mathbb{R}^n$ are \textbf{affinely independent} iff $x_1-x_0,\ldots,x_k-x_0$ are linearly independent, in other words the following equation
+\begin{equation}\label{addHullOuter}
+    \sum_{i=0}^{k}\lambda_ix_i=0,\quad \sum_{i=0}^{k}\lambda_i=0,
+\end{equation}
+has the unique solution $\lambda_0=\cdots=\lambda_k=0$.
+
+\paragraph{Convexity}
+For points $x_1,\ldots,x_k$, $\sum_{i=1}^k\lambda_ix_i$ is called a \textbf{convex combination} of $x_1,\ldots,x_k$ iff $\sum_{i=1}^k\lambda_i=1$ and $\lambda_1,\ldots,\lambda_k\ge0$. A set $C$ is \textbf{convex} iff it contains every convex combination of its points. The set of all convex combinations of points in set $C$ is called the \textbf{convex hull} of $C$:
+\begin{equation}\label{convHullInner}
+\mathbf{conv}\,C=\left\{\sum_{i=1}^k\lambda_ix_i\middle|x_1,\ldots,x_k\in C,\,\sum_{i=1}^k\lambda_i=1,\,\lambda_1,\ldots,\lambda_k\ge0\right\}.
+\end{equation}
+Alternatively, the convex hull of $C$ can be defined as the intersection of all supersets of $C$ that are convex.
+\begin{equation}\label{convHullOuter}
+    \mathbf{conv}\,C=\cap\{C'|C'\supset C\textrm{ and }C'\textrm{ is convex}\}.
+\end{equation}
+The \textbf{closed convex hull} of $C$ is just $\mathbf{cl}\,\mathbf{conv}\,C$, denoted by $\overline{\mathbf{conv}}\,C$. It is also the intersection of all closed convex supersets of $C$.
+\begin{remark}
+    In the final property above, it turns out that we can just consider closed half-spaces. This is basically a primal-dual property, as it can be expressed as the biconjugation between an indicator function and a support function.
+\end{remark}
+
+\paragraph{Conic convexity}
+For points $x_1,\ldots,x_k$, $\sum_{i=1}^k\lambda_ix_i$ is called a \textbf{(convex) conic combination} of $x_1,\ldots,x_k$ iff $\lambda_1,\ldots,\lambda_k\ge0$. A set $C$ is a \textbf{convex cone} iff it contains every conic combination of its points. The set of all conic combinations of points in set $C$ is called the \textbf{(convex) conic hull} of $C$:
+\begin{equation}\label{conicHull}
+\mathbf{cone}\,C=\left\{\sum_{i=1}^k\lambda_kx_k\middle|x_1,\ldots,x_k\in C,\,\lambda_1,\ldots,\lambda_k\ge0\right\}.
+\end{equation}
+\begin{remark}
+    Above we define the convex cone. In general, $C$ is a \textbf{cone} if for every $x\in C$ and every $\theta\ge0$, $\theta x\in C$. A cone may not be convex.
+\end{remark}
+The \textbf{closed (convex) conic hull} of $C$ is $\mathbf{cl}\,\mathbf{cone}\,C$, denoted by $\overline{\mathbf{cone}}\,C$.
+
+\paragraph{Tangent cones and normal cones}
+Suppose $C\subset \mathbb{R}^n$ is non-empty convex, and $x\in C$. We say that $d$ is a direction tangent to $C$ at $x$ if there exists a sequence $(x_k)\in C$ and a sequence $(t_k)\in \mathbb{R}_{++}$ such that as $k\to+\infty$,
+\begin{equation}
+    x_k\to x,\quad t_k\to0,\quad \frac{x_k-x}{t_k}\to d.
+\end{equation}
+The set of all such directions is a non-empty convex cone, called the \textbf{tangent cone} to $C$ at $x$, denoted by $T_C(x)$.
+
+A direction $d$ is normal to $C$ at $x$ if for any $y\in C$,
+\begin{equation}
+    \langle d,y-x\rangle\le0.
+\end{equation}
+The set of all such directions is a non-empty convex cone, called the \textbf{normal cone} to $C$ at $x$, denoted by $N_C(x)$.
+
+\begin{remark}
+    The same notions can be defined for general sets, but we only focus on the convex case here.
+\end{remark}
+
+\paragraph{Recession (asymptotic) cones}
+Suppose $C$ is non-empty convex. We say that $C$ \textbf{recedes} in direction $d$ if for any $\lambda>0$, $C+\{\lambda d\}\subset C$, or equivalently, $C+\{d\}\subset C$. One can show that $C_{\infty}$, which consists of all such directions, is a non-empty convex cone, and thus is called the \textbf{recession cone} of $C$.
+
+\paragraph{Convex Bodies}
+In convex geometry, one notion of special interest is \textbf{convex bodies}, which are convex compact sets with non-empty interior.
+\begin{example}
+    Below are some examples of convex bodies:
+    \begin{itemize}
+        \item Cube, $[-1,1]^n$, or $B^n_{\infty}=\{x\in \mathbb{R}^n|\|x\|_{\infty}\le1\}$.
+        \item Euclidean ball, $B^n_2=\{x\in \mathbb{R}^n|\|x\|_2\le1\}$, and ellipsoid, $\{x\in \mathbb{R}^n|x^{\mathrm{T}}Ax\le1\}$, where $A\succ0$.
+        \item Cross polytope, $B^n_1=\{x\in \mathbb{R}^n|\|x\|_1\le1\}$.
+        \item Simplex: There are two sets of simplices of interest, one is $\{x\in \mathbb{R}^n|x\ge0,\|x\|_1\le1\}$, the other is $\{x\in \mathbb{R}^{n+1}|x\ge0,\|x\|_1=1\}$.
+        \item Cone: A cone is the convex hull of a single point and some $(n-1)$-dimensional convex body. The volume of a cone whose height is $h$ and whose base has $(n-1)$-dimensional volume $B$ is $\frac{Bh}{n}$. Notice that the cone here, which is bonuded, is \textbf{different} from the cone we defined before, which is unbounded!
+    \end{itemize}
+\end{example}
+
+\section{Basic Properties}
+\subsection{Convexity-Preserving Operations}
+\begin{proposition}\label{prop:convIntersect}
+    Given $\{C_i\}_{i\in I}$ a collection of convex sets (cones), $\cap_{i\in I}C_i$ is also a convex set (cone).
+\end{proposition}
+\begin{remark}
+    Convexity and conic convexity are preserved under arbitrary intersection because of their definition. Given a set-valued function $f:2^{\mathbb{R}^n}\to2^{\mathbb{R}^n}$, consider a collection of sets $\{C\subset \mathbb{R}^n|\forall S\subset C,f(S)\subset C\}$. Then intersection is closed in this collection. Closedness, convexity, and conic convexity can all be represented in this way.
+\end{remark}
+As a dual argument to Proposition \ref{prop:convIntersect}, it is clear that given a collection of convex sets (cones) $\{C_i\}_{i\in I}$, $\mathbf{conv}\cup_{i\in I}C_i$ is also a convex set (cone). We further have
+\begin{proposition}
+    Given a collection of convex sets (cones) $\{C_i\}_{i\in I}$, $\mathbf{conv}\cup_{i\in I}C_i$ equals the union of all finite convex combinations of $C_i$.
+\end{proposition}
+\begin{proposition}\label{prop:convLinMap}
+    Let $A\in \mathbb{R}^{m\times n}$. Then for any convex set (cone) $C\in \mathbb{R}^n$, $AC$ is a convex set (cone) in $\mathbb{R}^m$, and for any convex set (cone) $D$ in $\mathbb{R}^m$, $A^{-1}D$ is a convex set (cone) in $\mathbb{R}^n$.
+\end{proposition}
+\begin{proposition}\label{prop:convProd}
+    Let $C$ and $D$ be convex sets (cones) in $\mathbb{R}^n$ and $\mathbb{R}^m$. Then $C\times D$ is a convex set (cone) in $\mathbb{R}^{n+m}$.
+\end{proposition}
+\begin{proposition}\label{prop:convLinComb}
+    Suppose $C_1$ and $C_2$ are convex sets (cones), and $\lambda\in \mathbb{R}$. Then $\lambda C_1$ and $C_1+C_2$ are also convex sets (cones).
+\end{proposition}
+\begin{remark}
+    In some sense, Proposition \ref{prop:convLinMap},  \ref{prop:convProd} and \ref{prop:convLinComb} hold because of the inherent linearity in convexity. In particular, Proposition \ref{prop:convLinComb} can be seen as an outcome of Proposition \ref{prop:convLinMap} and \ref{prop:convProd}.
+\end{remark}
+
+\subsection{Relative Interiors and Closures}
+Keep in mind that $C_1\subset C_2$ implies $\mathbf{cl}\,C_1\subset \mathbf{cl}\,C_2$ and $\mathbf{int}\,C_1\subset \mathbf{int}\,C_2$, but does not imply $\mathbf{relint}\,C_1\subset \mathbf{relint}\,C_2$.
+\begin{lemma}[\cite{HL12} Lemma A.2.1.6, \cite{R15} Theorem 6.1]
+    Given a convex set $C$, let $x\in \mathbf{cl}\,C$ and $y\in \mathbf{relint}\,C$. Then the half-open segment
+    \begin{equation*}
+        \{\lambda x+(1-\lambda)y|0\le\lambda<1\}
+    \end{equation*}
+    is contained in $\mathbf{relint}\,C$.
+\end{lemma}
+\begin{proposition}[\cite{HL12} Proposition A.2.1.8, \cite{R15} Theorem 6.2 and 6.3]\label{prop:clRelInt}
+    Given a convex set $C$, $\mathbf{cl}\,C$, $C$ and $\mathbf{relint}\,C$ are all convex, and have the same affine hull (and therefore the same dimension), the same closure and the same relative interior (and therefore the same relative boundary).
+\end{proposition}
+\begin{remark}
+    Proposition \ref{prop:clRelInt} is intuitive, if we put $C$ in the right linear space and make it full-dimensional. However, convexity is still important since otherwise the notion of dimension does not make sense. In other words, relative interior is just the right thing to consider for convex sets, but may be not for general sets.
+\end{remark}
+\begin{lemma}[\cite{R15} Theorem 6.4]
+    Let $C$ be non-empty and convex. Then $x\in \mathbf{relint}\,C$ iff for any $x'\in C$, there exists $\lambda>1$ such that $(1-\lambda)x'+\lambda x\in C$.
+\end{lemma}
+
+\begin{proposition}[\cite{R15} Theorem 6.5]\label{prop:clRelIntIntersect}
+    Given a collection of convex sets $\{C_i\}_{i\in I}$, suppose $\cap_{i\in I}\mathbf{relint}\,C_i\ne\emptyset$. Then
+    \begin{equation*}
+        \mathbf{cl}\,\cap_{i\in I}C_i=\cap_{i\in I}\mathbf{cl}\,C_i.
+    \end{equation*}
+    If $I$ is finite, we have
+    \begin{equation*}
+        \mathbf{relint}\,\cap_{i\in I}C_i=\cap_{i\in I}\mathbf{relint}\,C_i.
+    \end{equation*}
+\end{proposition}
+\begin{remark}
+    Closedness is always preserved under intersection, and by Proposition \ref{prop:clRelIntIntersect}, relative openness is also preserved under intersection.
+\end{remark}
+\begin{proposition}[\cite{R15} Theorem 6.9]
+    Given a finite collection of non-empty convex sets $\{C_i\}_{i\in I}$, let $C=\mathbf{conv}\cup_{i\in I}C_i$. Then
+    \begin{equation*}
+        \mathbf{relint}\,C=\bigcup\left\{\sum_{i\in I}^{}\lambda_i\,\mathbf{relint}\,C_i\middle|\lambda_i>0,\sum_{i\in I}^{}\lambda_i=1\right\}.
+    \end{equation*}
+\end{proposition}
+\begin{remark}
+    An interesting application is the case where each $C_i$ contains a single point.
+\end{remark}
+
+\begin{proposition}[\cite{R15} Theorem 6.6]\label{prop:clRelIntLinMap}
+    Let $C$ be a convex set in $\mathbb{R}^n$, and $A\in \mathbb{R}^{m\times n}$. Then
+    \begin{equation*}
+        \mathbf{relint}\,(AC)=A\,\mathbf{relint}\,C,\quad \mathbf{cl}\,(AC)\supset A\,\mathbf{cl}\,C.
+    \end{equation*}
+\end{proposition}
+\begin{remark}
+    We have
+    \begin{equation*}
+        \mathbf{relint}\,(AC)=A(\mathbf{relint}\,C)\subset AC\subset A(\mathbf{cl}\,C)=A(\mathbf{cl}\,\mathbf{relint}\,C)\subset \mathbf{cl}\,(A\,\mathbf{relint}\,C).
+    \end{equation*}
+    In other words, $A\,\mathbf{relint}\,C$, $AC$, and $A\,\mathbf{cl}\,C$ have the same dimension, closure and relative interior.
+
+    In general, Proposition \ref{prop:clRelIntLinMap} tells us that relative openness is preserved under linear transformation while closedness is not.
+\end{remark}
+\begin{proposition}[\cite{R15} Theorem 6.7]\label{prop:clRelIntLinInvMap}
+    Let $D$ be a convex set in $\mathbb{R}^m$, $A\in \mathbb{R}^{m\times n}$, and suppose $A^{-1}\,\mathbf{relint}\,D\ne\emptyset$. Then
+    \begin{equation*}
+        \mathbf{relint}\,(A^{-1}D)=A^{-1}\,\mathbf{relint}\,D,\quad \mathbf{cl}\,(A^{-1}D)=A^{-1}\,\mathbf{cl}\,D.
+    \end{equation*}
+\end{proposition}
+\begin{remark}
+    As a result of Proposition \ref{prop:clRelIntLinInvMap}, relative openness is preserved under linear inverse mapping.
+\end{remark}
+\begin{proposition}
+    Let $C$ and $D$ be convex sets in $\mathbb{R}^n$ and $\mathbb{R}^m$. Then
+    \begin{equation*}
+        \mathbf{relint}\,(C\times D)=\mathbf{relint}\,C\times \mathbf{relint}\,D,\quad \mathbf{cl}\,(C\times D)=\mathbf{cl}\,C\times \mathbf{cl}\,D.
+    \end{equation*}
+\end{proposition}
+\begin{proposition}[\cite{R15} Corollary 6.6.2]\label{prop:clRelIntMinkowskiSum}
+    For any convex sets $C_1$, $C_2$ in $\mathbb{R}^n$, we have
+    \begin{equation*}
+        \mathbf{relint}\,(C_1+C_2)=\mathbf{relint}\,C_1+\mathbf{relint}C_2,\quad \mathbf{cl}(C_1+C_2)\supset\mathbf{cl}\,C_1+\mathbf{cl}\,C_2.
+    \end{equation*}
+\end{proposition}
+\begin{remark}
+    By Proposition \ref{prop:clRelIntMinkowskiSum}, relative openness is preserved under Minkowski sum while closedness is not.
+\end{remark}
+
+\subsection{Separation Theorems}
+Given two non-empty sets, to ensure that they intersect, by definition one only need to find a common point. If those two sets are further convex, then to ensure that they do not intersect, roughyly speaking we need to find a dual point as a certificate. In this sense, one can say that convexity, dual space (gradient space), and separation are closely related.
+
+In $\mathbb{R}^n$, a hyperplane naturally divides $\mathbb{R}^n$ into three parts: The hyperplane itself, and two open half-spaces. Given two non-empty sets $C_1$ and $C_2$, and a hyperplane $H$, we say $C_1$ and $C_2$ is
+\begin{itemize}
+    \item separated by $H$, if $C_1$ is a subset of one closed half-space, and $C_2$ is a subset of the other.
+    \item properly separated by $H$, if $C_1$ and $C_2$ are separated by $H$, but not both subsets of $H$.
+    \item strongly separated by $H$, if the distance from $H$ to $C_1$ and $C_2$ are both positive.
+\end{itemize}
+
+Separability can be described based on linear functions. $C_1$ and $C_2$ are
+\begin{itemize}
+    \item separable iff there exists $a\ne0$, $\inf_{x\in C_1}\langle a,x\rangle\ge\sup_{x\in C_2}\langle a,x\rangle$.
+    \item properly separable iff there exists $a$, $\inf_{x\in C_1}\langle a,x\rangle\ge\sup_{x\in C_2}\langle a,x\rangle$ and $\sup_{x\in C_1}\langle a,x\rangle>\inf_{x\in C_2}\langle a,x\rangle$.
+    \item strongly separable iff there exists $a$, $\inf_{x\in C_1}\langle a,x\rangle>\sup_{x\in C_2}\langle a,x\rangle$.
+\end{itemize}
+
+\begin{lemma}[\cite{R15} Theorem 11.2]\label{lemma:separation}
+    Let $C$ be a non-empty relatively open convex set, and $M$ be a non-empty affine set such that $C\cap M=\emptyset$. Then there exists a hyperplane $H$ containing $M$, such that $C$ is a subset of one of the open half-spaces given by $H$.
+\end{lemma}
+\begin{theorem}[\cite{R15} Theorem 11.3]
+    Let $C_1$ and $C_2$ be non-empty and convex. Then $C_1$ and $C_2$ can be properly separated iff $0\not\in \mathbf{relint}\,(C_1-C_2)$, or equivalently $\mathbf{relint}\,C_1\cap \mathbf{relint}\,C_2=\emptyset$.
+\end{theorem}
+\begin{theorem}[\cite{R15} Theorem 11.4]
+    Let $C_1$ and $C_2$ be non-empty and convex. Then $C_1$ and $C_2$ can be strongly separated iff $0\not\in \mathbf{cl}\,(C_1-C_2)$.
+\end{theorem}
+\begin{remark}
+    The condition $0\not\in C_1-C_2$, which is stronger than $0\not\in \mathbf{relint}\,(C_1-C_2)$ and weaker than $0\not\in \mathbf{cl}\,(C_1-C_2)$, seems unable to give any new separation theorem. For example, consider $\mathbb{R}_{++}^n\cup\{(0,0)\}$ and $(\mathbb{R}_{--}^n+\{(1,0)\})\cup\{(1,0)\}$.
+\end{remark}
+
+Below are some applications of separation theorems. First, we discuss the expression of closed convex sets and cones.
+\begin{theorem}[\cite{R15} Theorem 11.5]
+    A closed convex set is the intersection of all closed half spaces in which contain it.
+\end{theorem}
+\begin{lemma}[\cite{R15} Theorem 11.7]
+    Let $C_1$ and $C_2$ be non-empty, and at least one of them is a cone. If $C_1$ and $C_2$ are properly separable, then they can be properly separated by a hyperplane passing through the origin.
+\end{lemma}
+\begin{theorem}[\cite{R15} Corollary 11.7.1]
+    A closed convex cone is the intersection of all closed half spaces which contain it and which have the origin on the boundary.
+\end{theorem}
+
+The next application is on supporting hyperplanes, which is very useful when generalizing differentiability. We say that a supporting hyperplane $H$ of a set $C$ is non-trivial iff $C\not\subset H$.
+\begin{theorem}[\cite{R15} Theorem 11.6]
+    Let $C$ be convex and $D\subset C$ be non-empty and convex. Then there is a non-trivial supporting hyperplane $H$ to $C$ with $D\subset H$ iff $D\cap \mathbf{relint}\,C=\emptyset$.
+\end{theorem}
+
+\subsection{Polars of Convex Sets}
+\subsubsection{Polars of Non-empty Convex Cones}
+Given a non-empty convex cone $C$, its polar cone is given by
+\begin{equation*}
+    C^*=\{x^*\in \mathbb{R}^n|\forall x\in C,\langle x^*,x\rangle\le0\}.
+\end{equation*}
+$C^*$ is always a non-empty closed convex cone, and $C^{**}=\mathbf{cl}\,C$. Specifically, if $C$ is a non-empty closed convex cone, then $C^{**}=C$, and $\chi_{C}$ and $\chi_{C^*}$ are conjugate to each other.
+
+A non-empty convex cone $C$ is called \textbf{pointed} if for any $x\in \mathbb{R}^n$, if both $x$ and $-x$ are in $C$, then $x=0$. If a non-empty convex cone $C$ has non-empty interior, then $C^*$ is pointed. If a non-empty closed convex cone $C$ is pointed, then $C^*$ has non-empty interior.
+
+\begin{example}
+    Given a norm $\|\cdot\|$ on $\mathbb{R}^n$. The norm cone associated with it is defined as $C=\{(x,t)\in \mathbb{R}^{n+1}|\|x\|\le t\}$. Then $C^*$ is the norm cone of $\|\cdot\|_*$.
+\end{example}
+
+Here is an important result regarding polar cones.
+\begin{proposition}
+    Let $S$ be a subspace of $\mathbb{R}^n$, and let $C$ be a non-empty closed convex cone which is pointed and has non-empty interior. Then $S\cap(C-\{0\})=\emptyset$ iff $S^{\mathrm{T}}\cap \mathbf{int}\,C^*\ne\emptyset$.
+\end{proposition}
+\begin{proof}
+    It is easy to verify that the two intersections cannot both be non-empty. Now suppose both of them are empty. Then by Lemma \ref{lemma:separation}, we can find a hyperplane $H$ containing $S^{\mathrm{T}}$, such that $\mathbf{int}\,C^*$ is contained in one of the two half-spaces given by $H$. Let $d$ denote the normal vector of $H$. Then we have $d\in S$, and $\langle d,x^*\rangle<0$ for any $x^*\in \mathbf{int}\,C^*$. In other words, $d\in S\cap(C-\{0\})$, which is a contradiction.
+\end{proof}
+Given a matrix $A\in \mathbb{R}^{m\times n}$, let $S=\mathrm{Ker}(A^{\mathrm{T}})$, $C=\mathbb{R}_+^m$, we get Gordan's theorem (Theorem \ref{thm:Gordan}). Let $S=\mathrm{Im}(A)$, $C=\mathbb{R}_-^m$, we get Stiemke's theorem (Theorem \ref{thm:Stiemke}).
+
+\subsubsection{Polars of Convex Sets Containing the Origin}
+Given a convex set $C$ containing $0$, its polar is given by
+\begin{equation*}
+    C^{\circ}=\{x^*\in \mathbb{R}^n|\forall x\in C,\langle x^*,x\rangle\le1\}.
+\end{equation*}
+$C^{\circ}$ is always closed convex, containing $0$, and $C^{\circ\circ}=\mathbf{cl}\,C$. Specifically, if $C$ is closed convex and contains $0$, then $C^{\circ\circ}=C$.
+
+If $0\in \mathbf{int}\,C$, then $C^{\circ}$ is bounded. If $C$ is bounded, then $0\in \mathbf{int}\,C^{\circ}$.
+\begin{example}
+    Given a norm $\|\cdot\|$ on $\mathbb{R}^n$, $(B_{\|\cdot\|}^n)^{\circ}=B_{\|\cdot\|_*}^n$.
+\end{example}
+
+\begin{comment}
+\subsection{Convex Hulls}
+Given an arbitrary $C\subset \mathbb{R}_n$, let $C_i$ denote the set of convex combinations of $i$ points in $C$. Then we have $C=C_1\subset\cdots C_k\subset\cdots\subset \mathbf{conv}\,C$. $C_i$ may not be convex, but it tends to $\mathbf{conv}\,C$ in the limit. In fact, the following Carathéodory's theorem tells us that $C_{n+1}=\mathbf{conv}\,C$.
+\begin{theorem}[Carathéodory's theorem, \cite{HL12} Theorem A.1.3.6]
+    Given $C\in \mathbb{R}^n$, any $x\in \mathbf{conv}\,C$ can be represented as a convex combination of $n+1$ points in $C$.
+\end{theorem}
+
+Now suppose $C$ is non-empty convex. $x\in C$ is called an \textbf{extreme point} of $C$ if for any $x_1,x_2\in C$, $x_1\ne x_2$, we have $x\ne \frac{1}{2}(x_1+x_2)$. Let $\mathbf{ext}\,C$ denote the set of extreme points of $C$.
+\begin{proposition}[\cite{HL12} Proposition A.2.3.3]
+    If $C$ is non-empty compact, then $\mathbf{ext}\,C\ne\emptyset$.
+\end{proposition}
+\begin{theorem}[H.Minkowski, \cite{HL12} Theorem A.2.3.4]
+    If $C$ is non-empty compact convex, then $C=\mathbf{conv}\,\mathbf{ext}\,C$.
+\end{theorem}
+\begin{remark}
+    Combined with Carathéodory's theorem, given a non-empty compact convex set $C\subset \mathbb{R}^n$, $x\in C$ is a convex combination of at most $n+1$ extreme points of $C$.
+\end{remark}
+The notion of extreme points can also be extended to the high-dimensional case. A non-empty convex $F\subset C$ is an \textbf{extreme face} of $C$ if for any $x_1,x_2\in C$ and any $\lambda\in(0,1)$, $\lambda x_1+(1-\lambda)x_2\in F$ implies $[x_1,x_2]\subset F$.
+\begin{proposition}[\cite{HL12} Proposition A.2.3.7]
+    Let $F$ be a face of non-empty convex $C$. Then any extreme point of $F$ is also an extreme point of $C$.
+\end{proposition}
+
+Extreme points and faces give us in some sense an inner argument. We can also give an outer argument. A non-empty convex $F\subset C$ is an \textbf{exposed face} of $C$ if there exists a supporting hyperplane $H_{a,b}$ such that $F=C\cap H_{a,b}$. An \textbf{exposed point}, or \textbf{vertex}, is a $0$-dimensional exposed face.
+\begin{proposition}[\cite{HL12} Proposition A.2.4.3]
+    An exposed face is an extreme face.
+\end{proposition}
+Note that the converse is not true; see \cite{HL12} Fig. A.2.3.1.
+\end{comment}
+
+\subsection{Tangent Cones and Normal Cones}
+\begin{theorem}[\cite{HL12} Proposition A.5.1.3]
+    Given a non-empty $C\subset \mathbb{R}^n$ and $x\in C$, $T_C(x)$ is closed.
+\end{theorem}
+\begin{theorem}[\cite{HL12} Proposition A.5.2.1]
+    Given a non-empty closed convex $C\subset \mathbb{R}^n$ and $x\in C$, $T_C(x)=\overline{\mathbf{cone}}(C-\{x\})$.
+\end{theorem}
+\begin{theorem}[\cite{HL12} Proposition A.5.2.4 and Corollary A.5.2.5]
+    Given a non-empty closed convex $C\subset \mathbb{R}^n$ and $x\in C$, $T_C(x)$ is the polar cone of $N_C(x)$, and vice versa.
+\end{theorem}
+
+\subsection{Recession (Asymptotic) Cones}
+\begin{theorem}[\cite{R15} Theorem 8.2 and 8.3]
+    Let $C$ be non-empty closed convex. Then $C_{\infty}$ is a non-empty closed convex cone. Furthermore, for any $x\in C$, we have
+    \begin{equation*}
+        C_{\infty}=C_{\infty}(x)=\{d\in \mathbb{R}^n|x+\lambda d\in C\textrm{ for all }\lambda>0\}.
+    \end{equation*}
+    $d\in C_{\infty}$ if and only if $d$ is the limit of some sequence $(\lambda_ix_i)$ where $\lambda_i\to0$ and $x_i\in C$.
+\end{theorem}
+\begin{proof}
+    Suppose $\lambda_i<1$. Then for any $x\in C$, $(1-\lambda_i)x+\lambda_ix_i\in C$, whose limit is $x+d$. Since $C$ is closed, $x+d\in C$, and thus $C+\{d\}\subset C$. As a result, $d\in C_{\infty}$.
+\end{proof}
+\begin{corollary}[\cite{R15} Corollary 8.3.1]
+    Let $C$ be non-empty convex. Then $(\mathbf{relint}\,C)_{\infty}=(\mathbf{cl}\,C)_{\infty}$.
+\end{corollary}
+\begin{remark}
+    In other words, the recession cone of a relatively open set is closed. However, recession cones are not always closed; consider $\mathbb{R}_+^n\cup\{0\}$.
+\end{remark}
+\begin{corollary}[\cite{R15} Corollary 8.3.3]
+    If $\{C_i\}_{i\in I}$ is a family of closed convex sets with a common point, then
+    \begin{equation*}
+        (\cap_{i\in I}C_i)_{\infty}=\cap_{i\in I}(C_i)_{\infty}.
+    \end{equation*}
+\end{corollary}
+\begin{corollary}[\cite{R15} Corollary 8.3.4]
+    Let $A$ be a linear transformation from $\mathbb{R}^n$ to $\mathbb{R}^m$, $D$ be non-empty closed convex in $\mathbb{R}^m$, and suppose $A^{-1}D\ne\emptyset$. Then
+    \begin{equation*}
+        A^{-1}D_{\infty}=(A^{-1}D)_{\infty}.
+    \end{equation*}
+\end{corollary}
+
+\begin{proposition}[\cite{R15} Theorem 8.4]
+    A non-empty closed convex set $C$ is bounded iff $C_{\infty}=\{0\}$.
+\end{proposition}
+
+\section{Convex Bodies}
+\begin{definition}
+    Given two convex bodies $C$ and $D$, the Banach-Mazur distance between them is defined as the smallest positive number $d$ such that there exists a linear image $C'$ of $C$ satisfying $C'\subset D\subset dC'$.
+\end{definition}
+\begin{theorem}[Fritz John's Theorem]
+    Each convex body $C$ contains a unique ellipsoid of maximum volume. This ellipsoid is $B_2^n$ if and ony if
+    \begin{itemize}
+        \item $B_2^n\subset C$;
+        \item There are Euclidean unit vectors $u_1,u_2,\ldots,u_m$ on the boundary of $C$ and positive numbers $c_1,c_2,\ldots,c_m$ satisfying $\sum_{i=1}^{m}c_iu_i=0$, and for any $x\in \mathbb{R}^n$, $\sum_{i=1}^{m}c_i \langle x,u_i\rangle^2=\|x\|_2^2$.
+    \end{itemize}
+\end{theorem}
+\begin{corollary}
+    For origin-symmetric convex body $C$, $d(C,B_2^n)\le\sqrt{n}$. For general convex body $C$, $d(C,B_2^n)\le n$.
+\end{corollary}
+
+\chapter{Convex Functions}
+\section{Definitions}
+In convex analysis, very often we consider a function $f:\mathbb{R}^n\to \mathbb{R}\cup\{+\infty,-\infty\}$. We first give several definitions in this general setting, and then provide a nearly equivalent definition in the classical form.
+
+\begin{definition}\label{leveld}
+The $\alpha$-\textbf{sublevel set} of function $f:\mathbb{R}^n\rightarrow\mathbb{R}\cup\{+\infty,-\infty\}$ is defined as
+\begin{equation}\label{sublevel}
+S_{\alpha}(f)=\{x\in \mathbb{R}^n|f(x)\le\alpha\}.
+\end{equation}
+Similarly, the $\alpha$-\textbf{superlevel set} of function $f:\mathbb{R}^n\rightarrow\mathbb{R}\cup\{+\infty,-\infty\}$ is given by $\{x\in \mathbb{R}^n|f(x)\ge\alpha\}$.
+\end{definition}
+\begin{definition}\label{epid}
+The \textbf{epigraph} of function $f:\mathbb{R}^n\rightarrow\mathbb{R}\cup\{+\infty,-\infty\}$ is defined as
+\begin{equation}\label{epi}
+\mathbf{epi}\,f=\{(x,t)\in\mathbb{R}^{n+1}|x\in \mathbb{R}^n,t\ge f(x)\}.
+\end{equation}
+Similarly, the \textbf{hypograph} of function $f:\mathbb{R}^n\rightarrow\mathbb{R}\cup\{+\infty,-\infty\}$ is given by $\{(x,t)\in\mathbb{R}^{n+1}|x\in \mathbb{R}^n,t\le f(x)\}$.
+\end{definition}
+\begin{definition}
+    A function $f:\mathbb{R}^n\rightarrow\mathbb{R}\cup\{+\infty,-\infty\}$ is said to be \textbf{lower-semicontinuous} at $x_0$ if
+    \begin{itemize}
+        \item when $f(x_0)<+\infty$, for all $\epsilon>0$ there exists a neighborhood $U$ of $x_0$ such that $f(x)\ge f(x_0)-\epsilon$ for all $x\in U$;
+        \item when $f(x_0)=+\infty$, $\lim_{x\to x_0}=+\infty$.
+    \end{itemize}
+    Equivalently, the above condition can be expressed as
+    \begin{equation}
+        \lim\inf_{x\to x_0}f(x)\ge f(x_0).
+    \end{equation}
+    $f$ is lower semi-continuous if $f$ is lower semi-continuous at every $x\in \mathbb{R}^n$.
+\end{definition}
+The relationship among the above three notions is given in Theorem \ref{subEpiLowcontEquiv}.
+
+\begin{definition}
+    A function $f:\mathbb{R}^n\to \mathbb{R}\cup\{+\infty,-\infty\}$ is said to be \textbf{convex} if $\mathbf{epi}\,f$ is a convex set in $\mathbb{R}^{n+1}$. $f$ is said to be \textbf{concave} if $-f$ is convex.
+\end{definition}
+The \textbf{effective domain} of a convex function $f$ is the projection of $\mathbf{epi}\,f$ on $\mathbb{R}^n$; in other words, $\mathbf{dom}\,f=\{x\in \mathbb{R}^n|f(x)<+\infty\}$. $f$ is \textbf{proper} if $\mathbf{dom}\,f\ne\emptyset$ and $f(x)>-\infty$ for any $x\in \mathbb{R}^n$. $f$ is \textbf{closed} if $\mathbf{epi}\,f$ is closed.
+
+When proper convex function is considered, the following definition is equivalent.
+\begin{definition}\label{def:convFunc}
+A function $f:C\rightarrow\mathbb{R}$ is proper convex if $C\ne\emptyset$ is convex, and for any $x,y\in C$, $x\ne y$, $\lambda\in(0,1)$, we have
+\begin{equation}\label{convFunc}
+\lambda f(x)+(1-\lambda)f(y)\ge f(\lambda x+(1-\lambda)y).
+\end{equation}
+
+$f$ is said to be \textbf{strictly convex} if inequality \eqref{convFunc} holds strictly.
+
+$f$ is said to be $\alpha$-\textbf{strongly convex} (w.r.t. $\|\cdot\|$) if \eqref{convFunc} is strengthened to
+\begin{equation}
+    \lambda f(x)+(1-\lambda)f(y)\ge f(\lambda x+(1-\lambda)y)+\frac{\alpha}{2}\lambda(1-\lambda)\|y-x\|^2.
+\end{equation}
+
+$f$ is said to be \textbf{concave} (\textbf{strictly concave}, $\alpha$-\textbf{strongly concave}) if $-f$ is convex (strictly convex, $\alpha$-strongly convex).
+\end{definition}
+A (proper) convex function $f$ given by Definition \ref{def:convFunc} can be extended to $\tilde{f}(x):\mathbb{R}^n\to \mathbb{R}\cup\{+\infty\}$ by letting $\tilde{f}(x)=+\infty$ for $x\not\in C$.
+
+\begin{definition}\label{convConjd}
+For function $f:\mathbb{R}^n\rightarrow\mathbb{R}\cup\{+\infty,-\infty\}$, the function $f^*:\mathbb{R}^n\rightarrow\mathbb{R}\cup\{+\infty,\infty\}$ defined as
+\begin{equation}\label{convConj}
+f^*(x^*)=\sup_{x\in \mathbb{R}^n}\{\langle x^*,x\rangle-f(x)\}
+\end{equation}
+is called the \textbf{convex conjugate} of $f$.
+\end{definition}
+
+\begin{definition}\label{InfConvold}
+    Given $f,g:\mathbb{R}^n\rightarrow \mathbb{R}\cup\{+\infty\}$, their \textbf{infimal convolution} $f\Box g:\mathbb{R}^n\rightarrow \mathbb{R}\cup\{+\infty,-\infty\}$ is defined as:
+    \begin{equation}\label{InfConvol}
+        (f\Box g)(x)=\inf_{x_1+x_2=x}\{f(x_1)+g(x_2)\}=\inf_{y\in \mathbb{R}^n}\{f(y)+g(x-y)\}.
+    \end{equation}
+    We say that the infimal convolution is \textbf{exact} at $x$ if the above infimum is attained at $x$.
+\end{definition}
+\begin{remark}
+    Here we do not allow $f$ and $g$ to take $-\infty$ to avoid $\infty-\infty$. However, infimal convolution can still be defined for general functions by taking the Minkowski sum of their epigraphs.
+\end{remark}
+
+Given a proper convex function $f$, $\mathbf{epi}\,f$ is non-empty convex and has a recession cone $(\mathbf{epi}\,f)_{\infty}$. $(y,s)\in(\mathbf{epi}\,f)_{\infty}$ if and only if for any $x$, $f(x+y)\le f(x)+s$. As a result, for any $y$, $\{s|(y,s)\in(\mathbf{epi}\,f)_{\infty}\}$ is either empty or a closed half line unbounded above. In other words, $(\mathbf{epi}\,f)_{\infty}$ is the epigraph of another function. It is called the \textbf{recession function} of $f$, denoted by $f_{\infty}'$. As a result, $\mathbf{epi}\,(f_{\infty}')=(\mathbf{epi}\,f)_{\infty}$.
+
+\section{Basic Properties}
+\begin{theorem}\label{subEpiLowcontEquiv}
+    Given $f:\mathbb{R}^n\rightarrow\mathbb{R}\cup\{+\infty,-\infty\}$, $f$ is lower semi-continuous iff $C_{\alpha}$ is closed for all $\alpha\in \mathbb{R}$, iff $\mathbf{epi}\,f$ is closed.
+\end{theorem}
+\begin{proof}
+    Assume $f$ is lower semi-continuous. Suppose $C_{\alpha}$ is not closed for some $\alpha$. Then there exists $x\not\in C_{\alpha}$ which is an accumulating point of $C_{\alpha}$. We must have $f(x)>\alpha$ ($f(x)$ may be $\infty$). Then $f$ is not lower semi-continuous at point $x$, which is a contradiction.
+
+    Assume $C_{\alpha}$ is closed for all $\alpha\in R$. Suppose $\mathbf{epi}\,f$ is not closed, and $(x,t)\not\in \mathbf{epi}\,f$ is an accumulating point. If $x\in C$, let $t'=\frac{t+f(x)}{2}$, else let $t'=t+1$. We have $t'<f(x)$, and thus $x\not\in C_t'$. However, since $(x,t)$ is an accumulating point of $\mathbf{epi}\,f$, one can show that $x$ is an accumulating point of $C_t'$, which is a contradiction.
+
+    Assume $\mathbf{epi}\,f$ is closed. Suppose $f$ is not lower semi-continuous at $x$. If $f(x)=\infty$, then by definition, there exists a number $N$, such that for all neighborhood $U$ of $x$, there exists some $x'\in U$ such that $f(x')\le N$, or $(x',N)\in \mathbf{epi}\,f$. Thus $(x,N)$ is an accumulating point of $\mathbf{epi}\,f$ but is not a member of it. This is a contradiction. If $f(x)$ is finite, the proof is similar.
+\end{proof}
+\begin{proposition}
+    If $f$ is convex, then all of its sublevel sets are convex.
+\end{proposition}
+
+\subsection{Continuity of Convex Functions}
+\begin{lemma}[\cite{N13} Lemma 3.1.2]
+    Given a proper convex function $f$ and $x\in \mathbf{relint}\,\mathbf{dom}\,f$, $f$ is locally upper bounded at $x$.
+\end{lemma}
+\begin{theorem}[\cite{N13} Theorem 3.1.8]\label{thm:localLipschitzConv}
+    Given a proper convex function $f$ and $x\in \mathbf{relint}\,\mathbf{dom}\,f$, $f$ is locally Lipschitz continuous at $x$.
+\end{theorem}
+\begin{remark}
+    In fact, a proper convex function $f$ is Lipschitz continuous on any compact subset of $\mathbf{relint}\,\mathbf{dom}\,f$.
+\end{remark}
+\begin{theorem}[\cite{R15} Corollary 7.5.1]\label{thm:closedConvLinCont}
+    Given a closed proper convex function $f$, $x\in \mathbf{dom}\,f$, $y\in \mathbb{R}^n$, then we have
+    \begin{equation*}
+        f(y)=\lim_{\lambda\downarrow0}f(\lambda x+(1-\lambda)y).
+    \end{equation*}
+\end{theorem}
+\begin{remark}
+    Suppose $f$ is closed proper convex. Then in some sense, $f$ is continuous along each line. Additionally, one can show that for every $y$ in the relative boundary of $\mathbf{dom}\,f$, $f(y)=\lim\inf_{x\to y}f(x)$. However, $f$ might still be discontinuous at a relative boundary point.
+\end{remark}
+\begin{example}\label{ConvClosedPropNotCont}
+    Consider $f(x,y)=\frac{x^2}{y}$, with domain $C=(R_+\times R_{++})\cup\{(0,0)\}$. We set $f(0,0)=0$. One can verify that $f$ is indeed a convex closed proper function. However, $f$ is discontinuous at $(0,0)$.
+\end{example}
+
+\subsection{Closures of Convex Functions}
+\begin{definition}\label{def:clFunc}
+    Let $f:\mathbb{R}^n\to \mathbb{R}\cup\{+\infty,-\infty\}$ be convex. The \textbf{closure} of $f$ is defined as below.
+    \begin{itemize}
+        \item If $f>-\infty$ everywhere, then $\mathbf{epi}\,\mathbf{cl}\,f=\mathbf{cl}\,\mathbf{epi}\,f$.
+        \item If $f(x)=-\infty$ for some $x\in \mathbb{R}^n$, then $(\mathbf{cl}\,f)(x)=-\infty$ for every $x\in \mathbb{R}^n$.
+    \end{itemize}
+\end{definition}
+\begin{remark}
+    The second case in Definition \ref{def:clFunc} might not be intuitive, but it is convenient in some cases. For example, we can then always have $f^{**}=\mathbf{cl}\,f$.
+\end{remark}
+
+We first discuss improper convex functions.
+\begin{proposition}[\cite{R15} Theorem 7.2, Corollary 7.2.1]\label{thm:improperConvRelInt}
+    Given an improper convex function $f$, $f(x)=-\infty$ for every $x\in \mathbf{relint}\,\mathbf{dom}\,f$. Consequently, if $f$ is further closed, then $f(x)=-\infty$ for every $x\in \mathbf{dom}\,f$.
+\end{proposition}
+\begin{remark}
+    Usually, to show that some function is proper convex, we first establish the convexity of the function, and then show that some point in the relative interior of its effective domain has finite value.
+\end{remark}
+
+Next we discuss proper convex functions.
+\begin{proposition}[\cite{R15} Theorem 7.4]
+    Given a proper convex function $f$, $\mathbf{cl}\,f$ is closed proper convex. Moreover, if $f(x)\ne(\mathbf{cl}\,f)(x)$, then $x\in \mathbf{cl}\,\mathbf{dom}\,f-\mathbf{relint}\,\mathbf{dom}\,f$.
+\end{proposition}
+\begin{proposition}[\cite{R15} Theorem 7.5]\label{prop:clFuncBdVal}
+    Given a proper convex function $f$, $x\in \mathbf{relint}\,\mathbf{dom}\,f$, $y\in \mathbb{R}^n$, then we have
+    \begin{equation*}
+        (\mathbf{cl}\,f)(y)=\lim_{\lambda\downarrow0}f(\lambda x+(1-\lambda)y).
+    \end{equation*}
+\end{proposition}
+\begin{remark}
+    Proposition \ref{prop:clFuncBdVal} can be used to compute the closure of a proper convex function.
+\end{remark}
+
+\subsection{Convexity-Preserving Operations}
+\begin{proposition}[\cite{HL12} Proposition B.2.1.7, \cite{R15} Theorem 5.1]
+    Let $f:\mathbb{R}^n\to \mathbb{R}\cup\{+\infty\}$ be convex and $g:\mathbb{R}\to \mathbb{R}\cup\{+\infty\}$ be convex and  non-decreasing. Define $g(+\infty)=+\infty$. Then $g\circ f$ is convex. Furthermore, if both $f$ and $g$ are closed, and $g$ is not a constant function on $\mathbb{R}$, then $g\circ f$ is closed.
+\end{proposition}
+\begin{remark}
+    Note that the argument on composition may fail to be closed if  $g$ is constant over $\mathbb{R}$. For example, consider $f(x)=\frac{1}{x}$ on $(0,\infty)$ and $g(x)=1$, $g\circ f$ is not closed.
+\end{remark}
+\begin{proposition}[\cite{HL12} Proposition B.2.1.1, \cite{R15} Theorem 5.2]
+    Let $f$ and $g$ be proper convex functions, and $\alpha>0$. Then $\alpha f$ and $f+g$ are both convex. Furthermore, if both $f$ and $g$ are closed, then both $\alpha f$ and $f+g$ are closed.
+\end{proposition}
+\begin{proposition}[\cite{HL12} Proposition , \cite{R15} Theorem 5.5]
+    The pointwise supreme of an arbitrary collection of (closed) convex functions is (closed) convex.
+\end{proposition}
+\begin{proposition}[\cite{R15} Theorem 5.7]
+        Let $A$ be a linear transformation from $\mathbb{R}^n$ to $\mathbb{R}^m$. Given a convex function $g$ on $\mathbb{R}^m$, $gA$ defined by
+        \begin{equation*}
+            (gA)(x)=g(Ax)
+        \end{equation*}
+        is convex on $\mathbb{R}^n$. Given a convex function $f$ on $\mathbb{R}^n$, $Af$ defined by
+        \begin{equation*}
+            (Af)(y)=\inf\{f(x)|Ax=y\}
+        \end{equation*}
+        is convex on $\mathbb{R}^m$.
+\end{proposition}
+
+\subsection{Subgradients and Directional Derivatives}
+\begin{theorem}[\cite{N13} Theorem 3.1.9]\label{convCont}
+    Given a proper convex function $f$, at $x\in \mathbf{int}\,\mathbf{dom}\,f$, $f$ is differentiable in any direction.
+\end{theorem}
+\begin{remark}
+    Convexity and local Lipschitz continuity establish directional differentiability.
+\end{remark}
+\begin{example}\label{1dConv}
+    Suppose a convex function $f$ is defined on an interval $(a,b)$, then $f$ is continuous on $(a,b)$, both left and right differentiable on (a,b). What's more, the left and right derivatives are both non-decreasing, and thus only have countably many discontinuities. As a result, $f$ is differentiable almost everywhere, as long as both the left derivative and the right derivative are continuous at a certain point.
+
+    If $f$ is differentiable on $(a,b)$, then by Lagrange's mean value theorem, we know that $f$ is continuously differentiable on $(a,b)$.
+\end{example}
+
+\begin{theorem}\label{thm:convSubgrad}
+    Given a proper convex $f:C\rightarrow \mathbb{R}$, for any $x\in C$, $\partial f(x)$ is convex closed, and for any $x\in \mathbf{int}\,C$, $\partial f(x)$ is non-empty and bounded. If furthermore $f$ is $\alpha$-strongly convex, then for all $x,y\in C$ and all $g(x)\in\partial f(x)$, we have $f(y)-f(x)\ge \langle g(x),y-x\rangle+\frac{\alpha}{2}\|y-x\|^2$.
+
+    Conversely, given a function $f:C\to \mathbb{R}$, $C\ne\emptyset$, if for all $x\in C$, $\partial f(x)$ is non-empty, then $f$ is proper convex.  If we further have for all $x,y\in C$, there exists $g(x)\in\partial f(x)$, such that $f(y)-f(x)\ge \langle g(x),y-x\rangle+\frac{\alpha}{2}\|y-x\|^2$, then $f$ is $\alpha$-strongly convex.
+\end{theorem}
+\begin{proof}
+    $\partial f(x)=\bigcap_{y\in C}\{g\in \mathbb{R}^n|f(y)-f(x)\ge \langle g,y-x\rangle\}$, and thus is convex closed.
+
+    Assume $\mathbf{int}\,C\ne\emptyset$. Apply the supporting hyperplane theorem to $\mathbf{epi}\,f$ and $(x,f(x))$, we know that there exists $(a,b)\ne0$ such that $\langle a,x\rangle+bf(x)\le \langle a,y\rangle+bt$ for all $(y,t)\in \mathbf{epi}\,f$. Let $y=x$ and $t=f(x)+1$, we know that $b\ge0$. Since $x\in \mathbf{int}\,C$, we know that $b\ne0$, otherwise $a\ne0$ and $y=x-\epsilon a$ such that $y\in C$ will give us a contradiction.
+
+    Finally, if $\partial f(x)$ is unbounded, then there exists a sequence $\{g_k\}$ such that $g_k\in\partial f(x)$ for all $k$ but $\|g_k\|\to\infty$. By Theorem \ref{convCont}, we know that $f$ is upper-bounded in $B(x,\epsilon)$ for some $\epsilon$. Construct another sequence $\{y_k\}$ such that $y_k=x+\epsilon \frac{1}{\|g_k\|}g_k$. Then $y_k\in B(x,\epsilon)$ for all $k$, but $f(y_k)-f(x)\ge\epsilon\|g_k\|\to\infty$, which is a contradiction.
+
+    Now suppose $f$ is $\alpha$-strongly convex. Given $x,y\in C$, assume $\partial f(x)\ne\emptyset$. We know that for all $\lambda\in[0,1]$, we have $\lambda f(x)+(1-\lambda)f(y)\ge f(\lambda x+(1-\lambda)y)+\frac{\alpha}{2}\lambda(1-\lambda)\|y-x\|^2$. Equivalently, we have for any $\lambda\in[0,1)$,
+    \begin{equation*}
+        \begin{array}{rcl}
+            f(y)-f(x) & \ge & \dfrac{f(x+(1-\lambda)(y-x))-f(x)}{(1-\lambda)}+\dfrac{\alpha}{2}\lambda\|y-x\|^2 \\
+             & \ge & \langle g(x),y-x\rangle+\dfrac{\alpha}{2}\lambda\|y-x\|^2.
+        \end{array}
+    \end{equation*}
+    Let $\lambda\to1$, we have $f(y)-f(x)\ge \langle g(x),y-x\rangle+\dfrac{\alpha}{2}\|y-x\|^2$.
+
+    The converse can be proved by directly invoking the definition of convexity and strong convexity.
+\end{proof}
+
+%Given a convex function $f:C\to \mathbb{R}$ and $x\in \mathbf{int}\,C$, we can consider the function of directional derivatives $f'(x;\cdot):\mathbb{R}^n\to \mathbb{R}$. $f'(x;d)$ is convex and homogeneous, in other words, for any $d\in \mathbb{R}^n$ and any $\alpha\ge0$, $f'(x;\alpha d)=\alpha f'(x;d)$.
+\begin{theorem}[\cite{N13} Theorem 3.1.14]\label{subgradDirDeriv}
+    Let $f$ be a proper convex function. Then for any $x\in \mathbf{int}\,\mathbf{dom}\,f$ and any direction $p\in \mathbb{R}^n$, we have $f'(x;p)=\max_{g(x)\in\partial f(x)}\langle g(x),p\rangle$.
+\end{theorem}
+\begin{theorem}[\cite{HL12} Corollary 2.1.4]\label{thm:uniqueSubgradDiff}
+    Let $f$ be a proper convex function and $x\in \mathbf{int}\,\mathbf{dom}\,f$. If $f$ is G\^{a}teaux differentiable at $x$, then $\partial f(x)=\{\nabla f(x)\}$. Conversely, if $\partial f(x)=\{s\}$, then $f$ is Fr\'{e}chet differentiable at $x$ with $\nabla f(x)=s$.
+\end{theorem}
+
+\begin{theorem}[\cite{R15} Theorem 23.8]
+    Given proper convex functions $f$ and $g$, and $\alpha>0$, for any $x\in \mathbf{dom}\,f$, $\partial\alpha f(x)=\alpha\partial f(x)$, and for any $x\in \mathbf{dom}\,(f+g)=\mathbf{dom}\,f\cap \mathbf{dom}\,g$, $\partial(f+g)(x)\supset\partial f(x)+\partial g(x)$. Furthermore, if $\mathbf{relint}\,f\cap \mathbf{relint}\,g\ne\emptyset$, $\partial(f+g)(x)=\partial f(x)+\partial g(x)$.
+\end{theorem}
+\begin{theorem}[\cite{HL12} Theorem 4.4.2]
+    Suppose $\{f_i\}_{i\in I}$ is a collection of proper convex functions, and $f=\sup_{i\in I}f_i$. Then for $x\in \mathbf{dom}\,f$, $\partial f(x)\supset \overline{\mathbf{conv}}\bigcup_{i\in I(x)}\partial f_i(x)$, where $I(x)=\{i\in I|f(x)=f_i(x)\}$.
+
+    Furthermore, suppose $I$ is compact in some metric space, and at any $y\in \mathbf{dom}\,f$ the function mapping $i\in I$ to $f_i(y)$ is upper semi-continuous. Then for any $x\in \mathbf{int}\,\mathbf{dom}\,f$, $\partial f(x)=\mathbf{conv}\bigcup_{i\in I(x)}\partial f_i(x)$. Specifically, the above condition holds if $I$ is finite.
+\end{theorem}
+
+Finally, here is an interesting way to extend the domain of a convex function to $\mathbb{R}^n$.
+\begin{definition}
+    Given a convex function $f:C\to \mathbb{R}$, assume $\mathbf{int}\,C\ne\emptyset$. For any $y\in \mathbb{R}^n$, define
+    \begin{equation}
+        \hat{f}(y)=\sup_{\substack{x\in \mathbf{int}\,C \\ g\in\partial f(x)}}\{f(x)+\langle g,y-x\rangle\}.
+    \end{equation}
+\end{definition}
+Since $\hat{f}$ is pointwise supreme of linear functions, we know that it is convex on $\mathbb{R}^n$. Also, $\hat{f}$ coincides with $f$ on $\mathbf{int}\,C$. Lipschitz continuous convex functions can give us more.
+\begin{lemma}[\cite{S11} Lemma 2.6]
+    Suppose $f:C\to \mathbb{R}$ is a convex function. If $f$ is $\lambda$-Lipschitz continuous, then for any $x\in \mathbf{int}\,C$ and any $g\in\partial f(x)$ we have $\|g\|_*\le\lambda$. Conversely, if for all $x\in C$ and all $g\in\partial f(x)$, $\|g\|_*\le\lambda$, $f$ is $\lambda$-Lipschitz continuous on $C$.
+\end{lemma}
+\begin{theorem}
+    Suppose $f:C\to \mathbb{R}$ is convex and $\lambda$-Lipschitz continuous, with $\mathbf{int}\,C\ne\emptyset$. Then $\mathbf{dom}\,\hat{f}=\mathbb{R}^n$, $\hat{f}=f$ on $C$, and $\hat{f}$ is $\lambda$-Lipschitz continuous on $\mathbb{R}^n$.
+\end{theorem}
+\begin{proof}
+    Suppose $f$ is Lipschitz continuous. Fix a $x\in \mathbf{int}\,C$. Then for any $y\in \mathbb{R}^n$, any $x'\in \mathbf{int}\,C$, and any $g\in\partial f(x')$, $f(x')+\langle g,y-x'\rangle\le f(x)+\langle g,x'-x\rangle+\langle g,y-x'\rangle=f(x)+\langle g,y-x\rangle$. Thus for any $y\in \mathbb{R}^n$, $\hat{f}(y)<\infty$, $\hat{f}$ is continuous at $y$ and $\partial\hat{f}(y)\ne\emptyset$.
+
+    Since $f$ is Lipschitz continuous on $C$, $f$ is directional differentiable on $C-\mathbf{int}\,C$, with which one can prove that $f=\hat{f}$ on $C$.
+
+    Now for any $y,z\in \mathbb{R}^n$ and any $\epsilon>0$, let $x\in \mathbf{int}\,C$ and $g\in\partial f(x)$ satisfy $\hat{f}(y)\le f(x)+\langle g,y-x\rangle+\epsilon$. Then $\hat{f}(y)-\hat{f}(z)\le f(x)+\langle g,y-x\rangle+\epsilon-f(x)-\langle g,z-x\rangle=\langle g,y-z\rangle+\epsilon\le\lambda\|y-z\|+\epsilon$. Since $\epsilon$ is arbitrary, we conclude that $\hat{f}$ is $\lambda$-Lipschitz continuous.
+\end{proof}
+\begin{remark}
+    A corollary is, given $\lambda$-Lipschitz continuous convex function $f:C\to \mathbb{R}$, for any $x\in C-\mathbf{int}\,C$, there exists $g\in\partial f(x)$ such that $\|g\|_*\le\lambda$.
+\end{remark}
+
+\subsection{Differentiable Convex Functions}
+In this subsection, we study (G\^{a}teaux) differentiable convex functions. In light of Example \ref{1dConv}, we know that for any $x,y\in C$, we have continuous directional derivative from $x$ to $y$.
+
+\begin{theorem}
+    Suppose $f:C\rightarrow\mathbb{R}$ is differentiable on $C$ and $C$ is convex. Then $f$ is convex iff for any $x,y\in C$,
+    \begin{equation}\label{convFO1}
+    f(y)\ge f(x)+\langle\nabla f(x),y-x\rangle,
+    \end{equation}
+    or
+    \begin{equation}\label{convFO2}
+    \langle\nabla f(y)-\nabla f(x),y-x\rangle\ge0.
+    \end{equation}
+    $f$ is strictly convex iff for any $x,y\in C$, $x\ne y$,
+    \begin{equation}\label{sConvFO1}
+    f(y)> f(x)+\langle\nabla f(x),y-x\rangle,
+    \end{equation}
+    or
+    \begin{equation}\label{sConvFO2}
+    \langle\nabla f(y)-\nabla f(x),y-x\rangle>0.
+    \end{equation}
+    $f$ is $\alpha$-strongly convex iff for any $x,y\in C$,
+    \begin{equation}\label{strConvFO1}
+    f(y)\ge f(x)+\langle\nabla f(x),y-x\rangle+\frac{\alpha}{2}\|y-x\|^2,
+    \end{equation}
+    or
+    \begin{equation}\label{strConvFO2}
+    \langle\nabla f(y)-\nabla f(x),y-x\rangle\ge\alpha\|y-x\|^2.
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    Suppose $f$ is convex. By the definition of directional derivative and the property of convexity, we know that $f(y)-f(x)\ge f'(x;y-x)$. Then invoke Theorem \ref{subgradDirDeriv}, we get $f(y)-f(x)\ge \langle\nabla f(x),y-x\rangle$. The converse comes from Theorem \ref{thm:convSubgrad}.
+
+    Now suppose for any $x,y\in C$, $f(y)\ge f(x)+\langle\nabla f(x),y-x\rangle$. We also have for any $x,y\in C$, $f(x)\ge f(y)+\langle\nabla f(y),x-y\rangle$. Add the two inequalities, we get that for any $x,y\in C$, $\langle\nabla f(y)-\nabla f(x),y-x\rangle\ge0$. To prove the converse, notice that for any $x,y\in C$,
+    \begin{equation*}
+        \begin{array}{rl}
+             & f(y)-f(x)-\langle\nabla f(x),y-x\rangle \\
+            = & \displaystyle\int_0^1 \frac{1}{t}\langle\nabla f(x+t(y-x))-\nabla f(x),t(y-x)\rangle\mathrm{d}t \\
+            = & \ge 0.
+        \end{array}
+    \end{equation*}
+
+    The proof for strictly and strongly convex functions are similar.
+\end{proof}
+If $f$ is $\alpha$-strongly convex, then from \eqref{strConvFO2}, by Cauchy-Schwarz inequality, in fact we have (The first inequality is necessary but not sufficient)
+\begin{equation}
+    \frac{1}{\alpha}\|\nabla f(y)-\nabla f(x)\|_*^2\ge \langle\nabla f(y)-\nabla f(x),y-x\rangle\ge\alpha\|y-x\|^2,
+\end{equation}
+and thus for any $x,y\in C$,
+\begin{equation}\label{strConvFO4}
+    f(y)\le f(x)+\langle\nabla f(x),y-x\rangle+\frac{1}{2\alpha}\|\nabla f(y)-\nabla f(x)\|_*^2.
+\end{equation}
+With \eqref{strConvFO1} and \eqref{strConvFO4}, we can show that if $C=\mathbb{R}^n$, then for any optimal solution $x^{\star}$,
+\begin{eqnarray}
+    f(x)-f(x^{\star}) & \ge & \frac{\alpha}{2}\|x-x^{\star}\|^2, \\
+    f(x)-f(x^{\star}) & \le & \frac{1}{2\alpha}\|\nabla f(x)\|_*^2.
+\end{eqnarray}
+Note that the first inequality holds even if $C\ne \mathbb{R}^n$ and $f$ is non-differentiable, due to Theorem \ref{thm:convSubgrad}.
+
+One notion closely related to strong convexity is strong smoothness.
+\begin{definition}
+    A function $f:C\rightarrow \mathbb{R}$ is $\beta$-strongly smooth (w.r.t to $\|\cdot\|$) if $f$ is differentiable and $\nabla f$ is $\beta$-Lipschitz continuous (w.r.t. $\|\cdot\|$). More formally, for all $x,y\in C$,
+    \begin{equation}
+        \|\nabla f(y)-\nabla f(x)\|_*\le\beta\|y-x\|.
+    \end{equation}
+\end{definition}
+\begin{theorem}\label{StrSmoothEquiv}
+    Given a differentiable $f:\mathbb{R}^n\rightarrow \mathbb{R}$, the following conditions are equivalent:
+    \begin{itemize}
+        \item $f$ is $\beta$-strongly smooth and convex;
+        \item For any $x,y\in \mathbb{R}^n$, $0\le f(y)-f(x)-\langle\nabla f(x),y-x\rangle\le\frac{\beta}{2}\|y-x\|^2$;
+        \item For any $x,y\in \mathbb{R}^n$, $f(y)\ge f(x)+\langle\nabla f(x),y-x\rangle+\frac{1}{2\beta}\|\nabla f(y)-\nabla f(x)\|_*^2$;
+        \item For any $x,y\in \mathbb{R}^n$, $\langle\nabla f(y)-\nabla f(x),y-x\rangle\ge\frac{1}{\beta}\|\nabla f(y)-\nabla f(x)\|_*^2$;
+        \item For any $x,y\in \mathbb{R}^n$, $\lambda\in[0,1]$, $0\le\lambda f(x)+(1-\lambda)f(y)-f(\lambda x+(1-\lambda)y)\le\frac{\beta}{2}\lambda(1-\lambda)\|y-x\|^2$;
+    \end{itemize}
+\end{theorem}
+\begin{proof}
+    We only prove the second to the third. For any $x,y,z\in \mathbb{R}^n$,
+    \begin{equation*}
+        \begin{array}{rcl}
+            f(y)-f(x) & = & f(y)-f(z)+f(z)-f(x) \\
+             & \ge & \langle\nabla f(y),y-z\rangle-\dfrac{\beta}{2}\|y-z\|^2+\langle\nabla f(x),z-x\rangle \\
+             & = & \langle\nabla f(x),y-x\rangle+\langle\nabla f(y)-\nabla f(x),y-z\rangle-\dfrac{\beta}{2}\|y-z\|^2.
+        \end{array}
+    \end{equation*}
+    Since $z$ can be any vector, the right hand side can be as large as $\langle\nabla f(x),y-x\rangle+\frac{1}{2\beta}\|\nabla f(y)-\nabla f(x)\|_*^2$.
+\end{proof}
+What's more, for any $x\in \mathbb{R}^n$ and optimal solution $x^{\star}$,
+\begin{eqnarray}
+    f(x)-f(x^{\star}) & \le & \frac{\beta}{2}\|x-x^{\star}\|^2, \\
+    f(x)-f(x^{\star}) & \ge & \frac{1}{2\beta}\|\nabla f(x)\|_*^2.
+\end{eqnarray}
+
+\begin{theorem}[\cite{N13} Theorem 2.1.11]\label{strConvSmootht}
+    If $f:\mathbb{R}^n\to \mathbb{R}$ is $\alpha$-strongly convex and $\beta$-strongly smooth w.r.t the $\ell_2$-norm, then for any $x,y\in \mathbb{R}^n$,
+    \begin{equation}\label{strConvSmooth}
+        \langle\nabla f(y)-\nabla f(x),y-x\rangle\ge\frac{\alpha\beta}{\alpha+\beta}\|y-x\|_2^2+\frac{1}{\alpha+\beta}\|\nabla f(y)-\nabla f(x)\|_2^2.
+    \end{equation}
+\end{theorem}
+\begin{remark}
+    Basically, strongly convex functions and strongly smooth functions are trying to bound the second-order derivatives.
+\end{remark}
+\begin{remark}
+    We can derive properties for general $\beta$-strongly smooth functions. In fact, for any $x,y\in C$,
+    \begin{equation}
+        \begin{array}{cl}
+             & |f(y)-f(x)-\langle\nabla f(x),y-x\rangle| \\
+            = & \left|\displaystyle\int_0^1 \langle\nabla f(x+t(y-x))-\nabla f(x),y-x\rangle \mathrm{d}t\right| \\
+            \le & \displaystyle\int_0^1\|\nabla f(x+t(y-x))-\nabla f(x)\|_*\|y-x\|\mathrm{d}t \\
+            \le & \beta\|y-x\|_2^2\displaystyle\int_0^1t \mathrm{d}t \\
+            = & \dfrac{\beta}{2}\|y-x\|_2^2.
+        \end{array}
+    \end{equation}
+\end{remark}
+
+\subsection{Twice Differentiable Convex Functions}
+\begin{theorem}
+    Suppose $f$ is twice differentiable on an open convex $C$. Then $f$ is convex iff for any $x\in C$,
+    \begin{equation}\label{convSO}
+    \nabla^2f(x)\succeq0.
+    \end{equation}
+    $f$ is strictly convex if for any $x\in C$,
+    \begin{equation}\label{sConvSO}
+    \nabla^2f(x)\succ0.
+    \end{equation}
+    $f$ is $\alpha$-strongly convex w.r.t. the $\ell_2$-norm iff for any $x\in C$,
+    \begin{equation}\label{strConvSO}
+    \nabla^2f(x)\succeq\alpha I,
+    \end{equation}
+    and more generally, for any norm $\|\cdot\|$, iff for any $x\in C$ and any $h\in \mathbb{R}^n$,
+    \begin{equation}
+        h^{\mathrm{T}}\nabla^2f(x)h\ge\alpha\|h\|^2.
+    \end{equation}
+    $f$ is $\beta$-strongly smooth and convex w.r.t the $\ell_2$-norm iff for any $x\in C$,
+    \begin{equation}\label{smoConvSO}
+    0\preceq\nabla^2f(x)\preceq\beta I.
+    \end{equation}
+    and more generally, for any norm $\|\cdot\|$, iff for any $x\in C$ and any $h\in \mathbb{R}^n$,
+    \begin{equation}
+        0\le h^{\mathrm{T}}\nabla^2f(x)h\le\beta\|h\|^2.
+    \end{equation}
+\end{theorem}
+
+\begin{example}
+    Below are some examples of strongly convex functions:
+    \begin{itemize}
+        \item $f(x)=\frac{\alpha}{2}\|x\|_2^2$ is $\alpha$-strongly conevx w.r.t. the $\ell_2$-norm.
+        \item $f(x)=\sum_{i=1}^{n}x_i\ln x_i$ is $\frac{1}{R}$-strongly convex w.r.t. the $\ell_1$-norm over the set $C=\{x\in \mathbb{R}^n|x>0,\|x\|_1\le R\}$.
+    \end{itemize}
+\end{example}
+
+\subsection{Convex Conjugates}
+\begin{proposition}
+    For any $f:\mathbb{R}^n\to \mathbb{R}\cup\{+\infty,-\infty\}$, $f^*$ is closed convex.
+\end{proposition}
+\begin{proof}
+    Let $l_x(x^*)=\langle x^*,x\rangle-f(x)$. Notice that $\mathbf{epi}\,f^*=\bigcap_{x\in \mathbb{R}^n}\mathbf{epi}\,l_x$, which is convex and closed.
+\end{proof}
+\begin{proposition}
+    If $g(x)=af(x)+b$, $a\ne0$, then $g^*(x^*)=af^*(\frac{x^*}{a})-b$. If $h(x)=f(Ax+b)$, where $A$ is an $m\times n$ matrix, and denote the restriction of $f$ onto $\{z|\exists x\in \mathbb{R}^n,z=Ax+b\}$ by $f_r$, then $h^*(x^*)=f_r^*(A^{\dagger \mathrm{T}}x^*)-x^{*\mathrm{T}}A^{\dagger}b$.
+\end{proposition}
+\begin{proposition}
+    If $f\le g$, then $f^*\ge g^*$.
+\end{proposition}
+\begin{theorem}[Fenchel's inequality]
+    Suppose $f(x)>-\infty$ for all $x\in \mathbb{R}^n$, and there exists at least one $x\in \mathbb{R}^n$ such that $f(x)<+\infty$. For any $x\in \mathbb{R}^n$, $x^*\in \mathbb{R}^n$, $f(x)+f^*(x^*)\ge \langle x,x^*\rangle$.
+\end{theorem}
+
+\begin{theorem}[Fenchel-Moreau theorem]
+    $f^{**}=f$ iff:
+    \begin{itemize}
+        \item $f$ is closed proper convex;
+        \item $f\equiv+\infty$;
+        \item $f\equiv-\infty$.
+    \end{itemize}
+\end{theorem}
+\begin{corollary}\label{cor:pointBiconj}
+    Suppose $f$ is proper convex. Then $f^{**}=\mathbf{cl}\,f$. Furthermore, for any $x\in \mathbb{R}^n$, $f(x)=f^{**}(x)$ iff $f$ is lower semi-continuous at $x$.
+\end{corollary}
+\begin{theorem}\label{convConjSubgrad}
+    Suppose $f$ is closed proper convex. For every pair $(x,x^*) \in \mathbb{R}^n\times \mathbb{R}^n$,
+    \begin{equation}
+        \begin{array}{cl}
+             & x^* \in \partial f(x) \\
+            \iff & x \in \partial f^*(x^*) \\
+            \iff & x \in \arg\max_{y} ( \langle x^*,y\rangle - f(y) ) \\
+            \iff & x^* \in \arg\max_{y^{*}} ( \langle x,y^*\rangle - f^*(y^*) ) \\
+            \iff & f(x)+f^*(x^*)=\langle x,x^*\rangle.
+        \end{array}
+    \end{equation}
+\end{theorem}
+
+\begin{proposition}[\cite{R15} Theorem 16.5]
+    Given a family of proper convex functions $\{f_i\}$,
+    \begin{equation}
+        (\inf_if_i)^*=(\mathbf{conv}\inf_if_i)^*=\sup_if_i^*,
+    \end{equation}
+    and
+    \begin{equation}
+        (\sup_i \mathbf{cl}\,f_i)^*=\mathbf{cl}\,\mathbf{conv}\inf_if_i^*\le\inf_if_i^*.
+    \end{equation}
+\end{proposition}
+
+\begin{theorem}
+    Assume $f$ is closed proper convex. Then $f$ is $\alpha$-strongly convex w.r.t. to $\|\cdot\|$ iff $f^*$ is $\frac{1}{\alpha}$-strongly smooth and convex w.r.t. $\|\cdot\|_*$ over $\mathbb{R}^n$.
+\end{theorem}
+\begin{proof}
+    Assume $f$ is $\alpha$-strongly convex w.r.t. to $\|\cdot\|$. Then $f^*$ is differentiable. To prove this argument, by Theorem \ref{thm:uniqueSubgradDiff} and \ref{convConjSubgrad} we only need to show that for any $y\in \mathbb{R}^n$, $\partial f^*(y)$ contains exactly one point, or there is exactly one point $x(y)$ which maximizes $\langle y,x\rangle-f(x)$. Since $f$ is proper, $\mathbf{dom}\,f\ne\emptyset$, and thus $\mathbf{relint}\,\mathbf{dom}\,f\ne\emptyset$. Then $\langle y,x\rangle-f(x)$ is upper-bounded by a quadratic function, and we only need to search in a convex compact set for the maximum. Also, since $\langle y,x\rangle-f(x)$ is upper semi-continuous, we know that its maximum can be achieved at some point $x(y)$. The uniqueness comes from the strong concavity of $\langle y,x\rangle-f(x)$. Then one can make us of Theorem \ref{thm:convSubgrad} again to show that for any $y_1,y_2\in \mathbb{R}^d$, $\|\nabla f^*(y_1)-\nabla f^*(y_2)\|\le \frac{1}{\alpha}\|y_1-y_2\|_*$, and thus $f^*$ is $\frac{1}{\alpha}$-strongly smooth and convex w.r.t. $\|\cdot\|_*$.
+
+    Now suppose $f^*$ is $\beta$-strongly smooth and convex over $\mathbb{R}^n$ with respect to $\|\cdot\|_*$. Consider arbitrary $x_1,x_2\in \mathbf{dom}\,f$.
+
+    If $x_1,x_2\in \mathbf{relint}\,\mathbf{dom}\,f$, let $y_1\in\partial f(x_1)$, $y_2\in\partial f(x_2)$. By Theorem \ref{convConjSubgrad}, $x_1=\nabla f^*(y_1)$ and $x_2=\nabla f^*(y_2)$. By Theorem \ref{thm:convSubgrad}, we need to show that $f(x_1)-f(x_2)\ge \langle y_2,x_1-x_2\rangle+\frac{1}{2\beta}\|x_1-x_2\|^2$. This comes from $\langle x_1,y_1\rangle=f(x_1)+f^*(y_1)$, $\langle x_2,y_2\rangle=f(x_2)+f^*(y_2)$, and the strong smoothness of $f^*$.
+
+    If $x_1\not\in \mathbf{relint}\,\mathbf{dom}\,f$ but $x_2\in \mathbf{relint}\,\mathbf{dom}\,f$, consider $x_{\lambda}=(1-\lambda)x_1+\lambda x_2$, $0<\lambda<1$. $x_{\lambda}\in \mathbf{relint}\,\mathbf{dom}\,f$ for all $0<\lambda<1$, and by Theorem \ref{thm:closedConvLinCont}, $\lim_{\lambda\downarrow0}f(x_{\lambda})=f(x_1)$. Strong convexity holds by taking the limit.
+
+    Now suppose $x,y,z\in \mathbf{dom}\,f-\mathbf{relint}\,f$, $z=\lambda x+(1-\lambda)y$. Take an arbitrary $p\in\mathbf{relint}\,\mathbf{dom }\,f$, and let $x_{\gamma}=(1-\gamma)x+\gamma p$, $y_{\gamma}=(1-\gamma)y+\gamma p$, and $z_{\gamma}=(1-\gamma)z+\gamma p$, $0<\gamma<1$. We know that $\lim_{\gamma\downarrow0}f(x_{\gamma})=f(x)$, $\lim_{\gamma\downarrow0}f(y_{\gamma})=f(y)$, $\lim_{\gamma\downarrow0}f(z_{\gamma})=f(z)$, and $x_{\gamma},y_{\gamma},z_{\gamma}\in \mathbf{relint}\,\mathbf{dom}\,f$. Strong convexity holds by taking the limit.
+\end{proof}
+\begin{remark}
+    The strong smoothness over $\mathbb{R}^n$ is necessary. Consider $f^*=I_{[0,1]}$. In the above proof, notice that Theorem \ref{StrSmoothEquiv} needs a domain of $\mathbb{R}^n$.
+\end{remark}
+
+\subsection{Infimal Convolutions}
+Given two proper convex functions $f$ and $g$, their infimal convolution $f\Box g$ is convex. However, properness may not be preserved, for example, when $f$ and $g$ are linear functions with different normal vectors. It turns out that this is the main difficulty; if $f$ and $g$ share a linear lower bound, then the $-\infty$ value will not be attained, and $f\Box g$ is proper convex.
+
+Now further assume that $f$ and $g$ are closed. Closedness is not preserved even if the infimal convolution is exact at every point in $\mathbf{dom}\,(f\Box g)$. For example, if $f=I_{C_1}$, $g=I_{C_2}$, where $C_1$ and $C_2$ are convex closed sets, $f\Box g=I_{C_1+C_2}$. However, the Minkowski sum of two convex closed sets may not be closed.
+
+\begin{proposition}
+    Suppose $f,g$ are proper convex. Then $(f\Box g)^*=f^*+g^*$, and $(\mathbf{cl}\,f+\mathbf{cl}\,g)^*=\mathbf{cl}\,(f^*\Box g^*)$.
+\end{proposition}
+\begin{proof}
+    By definition,
+    \begin{equation}
+        \begin{array}{rcl}
+            (f\Box g)^*(x^*) & = & \sup_{x}\{\langle x^*,x\rangle-(f\Box g)(x)\} \\
+             & = & \sup_{x}\{\langle x^*,x\rangle-\inf_{z}[f(z)+g(x-z)]\} \\
+             & = & \sup_{x,z}\{\langle x^*,z\rangle-f(z)+\langle x^*,x-z\rangle-g(x-z)\} \\
+             & = & f^*(x^*)+g^*(x^*).
+        \end{array}
+    \end{equation}
+\end{proof}
+\begin{proposition}
+    Given two proper convex functions $f,g$, if $\mathbf{relint}\,\mathbf{dom }\,f\cap \mathbf{relint}\,\mathbf{dom }\,g\ne\emptyset$, then $(f+g)^*=f^*\Box g^*$. Moreover, $f^*\Box g^*$ is exact at every point in $\mathbf{dom}\,(f^*\Box g^*)$.
+\end{proposition}
+\begin{proof}
+    By definition, $(f+g)^*(x^*)=\sup_{x}\{\langle x^*,x\rangle-f(x)-g(x)\}$. Equivalently, we need to solve the following program:
+    \begin{equation}
+        \begin{array}{rl}
+            \max & \langle x^*,x'\rangle-f(x)-g(x') \\
+            \mathrm{s.t.} & x=x'.
+        \end{array}
+    \end{equation}
+    If $\mathbf{relint}\,\mathbf{dom }\,f\cap \mathbf{relint}\,\mathbf{dom }\,g\ne\emptyset$, Slater's condition holds in the above program, and thus strong duality holds. In other words,
+    \begin{equation}
+        \begin{array}{rcl}
+            (f+g)^*(x^*) & = & \inf_{z}\sup_{x,x'}\{\langle x^*,x'\rangle-f(x)-g(x')+\langle z,x-x'\rangle\} \\
+             & = & \inf_{z}\{\sup_{x}\{\langle z,x\rangle-f(x)\}+\sup_{x'}\{\langle x^*-z,x'\rangle-g(x')\}\} \\
+             & = & \inf_{z}\{f^*(z)+g^*(x^*-z)\} \\
+             & = & (f^*\Box g^*)(x^*).
+        \end{array}
+    \end{equation}
+\end{proof}
+\begin{remark}
+    The condition $\mathbf{relint}\,\mathbf{dom }\,f\cap \mathbf{relint}\,\mathbf{dom }\,g\ne\emptyset$ implies that $f^*$ and $g^*$ share a linear lower bound.
+\end{remark}
+\begin{proposition}
+    Given closed proper convex $f,g$, if $\mathbf{dom }\,f$ and $\mathbf{dom }\,g$ are all compact and $\mathbf{dom }\,f\cap\mathbf{dom }\,g\ne\emptyset$, then $(f+g)^*=f^*\circ g^*$.
+\end{proposition}
+\begin{proof}
+    The basic proof is the same as above, but we use Sion's theorem instead of Slater's condition.
+\end{proof}
+
+\subsection{Recession (Asymptotic) Functions}
+\begin{proposition}[\cite{R15} Theorem 8.5]
+    Let $f$ be proper convex. Then $f_{\infty}'$ is homogeneous proper convex. If $f$ is further closed, then $f_{\infty}'$ is also closed, and is given by
+    \begin{equation}
+        f_{\infty}'(d)=\sup_{\lambda>0}\frac{f(x+\lambda d)-f(x)}{\lambda}=\lim_{\lambda\to+\infty}\frac{f(x+\lambda d)-f(x)}{\lambda},
+    \end{equation}
+    where $x$ is an arbitrary point in $\mathbf{dom}\,f$.
+\end{proposition}
+
+We further have
+\begin{proposition}[\cite{HL12} Proposition B.3.2.4]
+    Given a closed proper convex function $f$, for any $\alpha$ with $S_{\alpha}(f)\ne\emptyset$,
+    \begin{equation*}
+        (S_{\alpha}(f))_{\infty}=S_0(f_{\infty}').
+    \end{equation*}
+\end{proposition}
+As a result, the following three criterions are equivalent:
+\begin{itemize}
+    \item Some sublevel set of $f$ is non-empty and compact.
+    \item All sublevel sets of $f$ are compact.
+    \item $f_{\infty}'(d)>0$ for any $d\ne 0$.
+\end{itemize}
+A closed proper convex function satisfying any one of the above three criterions are called \textbf{0-coercive}. Alternatively, we can give the following definition:
+\begin{definition}
+    Given a closed proper convex function $f:\mathbb{R}^n\to \mathbb{R}$, it is $0$-coercive if $f(x)\to+\infty$ whenever $\|x\|\to+\infty$.
+\end{definition}
+
+An important special case is $f_{\infty}'(d)=+\infty$ for any $d\ne0$, in which case $f$ is called $1$-coercive. Below is an equivalent definition:
+\begin{definition}
+    Given a closed proper convex function $f:\mathbb{R}^n\to \mathbb{R}$, it is $1$-coercive if $\frac{f(x)}{\|x\|}\to+\infty$ whenever $\|x\|\to+\infty$.
+\end{definition}
+
+\begin{proposition}[\cite{HL12} Proposition B.3.2.6]
+    A closed proper convex function $f$ is Lipschitz continuous on $\mathbb{R}^n$ iff $f_{\infty}'$ is finite on $\mathbb{R}^n$. Furthermore, the best Lipschitz constant for $f$ is $\max_{\|d\|=1}f_{\infty}'(d)$.
+\end{proposition}
+\begin{proposition}
+    Let $\{f_i\}_{i\in I}$ be a collection of closed proper convex functions. If $I$ is finite, $\cap_{i\in I}\mathbf{dom}\,f_i\ne\emptyset$, and $\alpha_i>0$ for $i\in I$, then
+    \begin{equation*}
+        \left(\sum_{i\in I}^{}\alpha_if_i\right)_{\infty}'=\sum_{i\in I}^{}\alpha_i(f_i)_{\infty}'.
+    \end{equation*}
+    If there exists $x\in \mathbb{R}^n$ for which $\sup_{i\in I}f_i(x)<+\infty$. Then
+    \begin{equation*}
+        \left(\sup_{i\in I}f_i\right)_{\infty}'=\sup_{i\in I}(f_i)_{\infty}',
+    \end{equation*}
+    Let $A$ be a linear mapping from $\mathbb{R}^n$ to $\mathbb{R}^m$, and $f$ be a proper closed convex function. If $\mathrm{Im}(A)\cap \mathbf{dom}\,f\ne\emptyset$, then
+    \begin{equation*}
+        (f\circ A)_{\infty}'=f_{\infty}'\circ A.
+    \end{equation*}
+
+\end{proposition}
+
+\section{Examples}
+\begin{example}\label{indFE}
+Given convex $C\subset \mathbb{R}^n$, its indicator function is defined by
+\begin{equation}\label{indF}
+\chi_C(x)=\left\{
+\begin{array}{ll}
+0 & \quad\textrm{if }x\in C, \\
+\infty & \quad\textrm{if }x\not\in C.
+\end{array}
+\right.
+\end{equation}
+$\chi_C$ is convex, and closed iff $C$ is closed, and proper iff $C\ne\emptyset$.
+\end{example}
+\begin{example}
+    Given non-empty $C\subset \mathbb{R}^n$, its support function is defined by
+    \begin{equation}
+        h_C(x)=\sup_{y\in C}\langle x,y\rangle.
+    \end{equation}
+    $h_C$ is closed proper convex. Furthermore, it is homogeneous: $h_C(\alpha x)=\alpha h_C(x)$. As a result, its epigraph and effective domain are both convex cone.
+\end{example}
+\begin{example}\label{e.g.:constrQuad}
+    Let $C$ denote a non-empty set. The distance function is defined by
+    \begin{equation}
+        d_C(x)=\inf_{y\in C}\|x-y\|_2.
+    \end{equation}
+    Notice that $d_C=\|\cdot\|_2\Box\chi_C$, and $\left(\frac{\|\cdot\|_2^2}{2}+\chi_C\right)^*=\frac{\|\cdot\|_2^2}{2}-\frac{d_C^2}{2}$.
+
+    Suppose $C$ is convex, then $d_C$ is proper convex. If $C$ is further closed, then $d_C$ is closed, and $\nabla \frac{d_C^2(x)}{2}=x-\Pi_C(x)$.
+
+    Of independent interest, we get that $\nabla\left(\frac{\|\cdot\|_2^2}{2}+\chi_C\right)^*(x)=\Pi_C(x)$.
+\end{example}
+\begin{example}
+    Let $S^n$ denote the space of $n\times n$ symmetric matrices, $S_+^n$ denote the closed convex cone of positive semi-definite symmetric matrices, and $S_{++}^n=\mathbf{int}\,S_+^n$ denote the set of positive definite symmetric matrices.
+
+    For $A\in S^n$, let $\lambda_1(A)\ge\cdots\ge\lambda_n(A)$ denote the eigenvalues. Then for any $1\le k\le n$, $\sum_{i=1}^{k}\lambda_i(A)$ is convex over $S^n$, while $\sum_{i=k}^{n}\lambda_i(A)$ is concave over $S^n$. Furthermore, the function
+    \begin{equation}
+        f(A)=\left\{
+        \begin{array}{ll}
+            \log(\det A^{-1}) & \textrm{if }A\in S_{++}^n, \\
+            +\infty & \textrm{if }A\not\in S_{++}^n,
+        \end{array}
+        \right.
+    \end{equation}
+    is closed convex on $S^n$ (see \cite{HL12} B.1.3 (f)).
+\end{example}
+
+\begin{comment}
+\chapter{Partially Ordered Sets and Lattices}
+In this chapter, we explore properties of partially ordered sets and lattices, which are mostly related to the theory of supermodularity and submodularity.
+
+\section{Definitions}
+\begin{example}
+    The basic definitions related to partial order are omitted. Note that given a set of partially ordered sets $P_{i}$ indexed by $i\in I$, we can define naturally a partial order on the direct product $\prod_{i\in I}P_i$, with which we will mainly work in the following. Special cases include pointwise comparison in $\mathbb{R}^n$, and set inclusion relationships in $2^S$ for some set $S$.
+\end{example}
+\begin{definition}
+    Suppose $P$ is a partially ordered set.
+    \begin{itemize}
+        \item For any $x,y\in P$, their \textbf{join (meet)} is defined as their least upper bound (greatest lower bound), denoted by $x\vee y$ ($x\wedge y$).
+        \item If for any $x,y\in P$, both $x\vee y$ and $x\wedge y$ exist, $P$ is called a \textbf{lattice}.
+        \item Given a lattice $P$ and a subset $P'$ of $P$, if for any $x,y\in P'$, the join and meet of $x$ and $y$ in $P$ exist and are also contained in $P'$, then $P'$ is called a \textbf{sublattice} of $P$.
+    \end{itemize}
+\end{definition}
+\begin{definition}
+    Let $f$ be a function from a partially ordered set $P$ to a partially ordered set $Q$. Then $f$ is \textbf{increasing} if for any $x\le_P y$, $f(x)\le_Q f(y)$. Decreasing, strictly increasing, and strictly decreasing functions can be defined similarly.
+
+    Given a partially ordered set $P$ and a subset $S$ of $P$, $S$ is \textbf{increasing} if for any $x\in S$, $\{y\in P|y\ge_P x\}\subset S$.
+\end{definition}
+\begin{definition}
+    Let $f$ be a function from a set $S$ to a partially ordered set $Q$, then the \textbf{(super)level sets} include for each $q\in Q$, $\{x\in S|f(x)\ge_Q q\}$.
+\end{definition}
+
+\section{Basic Properties}
+\begin{theorem}[\cite{T11} Lemma 2.2.2]
+    Suppose $P$ is a lattice and for any $i\in I$, $P_i$ is a sublattice of $P$, then $\bigcap_{i\in I}P_i$ is also a sublattice of $P$.
+\end{theorem}
+
+Suppose $S$ is a subset of $A\times B$. For $b\in B$, the \textbf{section} of $S$ at $b$ is defined as $S_b=\{a\in A|(a,b)\in S\}$. The \textbf{projection} of $S$ onto $B$ is defined as $\Pi_B(S)=\{b\in B|S_b\ne\emptyset\}$.
+\begin{theorem}[\cite{T11} Lemma 2.2.3]
+    Suppose $P$ and $Q$ are lattices and $L$ is a sublattice of $P\times Q$. Then for any $q\in Q$, $L_q$ is a sublattice of $P$, and $\Pi_Q(L)$ is a sublattice of $Q$.
+\end{theorem}
+
+A lattice $P$ is \textbf{complete} if any non-empty subset of $P$ has a supreme and a infimum. A sublattice $P'$ of a lattice $P$ is \textbf{subcomplete} if for any non-empty subset of $P'$, its supreme and infimum in $P$ exist and are also contained in $P'$.
+\begin{theorem}[\cite{T11} Theorem 2.3.1]
+    A sublattice of $\mathbb{R}^n$ is subcomplete iff it is compact.
+\end{theorem}
+
+\chapter{Supermodular Functions on a Lattice}
+In this chapter, we define supermodular functions on a lattice. In some sense, it gives a local characterization of how any two coordinates interact with each other.
+
+\section{Definitions}
+\begin{definition}
+    Let $f$ be a function defined on a lattice $P$. If for all $x,y\in P$,
+    \begin{equation}\label{supermod}
+        f(x)+f(y)\le f(x\vee y)+f(x\wedge y),
+    \end{equation}
+    $f$ is said to be \textbf{supermodular}.
+
+    If \eqref{supermod} is a strict inequality whenever $x$ and $y$ are incomparable, then $f$ is said to be \textbf{strictly supermodular}.
+
+    $f$ is \textbf{(strictly) submodular} if $-f$ is (strictly) supermodular.
+
+    $f$ is \textbf{modular} if it is both supermodular and submodular.
+\end{definition}
+\begin{definition}
+    Suppose $P$ and $Q$ are partially ordered sets and $f:S\to \mathbb{R}$ where $S\subset P\times Q$. If for all $q,q'\in Q$, $q<q'$, $f(p,q')-f(p,q)$ is increasing on $S_q\cap S_{q'}$, then $f$ has \textbf{increasing differences} in $(p,q)$ on $S$. Functions with decreasing differences, strictly increasing differences, and strictly decreasing differences can be defined similarly.
+
+    Now suppose $P_i$ is a partially ordered set for each $i\in I$, and $f:S\to \mathbb{R}$ where $S\subset P=\times_{i\in I}P_i$. Then $f$ has increasing differences if for any $i,j\in I$, $i\ne j$, when an arbitrary $x_{-ij}\in P_{-ij}$ is fixed, f has increasing differences in $(x_i,x_j)$ on $S_{x_{-ij}}$.
+\end{definition}
+\paragraph{Remark}
+One can show that whether a function has increasing (decreasing, strictly increasing, strictly decreasing) differences is irrelevant to the choice of coordinates. Also, the second definition is in fact says that, for every way of partitioning $P_i$'s into two groups, $f$ still has increasing differences in the first definition.
+
+The following two theorems characterize the relationship between (strict) supermodularity and (strictly) increasing differences.
+\begin{theorem}[\cite{T11} Theorem 2.6.1]
+    Suppose for each $i\in I$, $P_i$ is a lattice, and $P$ is a sublattice of $\prod_{i\in I}P_i$. If $f$ is (strictly) supermodular on $P$, then $f$ has (strictly) increasing difference on $P$.
+\end{theorem}
+\begin{theorem}[\cite{T11} Theorem 2.6.2]
+    Suppose for any $i\in[n]$, $P_i$ is a lattice. If $f$ has (strictly) increasing differences on $\prod_{i\in I}P_i$ and $f$ is (strictly) supermodular on $P_i$ for any $i$ and any fixed $x_{-i}\in X_{-i}$, then $f$ is (strictly) supermodular on $\prod_{i\in I}P_i$.
+\end{theorem}
+\begin{corollary}[\cite{T11} Corollary 2.6.1]
+    Suppose for any $i\in[n]$, $P_i$ is a chain. If $f$ has (strictly) increasing differences on $\prod_{i\in I}P_i$, then $f$ is (strictly) supermodular on $\prod_{i\in I}P_i$.
+\end{corollary}
+\paragraph{Remark}
+One application is that suppose $f$ is twice differentiable, then $f$ is supermodular on $\mathbb{R}^n$ iff the off-diagonal entries of its Hessian is non-negative everywhere.
+
+\begin{theorem}[\cite{T11} Theorem 2.6.4]
+    Suppose for any $i\in[n]$, $P_i$ is a chain. Then $f$ is separable on $\prod_{i\in I}P_i$ iff $f$ is modular on $\prod_{i\in I}P_i$.
+\end{theorem}
+
+\section{Basic Properties}
+\begin{theorem}[\cite{T11} Theorem 2.7.1 and Theorem 2.7.5]
+    If $f$ is (strictly) supermodular on a lattice $P$, then $\arg\max_{x\in P}f(x)$ is a sublattice (chain) of $P$.
+\end{theorem}
+\begin{theorem}[\cite{T11} Theorem 2.7.6 and Theorem 2.7.7]
+    Suppose $P$ and $Q$ are two lattices, $L$ is a sublattice of $P\times Q$, and $f$ is a (strictly) supermodular function on $L$. For each $q\in \Pi_QL$, assume $g(q)=\sup_{p\in S_q}f(p,q)$ ($\max_{p\in S_q}f(p,q)$) exists and is finite. Then $g$ is (strictly) supermodular on $\Pi_QL$.
+\end{theorem}
+\end{comment}
+
+\chapter{Optimization and Convex Optimization Problems}
+\section{High-Level Picture}
+In an optimization problem, basically we want to optimize some function $f$, and achieve some other good properties when possible. Here are some possible parameters of the model:
+\begin{itemize}
+    \item The optimization variable may be continuous or discrete. In this note we will mainly consider continuous optimization variables.
+    \item $f$ may have different properties. For example, $f$ may be convex or general. Also, in machine learning, $f$ may come from some finite data set or some general probability distribution.
+    \item Usually iterative methods will be used, and they can be in continuous-time or discrete-time. Discrete-time methods are practical, while continuous-time methods may allow some clearer analysis and give some hints for the discrete-time case.
+\end{itemize}
+
+\section{Optimization Problems}
+\subsection{General Optimization Problems}
+A general \textbf{optimization} problem looks like:
+\begin{equation}\label{optProb}
+\begin{array}{lll}
+\min & f(x) & \\
+\mathrm{s.t.} & g_i(x)\le0 & 1\le i\le m, \\
+ & h_i(x)=0 & 1\le j\le\ell.
+\end{array}
+\end{equation}
+The domain of the problem is $\mathbf{dom}\,f\cap\left(\bigcap_{i=1}^m\mathbf{dom}\,g_i\right)\cap\left(\bigcap_{j=1}^{\ell}\mathbf{dom}\,h_j\right)$.
+
+\eqref{optProb} is a very general form of optimization problem. Often the following form is considered
+\begin{equation}\label{optProbSetForm}
+    \min_{x\in C}f(x).
+\end{equation}
+Here $C$ is some constraint set. \eqref{optProb} can also be expressed in this form, if we take $C$ as the feasible set. The above forms are often called \textbf{constrained optimization problems}, while if $C=\mathbb{R}^n$, it is called \textbf{unconstrained optimization problems}.
+
+\paragraph{Optimality Conditions}
+Given \eqref{optProbSetForm}, we have some first- and second-order optimality conditions.
+\begin{proposition}[\cite{BL10} Proposition 2.1.1]\label{optProbFirst}
+    Suppose $C\subset \mathbb{R}^n$ is convex and $x^{\star}$ is a local minimizer of $f$ over $C$. Then for any $x\in C$, if the directional derivative $f'(x^{\star};x-x^{\star})$ exists, we have $f'(x^{\star};x-x^{\star})\ge0$. In particular, if $f$ is differentiable at $x^{\star}$, then $-\nabla f(x^{\star})\in N_C(x)$.
+\end{proposition}
+\begin{proposition}[\cite{BL10} Theorem 2.1.5]\label{optProbSecond}
+    Suppose $C\subset \mathbb{R}^n$ is open and $f$ is twice continuously differentiable over $C$. If $x\in C$ is a local minimizer of $f$, then $\nabla f(x)=0$ and $\nabla^2f(x)\succeq0$. Conversely, if $\nabla f(x)=0$ and $\nabla^2f(x)\succ0$, then $x$ is a local minimzer of $f$.
+\end{proposition}
+
+\eqref{optProbSetForm} is hard to solve in general: an exponential dependency on the dimension may be inevitable.
+\begin{comment}
+For instance, consider the following problem:
+\begin{equation}\label{unitBoxMin}
+    \min_{x\in[0,1]^n}f(x),
+\end{equation}
+where $f$ is $\lambda$-Lipschitz continuous over $[0,1]^n$. We want to find an $\epsilon$-additive approximate solution.
+
+One can use the uniform grid method: Divide each dimension into $\lceil\frac{\lambda\sqrt{n}}{2\epsilon}\rceil$ uniform intervals, and consider all grid points. We can get an $\epsilon$-approximate solution with a query complexity of $(\lceil\frac{\lambda\sqrt{n}}{2\epsilon}\rceil+1)^n$. What's more, such a query complexity is necessary.
+
+\begin{theorem}
+    The query complexity of problem \eqref{unitBoxMin} with a zeroth order oracle is at least $(\lceil \frac{\lambda}{2\epsilon}\rceil-1)^n$.
+\end{theorem}
+\begin{proof}
+    Divide each dimension into $\lceil \frac{\lambda}{2\epsilon}\rceil-1$ uniform intervals. For each query $x$, return $f(x)=0$. Then the algorithm will conclude the minimum is $0$. However, if the query complexity is less than $(\lceil \frac{\lambda}{2\epsilon}\rceil-1)^n$, then there will be one cube $\prod_{i=1}^n[a_i,b_i]$ whose vertices are grid points and no interior point of this cube is queried. We can then set $f(x)=\min_{1\le i\le n}\min\{\lambda(x_i-a_i),\lambda(b_i-x_i)\}$ on $\prod_{i=1}^n[a_i,b_i]$ and $0$ everywhere else. One can check that $f$ is $\lambda$-Lipschitz continuous over $[0,1]^n$ but the optimum value is $(\frac{\lambda}{2})/(\lceil \frac{\lambda}{2\epsilon}\rceil-1)>\epsilon$.
+\end{proof}
+
+In economics, and specifically monotone comparative statics, the following parameterized optimization problem is often considered:
+\begin{equation}
+    \min_{x\in C_t}f(x).
+\end{equation}
+Here $t\in T$ is a parameter. Monotone comparative statics are interested especially in cases when the optimal solution is a monotone function of $t$.
+\end{comment}
+
+\subsection{Stochastic Optimization Problems}
+Sometimes there will be some uncertainty in the problem. For simplicity, we formalize the \textbf{stochastic optimization} problem as
+\begin{equation}\label{stochOptProb}
+    \min_{x\in C}f(x)=\mathbb{E}_{\xi}[F(x,\xi)].
+\end{equation}
+Here $\xi$ is a random variable (vector).
+
+In practice, such as \textbf{empirical risk minimization}, people will first sample $\xi_1,\xi_2,\ldots,\xi_m$, and do the following optimization (denote $F(x,\xi_i)$ by $f_i(x)$):
+\begin{equation}\label{finiteSum}
+    \min_{x\in C}f(x)=\frac{1}{m}\sum_{i=1}^{m}f_i(x).
+\end{equation}
+All those $f_i$'s are known by us, and thus we can apply any optimization algorithms. However, in practice even in this situation people may be more interested in stochastic algorithms; For example, at each step, instead of computing gradients of all those $f_i$'s, we just compute gradients of a few $f_i$'s. In this way we will suffer less per-step cost. The intuition behind is that more data should make our job easier, not harder.
+
+\section{Convex Optimization Problems}
+\subsection{General Convex Optimization Problems}
+A general \textbf{convex optimization} problem looks like:
+\begin{equation}\label{convOptProb}
+\begin{array}{lll}
+\mathrm{minimize} & f(x) & \\
+\mathrm{s.t.} & g_i(x)\le0 & 1\le i\le m, \\
+ & Ax=b. & \\
+\end{array}
+\end{equation}
+Here $f,g_i$ are convex. The domain of the problem is $\mathbf{dom}\,f\cap\left(\bigcap_{i=1}^m\mathbf{dom}\,g_i\right)$, which is convex. Similarly, we can use the compact \eqref{optProbSetForm}, and further require $f$ and $C$ to be convex.
+
+In a convex optimization problem, local minimum is also global minimum. Proposition \ref{optProbFirst} now becomes necessary and sufficient.
+\begin{proposition}[\cite{BL10} Proposition 2.1.2]\label{convOptProbFirst}
+    Given convex $f$ and $C$, $x\in C$ is a global minimizer of $f$ iff for any $x'\in C$, $f'(x;x'-x)\ge0$, or $-\nabla f(x)\in N_C(x)$ when $f$ is differentiable at $x$.
+\end{proposition}
+
+\subsection{Stochastic Convex Optimization Problems}
+In \eqref{stochOptProb}, if $F(x,\xi)$ is convex in $x$ for all $\xi$, then the optimization problem is convex.
+
+\subsection{Online Convex Optimization Problems}
+In an \textbf{online convex optimization} problem, we are given a convex set $C$ at the beginning. At each step, a vector $x^{(t)}\in C$ needs to be chosen. Then a convex loss function $f_t:C\to \mathbb{R}$ will be revealed to us, and a loss of $f_t(x^{(t)})$ will be incurred.
+
+We want to minimize the \textbf{regret}. The regret of an online algorithm with respect to a vector $u$ in $T$ steps is defined as
+\begin{equation}\label{OCORegretSingle}
+    \mathrm{Regret}_u(T)=\max_{f_1,\ldots,f_T}\left\{\sum_{t=1}^{T}f_t(x^{(t)})-\sum_{t=1}^{T}f_t(u)\right\},
+\end{equation}
+Here there are usually some restrictions over $f_1,\ldots,f_T$. The regret with respect to a set $U$ in $T$ steps is then defined as
+\begin{equation}\label{OCORegretSet}
+    \mathrm{Regret}_U(T)=\max_{u\in U}\mathrm{Regret}_u(T).
+\end{equation}
+$\mathrm{Regret}_U(T)$ is what we want to minimize.
+\begin{remark}
+    The notion of regret may look a little strange at the first glance. However, it does generalize naturally the notion of error in batch optimization. In fact, if we set $U=C$, and let all $f_t$'s be identical, then we are in fact doing a batch optimization. Suprisingly, one can get nearly the same convergence rate for the online optimization problem.
+\end{remark}
+
+\chapter{Duality Theory}
+\section{Fenchel Duality}
+Given $f:\mathbb{R}^n\to \mathbb{R}\cup\{+\infty\}$, $g:\mathbb{R}^m\to \mathbb{R}\cup\{+\infty\}$, and $A\in \mathbb{R}^{m\times n}$, consider the following two problems
+\begin{align}
+    p & =\inf_{x\in \mathbb{R}^n}\left(f(x)+g(Ax)\right), \label{FenchelPrimal}\\
+    d & =\sup_{y\in \mathbb{R}^m}\left(-f^*(A^{\mathrm{T}}y)-g^*(-y)\right). \label{FenchelDual}
+\end{align}
+We have the \textbf{weak duality} $p\ge d$ due to the Fenchel-Young inequality. Next we establish the \textbf{strong duality} under an additional assumption.
+
+As a motivation, let us rewrite \eqref{FenchelPrimal}, \eqref{FenchelDual} and the weak duality in the following way:
+\begin{align*}
+     & \inf_{x\in \mathbb{R}^n}\left(f(x)+g(Ax)\right) \\
+    = & \inf_{x,u\in \mathbb{R}^n}\sup_{y\in \mathbb{R}^m}\left(f(x)+g(Ax+u)+\langle y,u\rangle\right) \\
+    \ge & \sup_{y\in \mathbb{R}^m}\inf_{x,u\in \mathbb{R}^n}\left(f(x)+g(Ax+u)+\langle y,u\rangle\right) \\
+    = & \sup_{y\in \mathbb{R}^m}-\left(\sup_{x,u\in \mathbb{R}^n}\left(\langle A^{\mathrm{T}}y,x\rangle-f(x)+\langle -y,Ax+u\rangle-g(Ax+u)\right)\right) \\
+    = & \sup_{y\in \mathbb{R}^m}\left(-f^*(A^{\mathrm{T}}y)-g^*(-y)\right).
+\end{align*}
+Now suppose strong duality holds, and there exists primal and dual optimum solution $(x^{\star},u^{\star})$ and $y^{\star}$. Then we should have:
+\begin{itemize}
+    \item $u^{\star}=0$.
+    \item Let $h(u)=\inf_{x\in \mathbb{R}^n}\left(f(x)+g(Ax+u)\right)$. Then for any $u\in \mathbb{R}^n$, $h(u)+\langle y^{\star},u\rangle\ge h(u^{\star})$.
+\end{itemize}
+From the above two properties, we conclude that $-y^{\star}\in\partial h(0)$. More formally, we have the following theorem.
+\begin{theorem}[\cite{BL10} Theorem 3.3.5]\label{thm:FenchelStrongDual}
+    Suppose $f$ and $g$ are proper convex and $0\in \mathbf{relint}\,(\mathbf{dom}\,g-A \mathbf{dom}\,f)$, then $p=d$, and \eqref{FenchelDual} is attained if $p=d$ is finite.
+\end{theorem}
+\begin{proof}
+    Consider the function
+    \begin{equation*}
+        h(u)=\inf_{x\in \mathbb{R}^n}\left(f(x)+g(Ax+u)\right).
+    \end{equation*}
+    We have $h$ is convex (in the sense that $\mathbf{epi}\,h$ is convex), and $\mathbf{dom}\,h=\mathbf{dom}\,g-A \mathbf{dom}\,f$. If $p=h(0)=-\infty$, we are done. If $p=h(0)$ is finite and $0\in \mathbf{relint}\,(\mathbf{dom}\,g-A \mathbf{dom}\,f)$, then $h$ is proper by Theorem \ref{thm:improperConvRelInt}. As a result, there exists $-y\in\partial h(0)$. Then we have for any $x,u\in \mathbb{R}^n$,
+    \begin{align*}
+        h(0) &\le h(u)+\langle y,u\rangle \\
+         & \le f(x)+g(Ax+u)+\langle y,u\rangle \\
+         & =-\left(\langle A^{\mathrm{T}}y,x\rangle-f(x)+\langle -y,Ax+u\rangle-g(Ax+u)\right).
+    \end{align*}
+    By taking the infimum of the right hand side, we have
+    \begin{equation*}
+        h(0)\le-f^*(A^{\mathrm{T}}y)-g^*(-y)\le d\le p=h(0).
+    \end{equation*}
+\end{proof}
+
+\section{Lagrangian Duality}
+Recall the standard optimization problem:
+\begin{equation}
+\begin{array}{lll}
+\mathrm{minimize} & f(x) & \\
+\mathrm{s.t.} & g_i(x)\le0, & 1\le i\le m, \\
+ & h_j(x)=0, & 1\le j\le \ell.
+\end{array}
+\tag{\ref{optProb}}
+\end{equation}
+Let $C=\mathbf{dom}\,f\cap(\cap_{i=1}^m\mathbf{dom}\,g_i)\cap(\cap_{j=1}^{\ell}\mathbf{dom}\,h_j)$ denote the domain of the optimization problem and $p^{\star}$ denote the optimal value. We assume that $C\ne\emptyset$, and then $p^{\star}\in[-\infty,+\infty)$.
+
+The \textbf{Lagrangian} $L:\mathbb{R}^n\times\mathbb{R}^m\times\mathbb{R}^{\ell}\rightarrow\mathbb{R}$ associated with \eqref{optProb} is defined as
+\begin{equation}\label{lag}
+L(x,\lambda,\nu)=f(x)+\sum_{i=1}^m\lambda_ig_i(x)+\sum_{j=1}^{\ell}\nu_jh_j(x).
+\end{equation}
+Here $\lambda$ and $\nu$ are called the dual variables associated with the problem \eqref{optProb}.
+
+The \textbf{Lagrange dual function} $\phi:\mathbb{R}^m\times\mathbb{R}^{\ell}\rightarrow\mathbb{R}$ is defined as the infimum of Lagrangian over $x$:
+\begin{equation}\label{lagDual}
+\phi(\lambda,\nu)=\inf_{x\in C}L(x,\lambda,\nu).
+\end{equation}
+Note that $\phi$ is always concave since it is the point-wise infimum of linear functions.
+
+One important property of the dual function is that for $\lambda\ge0$, $\phi(\lambda,\nu)\le p^{\star}$. One interpretation is that when $\lambda\ge0$ and $\nu$ are fixed, the Lagrangian is actually a linear under-estimator of the primal objective function. This leads to the \textbf{Lagrange dual problem}:
+\begin{equation}\label{dualP}
+\begin{array}{ll}
+\mathrm{maximize} & \phi(\lambda,\nu) \\
+\mathrm{s.t.} & \lambda\ge0.
+\end{array}
+\end{equation}
+This is always a convex optimization problem no matter whether the primal problem is convex. Denote its optimal value by $d^{\star}$.
+
+There is a more symmetric way to express the primal and dual optimization problems. The primal program can be formulated as
+\begin{equation}\label{maxminPrimal}
+\inf_{x\in C}\sup_{(\lambda,\nu)\in\mathbb{R}_+^m\times\mathbb{R}^{\ell}}L(x,\lambda,\nu)
+\end{equation}
+The dual program can be written in a similar form:
+\begin{equation}\label{maxminDual}
+\sup_{(\lambda,\nu)\in\mathbb{R}_+^m\times\mathbb{R}^{\ell}}\inf_{x\in C}L(x,\lambda,\nu).
+\end{equation}
+
+\subsection{Weak Duality and Strong Duality}
+It is easy to see $p^{\star}\ge d^{\star}$. $p^{\star}-d^{\star}$ is called the \textbf{duality gap}, which might be positive sometimes.
+
+To establish strong duality, we start with the following function.
+\begin{equation}
+    w(u,v)=\inf_{x\in \mathbb{R}^n}\{f(x)|g(x)\le u,h(x)=v\}.
+\end{equation}
+We have the following property
+\begin{itemize}
+    \item $p^{\star}=w(0,0)$.
+    \item \begin{align*}
+                & w^*(-\lambda,-\nu) \\
+               = & \sup_{u\in \mathbb{R}^m,v\in \mathbb{R}^{\ell}}\langle-\lambda,u\rangle+\langle-\nu,v\rangle-v(u) \\
+               = & \sup_{u\in \mathbb{R}^m,v\in \mathbb{R}^{\ell},x\in \mathbb{R}^n}\{\langle-\lambda,u\rangle+\langle-\nu,v\rangle-f(x)|g(x)\le u,h(x)=v\} \\
+               = & \sup_{u\in \mathbb{R}^m,x\in \mathbb{R}^n,z\in \mathbb{R}_+^n}\{\langle-\lambda,u\rangle+\langle-\nu,h(x)\rangle-f(x)|g(x)+z=u\} \\
+               = & \sup_{x\in \mathbb{R}^n,z\in \mathbb{R}_+^n}\{\langle-\lambda,g(x)+z\rangle+\langle-\nu,h(x)\rangle-f(x)\} \\
+               = & \sup_{x\in \mathbb{R}^n}\{\langle-\lambda,g(x)\rangle+\langle-\nu,h(x)\rangle-f(x)\}+\sup_{z\in \mathbb{R}_+^n}\langle-\lambda,z\rangle \\
+               = & -\phi(\lambda,\nu)+\chi_{\mathbb{R}_+^m}(\lambda).
+          \end{align*}
+    \item $d^{\star}=w^{**}(0,0)$.
+\end{itemize}
+\begin{theorem}[Slater's Condition, \cite{BL10} Theorem 4.3.7]
+    Consider the convex optimization problem \eqref{convOptProb}. If there exists $x\in\mathbf{relint}\,C$ such that $g_i(x)<0$ for $1\le i\le m$ and $Ax=b$, then strong duality holds and dual optimum is attained when $p^{\star}=d^{\star}$ is finite.
+\end{theorem}
+\begin{proof}
+    One can verify that $w$ is convex, in the sense that $\mathbf{epi}\,w$ is convex. If $p^{\star}=w(0,0)=-\infty$, we are done. Suppose $p^{\star}=w(0,0)$ is finite. The Slater's condition shows that $(0,0)\in \mathbf{relint}\,\mathbf{dom}\,w$, thus $w$ is proper, and continuous at $(0,0)$. Then by Corollary \ref{cor:pointBiconj} we know that $p^{\star}=w(0,0)=w^{**}(0,0)=d^{\star}$.
+\end{proof}
+\begin{remark}
+    If there is no equality constraint, the condition $x\in \mathbf{relint}\,C$ can be replaced with $x\in C$. The reason is that with strict inequalities, we can still show that $0\in \mathbf{int}\,\mathbf{dom}\,w$.
+
+    If there exists equality constraint, then we need to require $x\in \mathbf{relint}\,C$. Then we can ensure the condition $(0,0)\in \mathbf{relint}\,\mathbf{dom}\,w$ for the $\nu$ part, by Theorem \ref{thm:localLipschitzConv} and Proposition \ref{prop:clRelIntLinMap}.
+\end{remark}
+
+\begin{theorem}[Sion's minimax theorem]
+    Assume $X\subset\mathbb{R}^n$ and $Y\subset\mathbb{R}^m$ are both convex, and at least one of them is compact. If $f:X\times Y\rightarrow\mathbb{R}$ satisfying
+    \begin{equation*}\label{sionCond}
+    \begin{array}{l}
+    f(x,\cdot)\textrm{ is upper semicontinuous and quasi-concave on }Y,\forall x\in X,\textrm{ and}\\
+    f(\cdot,y)\textrm{ is lower semicontinuous and quasi-convex on }X, \forall y\in Y,
+    \end{array}
+    \end{equation*}
+    then
+    \begin{equation*}\label{sionMinimax}
+    \inf_{x\in X}\sup_{y\in Y}f(x,y)=\sup_{y\in Y}\inf_{x\in X}f(x,y).
+    \end{equation*}
+\end{theorem}
+
+\section{Applications}
+\subsection{Theorems of Alternative}
+\begin{lemma}[\cite{BL10} Theorem 2.1.6]\label{lem:boundedBelowSmallGrad}
+    Suppose $f:\mathbb{R}^n\to \mathbb{R}$ is differentiable and bounded below. Then for any $\epsilon>0$, there exists $x_{\epsilon}\in \mathbb{R}^n$ such that $\|\nabla f(x_{\epsilon})\|\le\epsilon$.
+\end{lemma}
+Now given $a^{(1)},\ldots,a^{(m)}\in \mathbb{R}^n$, consider the system
+\begin{equation}\label{Gordan1}
+    \sum_{i=1}^{m}\lambda_ia^{(i)}=0,\quad \sum_{i=1}^{m}\lambda_i=1,\quad\lambda_1,\ldots,\lambda_m\ge0,
+\end{equation}
+and the system
+\begin{equation}\label{Gordan2}
+    \langle a^{(i)},x\rangle<0\textrm{ for }1\le i\le m,\quad x\in \mathbb{R}^n,
+\end{equation}
+and the function
+\begin{equation}\label{lnSumExp}
+    f(x)=\ln\left(\sum_{i=1}^{m}\exp \langle a^{(i)},x\rangle\right).
+\end{equation}
+\begin{theorem}[Gordan, \cite{BL10} Theorem 2.2.6]\label{thm:Gordan}
+    The following statements are equivalent:
+    \begin{itemize}
+        \item The function $f$ given by \eqref{lnSumExp} is bounded below.
+        \item System \eqref{Gordan1} is solvable.
+        \item Systen \eqref{Gordan2} is unsolvable.
+    \end{itemize}
+\end{theorem}
+\begin{proof}
+    The key is to show that the first statement implies the second one. To do this we just invoke Lemma \ref{lem:boundedBelowSmallGrad}, and take the limit.
+\end{proof}
+
+Now we look at another problem, which is in some sense dual to the above one. Consider the system
+\begin{equation}\label{Stiemke1}
+    \sum_{i=1}^{m}\lambda_ia^{(i)}=0,\quad\lambda_1,\ldots,\lambda_m>0,
+\end{equation}
+and the system
+\begin{equation}\label{Stiemke2}
+    \langle a^{(i)},x\rangle\le0\textrm{ for }1\le i\le m\textrm{ with at least one strict inequality,}\quad x\in \mathbb{R}^n,
+\end{equation}
+and the function
+\begin{equation}\label{sumExp}
+    g(x)=\sum_{i=1}^{m}\exp \langle a^{(i)},x\rangle.
+\end{equation}
+\begin{theorem}[Stiemke, \cite{BL10} Exercise 2.2.8]\label{thm:Stiemke}
+    The following statements are equivalent:
+    \begin{itemize}
+        \item The function $f$ given by \eqref{lnSumExp} has an optimal solution.
+        \item System \eqref{Stiemke1} is solvable.
+        \item Systen \eqref{Stiemke2} is unsolvable.
+        \item The function $g$ given by \eqref{sumExp} has an optimal solution.
+    \end{itemize}
+\end{theorem}
+\begin{proof}
+    The key is to show that the third statement implies the fourth one. We only need to notice that $g$ has bounded level sets when restricted to $\mathrm{Im}(A^{\mathrm{T}})$.
+\end{proof}
+\begin{theorem}[Farkas, \cite{BL10} Lemma 2.2.7]
+    Suppose we are given $a^{(1)},\ldots,a^{(m)},c\in \mathbb{R}^n$, exactly one of
+    \begin{equation}
+        \sum_{i=1}^{m}\lambda_ia^{(i)}=c,\quad \lambda_1,\ldots,\lambda_m\ge0,
+    \end{equation}
+    and
+    \begin{equation}
+        \langle a^{(i)},x\rangle\le0\textrm{ for }1\le i\le m,\quad \langle c,x\rangle>0,\quad x\in \mathbb{R}^n
+    \end{equation}
+    has a solution.
+\end{theorem}
+
+\subsection{Karush-Kuhn-Tucker conditions}
+Now let us return to the general optimization problem \eqref{optProb}. Suppose $\tilde{x}\in C$ is a feasible point of \eqref{optProb}, and $(\tilde{\lambda},\tilde{\nu})$ satisfies $\tilde{\lambda}\ge0$, and thus is dual feasible. $(\tilde{\lambda},\tilde{\nu})$ is a Lagrange multiplier for $\tilde{x}$ if $\tilde{x}$ is a critical point of the Lagrangian $L(x,\tilde{\lambda},\tilde{\nu})$, and \textbf{complementary slackness} condition holds:
+\begin{equation}\label{complSlack}
+\tilde{\lambda}_ig_i(\tilde{x})=0,\quad\forall1\le i\le m.
+\end{equation}
+
+Here we establish the existence of a Lagrange multiplier for a local minimum under the special case where there is no equality constraint:
+\begin{equation}\label{optProbNoEq}
+    \begin{array}{lll}
+    \mathrm{minimize} & f(x) & \\
+    \mathrm{s.t.} & g_i(x)\le0, & 1\le i\le m. \\
+    \end{array}
+\end{equation}
+Further assume that $f$ and $g_i$ are continuous.
+
+Given a feasible $x\in C$, let $I(x)=\{i|1\le i\le m,g_i(x)=0\}$ denote the set of indexes of active constraints.
+\begin{theorem}[Fritz John conditions, \cite{BL10} Theorem 2.3.6]
+    Suppose $x^{\star}\in \mathbf{int}\,C$ is a local minimizer of \eqref{optProbNoEq}. If $f$ and $g_i$, $i\in I(x^{\star})$ are differentiable at $x^{\star}$, then there exists $\lambda_0,\lambda_i\ge0$, $i\in I(x^{\star})$, not all zero, such that
+    \begin{equation}
+        \lambda_0\nabla f(x^{\star})+\sum_{i\in I(x^{\star})}^{}\lambda_i\nabla g_i(x^{\star})=0.
+    \end{equation}
+\end{theorem}
+
+One disadvantage of Fritz John conditions is that $\lambda_0$ might be $0$. Thus we further have the following result.
+\begin{theorem}[\cite{BL10} Theorem 2.3.8]
+    Suppose $x^{\star}\in \mathbf{int}\,C$ is a local minimizer of \eqref{optProbNoEq}. If $f$ and $g_i$, $i\in I(x^{\star})$ are differentiable at $x^{\star}$, and the Mangasarian-Fromovitz constraint qualification holds at $x^{\star}$:
+    \begin{equation*}
+        \textrm{There exists }d\in \mathbb{R}^n\textrm{ such that }\langle\nabla g_i(x^{\star}),d\rangle<0\textrm{ for all }i\in I(x^{\star}).
+    \end{equation*}
+    Then there is a Lagrange multiplier $\lambda^{\star}$ for $x^{\star}$.
+\end{theorem}
+
+Now suppose there exists feasible $x^{\star}$ and $(\lambda^{\star},\nu^{\star})$ such that strong duality holds. Then $(\lambda^{\star},\nu^{\star})$ is a Lagrange multiplier for $x^{\star}$. Conversely, if the optimization problem is convex, the KKT conditions are also sufficient for $(x^{\star},\lambda^{\star},\nu^{\star})$ to be optimal.
+
+\part{First-Order Methods}
+In this part, we study first-order, or gradient-based optimization methods. Basically we want to minimize some function $f$, and different assumptions on $f$ allow different algorithms and convergence rates.
+
+In a rough sense, there is still some "duality" in optimization. One can interpret it as giving an upper bound and a lower bound for the optimum value, getting an upper and a lower bound for the function which is optimized, or constructing an inner and an outer approximation of the epigraph of the function.
+
+\chapter{Gradient Flow}
+In this chapter we study \textbf{gradient flow}, a continuous-time counterpart of gradient descent. Some arguments are clearer, some arguments are more complicated, and there is no universal way to build a bridge between gradient flow and gradient descent. Nevertheless, thinking of gradient flow might give us some nice insight into gradient descent.
+
+$f:\mathbb{R}^n\to \mathbb{R}$ is $\alpha$-convex if for any $x,y\in \mathbb{R}^n$, $\lambda\in[0,1]$,
+\begin{equation*}
+    f\left(\lambda x+(1-\lambda)y\right)\le f(x)+f(y)-\frac{\alpha}{2}\lambda(1-\lambda)\|x-y\|_2^2,
+\end{equation*}
+or equivalently, $f-\nicefrac{\alpha\|\cdot\|_2^2}{2}$ is convex. If $f\in C^1$, then an equivalent definition is for any $x,y\in \mathbb{R}^n$,
+\begin{equation*}
+    \langle\nabla f(x)-\nabla f(y),x-y\rangle\ge\alpha\|x-y\|_2^2,
+\end{equation*}
+or equivalently or any $x,y\in \mathbb{R}^n$,
+\begin{equation*}
+    f(y)-f(x)-\langle\nabla f(x),y-x\rangle\ge \frac{\alpha}{2}\|y-x\|_2^2.
+\end{equation*}
+If $f\in C^2$, then an equivalent definition is on $\mathbb{R}^n$,
+\begin{equation*}
+    \nabla^2f\succeq\alpha I.
+\end{equation*}
+
+Now suppose $\nabla f$ is Lipschitz continuous. By Picard-Lindel\"{o}f Theorem, for any $x(0)\in \mathbb{R}^n$, there is a unique solution $x(t):[0,+\infty)\to \mathbb{R}^n$ such that
+\begin{equation*}
+    x'(t)=-\nabla f(x(t)).
+\end{equation*}
+
+Here are some basic properties of gradient flow.
+\begin{theorem}
+    Given $f:\mathbb{R}^n\to \mathbb{R}$, suppose $\nabla f$ is Lipschitz continuous. Then
+    \begin{equation*}
+        \frac{\mathrm{d}}{\mathrm{d}t}f(x(t))=-\|\nabla f(x(t))\|_2^2\le0.
+    \end{equation*}
+    Now suppose $f\in C^1$ is $\lambda$-convex. The existence of gradient flow is guaranteed by the Peano Existence Theorem.
+    \begin{itemize}
+        \item For any $x\in \mathbb{R}^n$,
+        \begin{equation*}
+            \frac{\mathrm{d}}{\mathrm{d}t}\frac{1}{2}\|x(t)-x\|_2^2\le f(x)-f(x(t))-\frac{\alpha}{2}\|x(t)-x\|_2^2.
+        \end{equation*}
+
+        \item
+        \begin{equation*}
+            \frac{\mathrm{d}}{\mathrm{d}t}\left(e^{2\alpha t}\|\nabla f(x(t))\|_2^2\right)\le0.
+        \end{equation*}
+
+        \item If $y(t)$ is another gradient flow possibly with a different initial point, then
+        \begin{equation*}
+            \frac{\mathrm{d}}{\mathrm{d}t}\left(e^{2\alpha t}\|x(t)-y(t)\|_2^2\right)\le0.
+        \end{equation*}
+        In particular, given a fixed initial point the gradient flow is unique.
+    \end{itemize}
+\end{theorem}
+\begin{remark}
+    One can try to find corresponding potential functions in gradient descent or Moreau-Yosida regularization.
+\end{remark}
+
+\chapter{Gradient Descent}
+\textbf{Gradient descent} is a very simple, intuitive but powerful method. By using the term ``gradient", we implicitly assume that the function being optimized is differentiable, for convenience; however, nearly all algorithms and analyses still hold if we replace gradient with subgradient for non-differentiable functions.
+
+\section{Minimizing General Convex Functions}\label{sec:GDConv}
+\begin{comment}
+In this section, we consider minimizing a general convex function $f:C\to \mathbb{R}$ (where $C$ is closed convex) with no more assumption. Let us first analyze some general iterative process.
+
+The information we have during the first $T$ steps include $x^{(t)}$, $f(x^{(t)})$, and $\nabla f(x^{(t)})$, for $1\le t\le T$. Let $\overline{f}_t$ denote the function for which $\overline{f}_t(x^{(t)})=f(x^{(t)})$, while $\overline{f}_t(x)=\infty$ for $x\ne x^{(t)}$. The best upper bound of $f$ we can construct is $\overline{f}=\mathbf{conv}\,\inf_{1\le t\le T}\overline{f}_t$. The reason is that, for any $1\le t\le T$, $(\nabla f(x^{(t)}),-1)$ gives a supporting hyperplane to $\mathbf{epi}\,f$ at $(x^{(t)},f(x^{(t)}))$. Now since $\mathbf{epi}\,\overline{f}\subset \mathbf{epi}\,f$, $(\nabla f(x^{(t)}),-1)$ also gives a supporting hyperplane to $\mathbf{epi}\,\overline{f}$ at $(x^{(t)},f(x^{(t)}))$. In other words, $\nabla f(x^{(t)})$ is a subgradient of $\overline{f}$ at $x^{(t)}$.
+
+Let $\underline{f}_t(x)=f(x^{(t)})+\langle\nabla f(x^{(t)}),x-x^{(t)}\rangle=\langle\nabla f(x^{(t)}),x\rangle-f^*(\nabla f(x^{(t)}))$, and $\underline{f}=\sup_{1\le t\le T}\underline{f}_t$. Then $\underline{f}$ is the best lower bound of $f$ we have after $T$ steps.
+
+Now to measure how good our solution is, we need some comparison. One natural benchmark is $\inf_{x\in \mathbb{R}^n}f(x)$. However, $f$ might be unbounded below. Even if it is bounded below, we might never be able to estimate its infimum based on zeroth and first order information (just consider the exponential or logistic function). Thus in the general setting, it is reasonable to compare the solution $\tilde{x}$ output by our algorithm with some general reference point $x$.
+
+Now we consider an arbitrary reference point $x$. We want to find an upper bound for $f(\tilde{x})-f(x)$, where $\tilde{x}$ is the solution given by our algorithm. One can give the tightest bound by considering any convex function between $\overline{f}$ and $\underline{f}$, but it is unclear how to do this job. Furthermore, since $x$ is arbitrary, it is actually also often tight to consider $\overline{f}(\tilde{x})-\underline{f}(x)$. Also, if we want to give some guarantee, in the current case we should have $\tilde{x}\in \mathbf{conv}\,\{x^{(1)},\ldots,x^{(T)}\}$ due to the upper bound $\overline{f}$.
+
+Consider $\underline{f}(x)$. We have for any $\lambda\in\Delta_T$,
+\begin{equation*}
+    \underline{f}(x)\ge \sum_{t=1}^{T}\lambda_t\left(f(x^{(t)})+\langle\nabla f(x^{(t)}),x-x^{(t)}\rangle\right),
+\end{equation*}
+or
+\begin{equation}\label{gradBasedConv}
+    \sum_{t=1}^{T}\lambda_t f(x^{(t)})-\underline{f}(x)\le \sum_{t=1}^{T}\lambda_t \langle\nabla f(x^{(t)}),x^{(t)}-x\rangle.
+\end{equation}
+Thus in general, we can output $\tilde{x}^{(T)}=\arg\min_{1\le t\le T}f(x^{(t)})$ or $\sum_{t=1}^{T}\lambda_tx^{(t)}$ (or any point in the sublevel set of $\overline{f}$ given by this point), and try to bound the right hand side of \eqref{gradBasedConv}. Or we can output $\tilde{x}^{(T)}$, whose guarantee is bounded by the minimum of the right hand side of \eqref{gradBasedConv} when all $\lambda\in\Delta_T$ is considered.
+\end{comment}
+
+Starting from some initial point $x^{(1)}$, the gradient descent step at time $t$ looks like
+\begin{equation}\label{gradUpdate}
+y^{(t+1)}=x^{(t)}-\eta_t\nabla f(x^{(t)}),\quad x^{(t+1)}=\Pi_C\left(y^{(t+1)}\right).
+\end{equation}
+
+The following idea can be seen as an extension of the gradient flow ideas. For any $t\ge1$ and $x\in C$,
+\begin{align*}
+    \frac{1}{2}\|x^{(t+1)}-x\|_2^2 & \le \frac{1}{2}\|y^{(t+1)}-x\|_2^2 \\
+     & \le \frac{1}{2}\|x^{(t)}-x\|_2^2-\eta_t \langle\nabla f(x^{(t)}),x^{(t)}-x\rangle+\frac{\eta_t^2}{2}\|\nabla f(x^{(t)})\|_2^2 \\
+     & \le \frac{1}{2}\|x^{(t)}-x\|_2^2-\eta_t\left(f(x^{(t)})-f(x)\right)+\frac{\eta_t^2}{2}\|\nabla f(x^{(t)})\|_2^2.
+\end{align*}
+Therefore,
+\begin{align*}
+    \eta_t\left(f(x^{(t)})-f(x)\right) & \le \frac{1}{2}\|x^{(t+1)}-x\|_2^2-\frac{1}{2}\|x^{(t)}-x\|_2^2+\frac{\eta_t^2}{2}\|\nabla f(x^{(t)})\|_2^2, \\
+    f(x^{(t)})-f(x) & \le \frac{1}{2\eta_t}\|x^{(t)}-x\|_2^2-\frac{1}{2\eta_t}\|x^{(t+1)}-x\|_2^2+\frac{\eta_t}{2}\|\nabla f(x^{(t)})\|_2^2.
+\end{align*}
+By telescoping, we have the following theorem.
+\begin{theorem}\label{thm:GDBound}
+    For any $x\in C$,
+    \begin{equation*}
+        \sum_{t=1}^{T}\frac{\eta_t}{\sum_{\tau=1}^{T}\eta_{\tau}}f(x^{(t)})-f(x)\le\frac{\|x^{(1)}-x\|_2^2-\|x^{(T+1)}-x\|_2^2+\sum_{t=1}^{T}\eta_t^2\|\nabla f(x^{(t)})\|_2^2}{2 \sum_{t=1}^{T}\eta_t}.
+    \end{equation*}
+    Furthermore, suppose $\eta_t$ is non-increasing, $\|x^{(1)}-x\|_2,\ldots,\|x^{(T)}-x\|_2\le D$. Then
+    \begin{equation*}
+        \sum_{t=1}^{T}\frac{1}{T}f(x^{(t)})-f(x)\le \frac{D^2}{2\eta_T}+\sum_{t=1}^{T}\frac{\eta_t}{2}\|\nabla f(x^{(t)})\|_2^2.
+    \end{equation*}
+\end{theorem}
+Here are some practical choices for the step sizes:
+\begin{itemize}
+\item Constant step size: $\eta_t=\eta$ is a positive constant independent of $t$.
+\item Constant step length: $\eta_t=\gamma/\|\nabla f(x^{(t)})\|_2$, which ensures $\|\eta_t\nabla f(x^{(t)})\|_2=\gamma$.
+\item Non-summable diminishing step sizes: $\eta_t>0$, $\lim_{t\rightarrow\infty}\eta_t=0$, $\sum_{t=1}^{\infty}\eta_t=\infty$. One typical choice is $a/\sqrt{t}$ where $a>0$.
+\item Non-summable diminishing step lengths: $\eta_t=\gamma_t/\|\nabla f(x^{(t)})\|_2$, $\gamma_t>0$, $\lim_{t\rightarrow\infty}\gamma_t=0$, $\sum_{t=1}^{\infty}\gamma_t=\infty$.
+\end{itemize}
+%\begin{remark}
+%Subgradient descent will still work with a noise $\|\xi^{(t)}\|_2\le\epsilon$ added to $g^{(t)}$ at each step. With constant step size,
+%\begin{equation}
+%    f^{(t)}_{\mathrm{best}}-f(x^{\star})\le\frac{\|x^{(1)}-x^{\star}\|_2^2+(G^2+\epsilon^2)\eta^2t}{2\eta t}+\epsilon \|x^{(1)}-x^{\star}\|_2.
+%\end{equation}
+%We can still take $\eta=D/G\sqrt{t}$.
+%
+%Subgradient descent can tolerate a small noise $\|\xi^{(t)}\|_2\le\epsilon$ added to $x^{(t)}$ at each step. In this case we had better work with constant step size, and the error looks like
+%\begin{equation}
+%    f^{(t)}_{\mathrm{best}}-f(x^{\star})\le \frac{\|x^{(1)}-x^{\star}\|_2^2}{2\eta t}+\frac{\epsilon^2}{2\eta}+\frac{G^2\eta}{2}.
+%\end{equation}
+%Take $\epsilon=D/\sqrt{2t}$ and $\eta=\epsilon/G=D/G\sqrt{2t}$ will give an error of $\sqrt{2}DG/\sqrt{t}$.
+%
+%Intuitively, subgradient descent can tolerate noise since it include $D$ as part of the step size.
+%\end{remark}
+
+Now for a good solution, one can output some iterate average. However, it does not follow from \Cref{thm:GDBound} that the last iterate has close-to-optimum function value. Here we present one such result.
+\begin{theorem}[\cite{SZ13} Theorem 2]\label{thm:GDLastBound}
+    Suppose $\|C\|_2\le D$, $f$ is $G$-Lipschitz continuous, $\eta_t=c/\sqrt{t}$ for some $c>0$. Then for any $x\in C$,
+    \begin{equation*}
+        f(x^{(T)})-f(x)\le\left(\frac{D^2}{c}+G^2c\right)\frac{2+\ln T}{\sqrt{T}}.
+    \end{equation*}
+\end{theorem}
+\begin{remark}
+    \Cref{thm:GDBound} also works in the online and expectation setting, while \Cref{thm:GDLastBound} also works in the expectation setting.
+\end{remark}
+\begin{question}
+    Any with-high-probability result?
+\end{question}
+
+\section{Minimizing Strongly Convex Functions}\label{sec:GDStrConv}
+\begin{comment}
+In this subsection, we will consider strongly convex functions. Using this additional assumption, the upper bound and lower bound construction will be different.
+
+For lower bound, let $\underline{f}_t(x)=f(x^{(t)})+\langle\nabla f(x^{(t)}),x-x^{(t)}\rangle+\frac{\alpha}{2}\|x-x^{(t)}\|_2^2$, and $\underline{f}=\sup_{0\le t\le T-1}\underline{f}_t$. Since the supreme of $\alpha$-strongly convex functions is still $\alpha$-strongly convex, we know that $\underline{f}$ is the best lower bound of $f$ we have after $T$ steps, in the sense that it shares with $f$ common function values and (sub)gradients at $x^{(0)},\ldots,x^{(T-1)}$ and is $\alpha$-strongly convex, and is the minimum of all such functions which satisfy those properties.
+
+Now we want to construct a corresponding upper bound. As before, for $\le t\le T-1$, let $\overline{f}_t(x^{(t)})=f(x^{(t)})$, while $\overline{f}_t(x)=\infty$ for $x\ne x^{(t)}$. Now let $\overline{f}(x)=\left(\mathbf{conv}\,\left(\inf_{0\le t\le T-1}\overline{f}_t(x)-q(x)\right)\right)+q(x)$, where $q(x)=\frac{\alpha}{2}\|x\|_2^2+\langle b,x\rangle+c$ and $b,c$ are arbitrary. Different $q$ will not affect $\overline{f}$ since $\overline{f}$ is the maximum $\alpha$-strongly convex function less than or equal $\inf_{0\le t\le T-1}\overline{f}_t(x)$, which is unique. Specifically, we can let $q(x)=\underline{f}_t(x)$, and then we can see $\overline{f}(x^{(t)})=f(x^{(t)})$, and $\nabla f(x^{(t)})\in\partial \overline{f}(x^{(t)})$. As a result, $\overline{f}$ is the best upper bound we have after $T$ steps.
+
+Since strong convexity ensures the existence of optimum, it is natural to use $x^{\star}$ as the benchmark; however, we still state bounds w.r.t. a general reference point $x$. Since $\overline{f}$ still equals $+\infty$ outside $\mathbf{conv}\,\{x^{(0)},x^{(T-1)}\}$, the output $\tilde{x}$ should still be in this convex hull.
+
+Now for any $\lambda\in\Delta_T$, any $x\in C$, we have
+\begin{equation*}
+    \begin{split}
+        \underline{f}(x)\ge & \sum_{t=0}^{T-1}\lambda_t\left(f(x^{(t)})+\langle\nabla f(x^{(t)}),x-x^{(t)}\rangle+\frac{\alpha}{2}\|x-x^{(t)}\|_2^2\right) \\
+         = & \sum_{t=0}^{T-1}\lambda_t\left(f(x^{(t)})-\frac{\alpha}{2}\|x-x^{(t)}\|_2^2\right)+\sum_{t=0}^{T-1}\lambda_t \frac{\alpha}{2}\|x-x^{(t)}\|_2^2 \\
+          & +\sum_{t=0}^{T-1}\lambda_t\left(\langle\nabla f(x^{(t)}),x-x^{(t)}\rangle+\frac{\alpha}{2}\|x-x^{(t)}\|_2^2\right) \\
+         \ge & \overline{f}\left(\sum_{t=0}^{T-1}\lambda_tx^{(t)}\right)-\frac{\alpha}{2}\left\|x-\sum_{t=0}^{T-1}\lambda_tx^{(t)}\right\|_2^2+\frac{\alpha}{2}\sum_{t=0}^{T-1}\lambda_t\|x-x^{(t)}\|_2^2 \\
+          & +\sum_{t=0}^{T-1}\lambda_t\left(\langle\nabla f(x^{(t)}),x-x^{(t)}\rangle+\frac{\alpha}{2}\|x-x^{(t)}\|_2^2\right).
+    \end{split}
+\end{equation*}
+Let $D_T=\sum_{t=0}^{T-1}\lambda_t\|x^{(t)}\|_2^2-\|\sum_{t=0}^{T-1}\lambda_tx^{(t)}\|_2^2$. Then we have
+\begin{equation}
+    \overline{f}\left(\sum_{t=0}^{T-1}\lambda_tx^{(t)}\right)-\underline{f}(x)\le \sum_{t=0}^{T-1}\lambda_t\left(\langle\nabla f(x^{(t)}),x^{(t)}-x\rangle-\frac{\alpha}{2}\|x-x^{(t)}\|_2^2\right)-\frac{\alpha}{2}D_T.
+\end{equation}
+Furthermore,
+\begin{equation}
+    \begin{split}
+         & \sum_{t=0}^{T-1}\lambda_t\left(\langle\nabla f(x^{(t)}),x^{(t)}-x\rangle-\frac{\alpha}{2}\|x-x^{(t)}\|_2^2\right) \\
+        \le & \sum_{t=0}^{T-1}\frac{\lambda_t}{2\eta_t}\left((1-\alpha\eta_t)\|x^{(t)}-x\|_2^2-\|x^{(t+1)}-x\|_2^2+\eta_t^2\|\nabla f(x^{(t)})\|_2^2\right).
+    \end{split}
+\end{equation}
+\end{comment}
+
+\begin{theorem}\label{thm:GDStrConvBound}
+    Suppose $f$ is $G$-Lipschitz continuous and $\alpha$-strongly convex. Fix an arbitrary $x\in C$.
+    \begin{itemize}
+        \item Let $\eta_t=\frac{1}{\alpha t}$, then
+        \begin{equation*}
+            f\left(\frac{1}{T}\sum_{t=1}^{T}x^{(t)}\right)-f(x)\le \frac{G^2(\ln T+1)}{2\alpha T}.
+        \end{equation*}
+        Furthermore, for any $T\ge3$,
+        \begin{equation*}
+            \|x^{(T)}-x^{\star}\|_2^2\le \frac{G^2}{\alpha^2(T-2)}.
+        \end{equation*}
+        \item Let $\eta_t=\frac{2}{\alpha(t+1)}$, then
+        \begin{equation}
+            f\left(\sum_{t=1}^{T}\lambda_tx^{(t)}\right)-f(x)\le \frac{2G^2}{\alpha(T+1)},\quad \lambda_t=\frac{2t}{T(T+1)}.
+        \end{equation}
+    \end{itemize}
+\end{theorem}
+\begin{proof}
+    Let $x^{\star}$ denote the optimal solution, then
+    \begin{align*}
+        \|x^{(t+1)}-x^{\star}\|_2^2 & =\|x^{(t)}-x^{\star}\|_2^2-2\eta_t \langle\nabla f(x^{(t)}),x^{(t)}-x^{\star}\rangle+\eta_t^2\|\nabla f(x^{(t)})\|_2^2 \\
+         & \le\|x^{(t)}-x^{\star}\|_2^2-2\eta_t\alpha\|x^{(t)}-x^{\star}\|_2^2+\eta_t^2G^2 \\
+         & =\|x^{(t)}-x^{\star}\|_2^2-\frac{2}{t}\|x^{(t)}-x^{\star}\|_2^2+\frac{G^2}{\alpha^2t^2}.
+    \end{align*}
+    Therefore
+    \begin{equation*}
+        (t-1)t\|x^{(t+1)}-x^{\star}\|_2^2\le(t-2)(t-1)\|x^{(t)}-x^{\star}\|_2^2+\frac{t-1}{t}\frac{G^2}{\alpha^2}.
+    \end{equation*}
+\end{proof}
+\begin{remark}
+    As in the non-strongly-convex case, \Cref{thm:GDStrConvBound} works in the online (when making sense) or stochastic case. It is also possible to get some bound for the last iterate; see \cite{SZ13}.
+\end{remark}
+\begin{question}
+    Any with-high-probability result?
+\end{question}
+%\begin{remark}
+%    Both step sizes cannot tolerate noise added to $g(x^{(t)})$ or $x^{(t)}$.
+%\end{remark}
+
+\section{Minimizing Strongly Smooth and Convex Functions}\label{sec:GDStrSmooth}
+%We first assume that $f$ is defined on $\mathbb{R}^n$. By using similar lower bound technique, we can get that for any $\lambda\in\Delta_T$ and any $x\in C$, we have
+%\begin{equation}
+%    \sum_{t=0}^{T-1}\lambda_tf(x^{(t)})-\underline{f}(x)\le \sum_{t=0}^{T-1}\lambda_t \langle\nabla f(x^{(t)}),x^{(t)}-x\rangle-\frac{1}{2\beta}G_T,
+%\end{equation}
+%where $G_T=\sum_{t=0}^{T-1}\lambda_t\|\nabla f(x^{t})\|_2^2-\|\sum_{t=0}^{T-1}\lambda_t\nabla f(x^{(t)})\|_2^2$.
+%\begin{remark}
+%    I am not able to derive a bound which also includes the upper bound part, as in the strong convexity case.
+%\end{remark}
+%\begin{remark}
+%    If we use the bound we get at the beginning of this section, we have
+%    \begin{equation*}
+%        \begin{split}
+%            f(x^{(T)})-f(x) & \le\frac{1}{T}\sum_{t=0}^{T-1}\left(f(x^{(t)})-f(x)\right) \\
+%             & \le \frac{\beta\left(\|x^{(0)}-x\|_2^2-\|x^{(T)}-x\|_2^2\right)}{2T}+\frac{\beta\|x^{(0)}-x^{(T)}\|_2^2}{2T^2}.
+%        \end{split}
+%    \end{equation*}
+%    It is unclear if it will be useful.
+%\end{remark}
+
+Fix an arbitrary $x\in C$.
+\begin{equation*}
+    \begin{split}
+         & \eta_t\left(f(x^{(t)})-f(x)\right) \\
+        \le & \langle\eta_t\nabla f(x^{(t)}),x^{(t)}-x\rangle \\
+        = & \langle\eta_t\nabla f(x^{(t)}),x^{(t)}-x^{(t+1)}\rangle+\langle\eta_t\nabla f(x^{(t)}),x^{(t+1)}-x\rangle \\
+        = & \langle\eta_t\nabla f(x^{(t)}),x^{(t)}-x^{(t+1)}\rangle+\langle x^{(t)}-y^{(t+1)},x^{(t+1)}-x\rangle \\
+        \le & \langle\eta_t\nabla f(x^{(t)}),x^{(t)}-x^{(t+1)}\rangle+\langle x^{(t)}-x^{(t+1)},x^{(t+1)}-x\rangle \\
+        = & \langle\eta_t\nabla f(x^{(t)}),x^{(t)}-x^{(t+1)}\rangle \\
+         & +\frac{1}{2}\left(\|x^{(t)}-x\|_2^2-\|x^{(t+1)}-x\|_2^2-\|x^{(t)}-x^{(t+1)}\|_2^2\right).
+    \end{split}
+\end{equation*}
+Now let $h=\frac{1}{2}\|\cdot\|_2^2+\chi_{C'}$, where $C'=\{x^{(t)}\}-C$. Then we have
+\begin{equation*}
+    \langle\eta_t\nabla f(x^{(t)}),x^{(t)}-x^{(t+1)}\rangle=h\left(x^{(t)}-x^{(t+1)}\right)+h^*\left(\eta_t\nabla f(x^{(t)})\right).
+\end{equation*}
+One can verify this by recalling Example \ref{e.g.:constrQuad}. Finally, we get
+\begin{equation}\label{GDSmoothOneStep}
+    \eta_t\left(f(x^{(t)})-f(x)\right)\le \frac{1}{2}\left(\|x^{(t)}-x\|_2^2-\|x^{(t+1)}-x\|_2^2\right)+h^*\left(\eta_t\nabla f(x^{(t)})\right).
+\end{equation}
+
+In the general case, the function value might not actually decrease after each gradient descent step. If we further assume strong smoothness w.r.t. the $\ell_2$-norm, we can ensure decreasing function value. In some sense, strong smoothness gives us a better upper bound, and allows us to recover the gradient flow pattern. Formally, first notice that the gradient descent step is actually equivalent to
+\begin{equation}\label{quadApprox}
+    x^{(t+1)}=\arg\min_{x\in C}\left(f(x^{(t)})+\langle\nabla f(x^{(t)}),x-x^{(t)}\rangle+\frac{1}{2\eta_t}\|x-x^{(t)}\|_2^2\right).
+\end{equation}
+Let $\eta_t=\frac{1}{\beta}$. Then we can actually ensure that
+\begin{equation}\label{GDSmoothDec}
+    \frac{1}{\beta}\left(f(x^{(t+1)})-f(x^{(t)})\right)\le-h^*\left(\frac{1}{\beta}\nabla f(x^{(t)})\right).
+\end{equation}
+Combining \eqref{GDSmoothOneStep} and \eqref{GDSmoothDec}, we get the following theorem.
+\begin{theorem}
+    Given a $\beta$-strongly smooth and convex function $f:C\to \mathbb{R}$ w.r.t. the $\ell_2$-norm, set $\eta_t=\frac{1}{\beta}$, for any $x\in C$ and $T\ge1$, we can guarantee that
+    \begin{equation*}
+        f(x^{(T+1)})-f(x)\le\frac{1}{T}\sum_{t=2}^{T+1}\left(f(x^{(t)})-f(x)\right)\le \frac{\beta\left(\|x^{(1)}-x\|_2^2-\|x^{(T+1)}-x\|_2^2\right)}{2T}.
+    \end{equation*}
+\end{theorem}
+\begin{remark}
+    The $1/T$ rate of GD is necessary in general. One can consider the function $e^x$. If a constant step size is used and a rate of $1/T^{\alpha}$ where $\alpha>1$ is possible, then GD will converge to a finite point, which is impossible since the optimum point is at the infinity. Intuitively, the reason why GD is slow here is that it fails to identify the change in the smoothness parameter.
+\end{remark}
+\begin{remark}
+    In general, the result cannot be extended to stochastic or online case.
+\end{remark}
+
+Gradient descent is not optimal for smooth optimization. For strongly smooth convex function defined on a closed convex set, there exists \textbf{accelerated gradient descent} methods which can give a $O(1/t^2)$ rate. Please refer to my course project for UIUC CS 598 MJT F17.
+
+\section{Minimizing Strongly Smooth and Strongly Convex Functions}
+\begin{theorem}
+    Given an $\alpha$-strongly convex and $\beta$-strongly smooth function $f:C\to \mathbb{R}$ w.r.t. the $\ell_2$-norm, if we set
+    \begin{itemize}
+        \item $\eta_t=\frac{1}{\beta}$, we can guarantee $\|x^{(t+1)}-x^{\star}\|_2^2\le\left(\frac{\beta-\alpha}{\beta+\alpha}\right)\|x^{(t)}-x^{\star}\|_2^2$.
+        \item $\eta_t=\frac{2}{\alpha+\beta}$, and $C=\mathbb{R}^n$, we can guarantee $\|x^{(t+1)}-x^{\star}\|_2^2\le\left(\frac{\beta-\alpha}{\beta+\alpha}\right)^2\|x^{(t)}-x^{\star}\|_2^2$.
+    \end{itemize}
+\end{theorem}
+\begin{proof}
+    \eqref{GDSmoothOneStep} now becomes
+    \begin{equation*}
+        \eta_t\left(f(x^{(t)})-f(x)\right)\le \frac{1}{2}\left((1-\alpha\eta_t)\|x^{(t)}-x\|_2^2-\|x^{(t+1)}-x\|_2^2\right)+h^*\left(\eta_t\nabla f(x^{(t)})\right).
+    \end{equation*}
+    Let $\eta_t=\frac{1}{\beta}$, we have
+    \begin{equation*}
+        \frac{2}{\beta}(f(x^{(t+1)})-f(x))\le\left(1-\frac{\alpha}{\beta}\right)\|x^{(t)}-x\|_2^2-\|x^{(t+1)}-x\|_2^2.
+    \end{equation*}
+    Using strong convexity and letting $x=x^{\star}$, we have
+    \begin{equation*}
+        \frac{\alpha}{\beta}\|x^{(t+1)}-x^{\star}\|_2^2\le\left(1-\frac{\alpha}{\beta}\right)\|x^{(t)}-x^{\star}\|_2^2-\|x^{(t+1)}-x^{\star}\|_2^2,
+    \end{equation*}
+    or
+    \begin{equation*}
+        \|x^{(t+1)}-x^{\star}\|_2^2\le\left(\frac{\beta-\alpha}{\beta+\alpha}\right)\|x^{(t)}-x^{\star}\|_2^2.
+    \end{equation*}
+
+    Next we set $\eta_t=\frac{2}{\alpha+\beta}$. Using Theorem \ref{strConvSmootht} and consider $\|x^{(t)}-x^{\star}\|_2^2$, one can show that
+    \begin{equation*}
+        \|x^{(t+1)}-x^{\star}\|_2^2\le\left(\frac{\beta-\alpha}{\beta+\alpha}\right)^2\|x^{(t)}-x^{\star}\|_2^2.
+    \end{equation*}
+\end{proof}
+
+There also exists acceleration in this case, such as the \textbf{heavy ball} method, which gives nearly the optimal rate.
+
+%\section{Constrained Case}
+%Here we want to minimize $f$ over a convex closed set $C$. The projected gradient descent algorithm, at step $t$, we update as follows:
+%\begin{equation}\label{projGradUpdate}
+%    x^{(t+1)}=\Pi_C(x^{(t)}-\eta_t\nabla f(x^{(t)})).
+%\end{equation}
+%Equivalently, we update as
+%\begin{equation}\label{quadApprox}
+%    x^{(t+1)}=\arg\min_{x\in C}\left(f(x^{(t)})+\langle\nabla f(x^{(t)}),x-x^{(t)}\rangle+\frac{1}{2\eta_t}\|x-x^{(t)}\|_2^2\right).
+%\end{equation}
+%
+%The non-smooth case analyses still hold. To analyze the smooth case, we introduce the notion of gradient mapping. For any $x\in \mathbb{R}^n$, let
+%\begin{eqnarray}
+%    x_{C,\eta}(x) & = & \Pi_C(x-\eta\nabla f(x)), \\
+%    g_{C,\eta}(x) & = & \frac{1}{\eta}(x-x_{C,\eta}(x)).
+%\end{eqnarray}
+%Then $x^{(t+1)}=x^{(t)}-\eta_tg_{C,\eta_t}(x^{(t)})$. The gradient mapping is similar to gradient in the following sense.
+%\begin{theorem}
+%    Given a convex function $f$ and a convex closed set $C$, we have
+%    \begin{itemize}
+%        \item If $x\in\arg\min_{x\in C}f(x)$, then $g_{C,\eta}(x)=0$, or equivalently $x_{C,\eta}(x)=x$.
+%        \item (\cite{N13} Theorem 2.2.7) Suppose $f$ is $\alpha$-strongly convex and $\beta$-strongly smooth, $x\in \mathbb{R}^n$ and $\eta\le \frac{1}{\beta}$. Then for any $y\in C$, we have
+%        \begin{equation}\label{gradMapFO}
+%            f(y)\ge f(x_{C,\eta}(x))+\langle g_{C,\eta}(x),y-x\rangle+\frac{\eta}{2}\|g_{C,\eta}(x)\|_2^2+\frac{\alpha}{2}\|y-x\|_2^2.
+%        \end{equation}
+%    \end{itemize}
+%\end{theorem}
+%\begin{remark}
+%    Consider the unconstrained case, $C=\mathbb{R}^n$, and set $\eta=\frac{1}{\beta}$. For simplicity, let $\alpha=0$. \eqref{gradMapFO} now becomes $f(y)\ge f(x_{\eta}(x))+\langle \nabla f(x),y-x\rangle+\frac{1}{2\beta}\|\nabla f(x)\|_2^2$. Compare this with the corresponding result for smooth functions.
+%
+%    There is also difference between gradients and gradient mappings. For example, the direction of gradient mappings may change as $\eta$ changes. Thus it may be hard to find a counterpart for the basic inequality $f(y)-f(x)\ge \langle\nabla f(x),y-x\rangle$ with gradient mappings.
+%\end{remark}
+%
+%We can then make some obsesrvations:
+%\begin{lemma}
+%    Given a $\beta$-strongly smmoth and convex function $f$ and a convex closed set $C$, we have
+%    \begin{itemize}
+%        \item For $x\in C$, $f(x_{C,1/\beta}(x))-f(x)\le-\frac{1}{2\beta}\|g_{C,1/\beta}(x)\|_2^2$.
+%        \item $f(x_{C,1/\beta}(x))-f(x^{\star})\le \langle g_{C,1/\beta}(x)),x-x^{\star}\rangle\le\|g_{C,1/\beta}(x)\|\|x-x^{\star}\|$.
+%        \item If $f$ is further $\alpha$-strongly smooth, then
+%        \begin{equation}\label{consStrSmoothConv}
+%            \langle g_{C,1/\beta}(x),x-x^{\star}\rangle\ge \frac{1}{2\beta}\|g_{C,1/\beta}(x)\|_2^2+\frac{\alpha}{2}\|x-x^{\star}\|_2^2.
+%        \end{equation}
+%    \end{itemize}
+%\end{lemma}
+%\begin{proof}
+%    To prove the first result, let $y=x$ in \eqref{gradMapFO}. To prove the second one and the third one, let $y=x^{\star}$ in \eqref{gradMapFO}.
+%\end{proof}
+%
+%\subsection{Minimizing Strongly Smooth and Convex Functions}
+%Run the projected gradient descent with $\eta_t=\frac{1}{\beta}$. The analysis is much similar to the unconstrained case. There is one technical thing we need to pay attention to. Define $\epsilon_t=f(x^{(t)})-f(x^{\star})$. Then in constrained gradient descent, we have
+%\begin{equation*}
+%    \epsilon_t-\epsilon_{t+1}\ge \frac{\epsilon_{t+1}^2}{2\beta\|x^{(0)}-x^{\star}\|_2^2}.
+%\end{equation*}
+%By contrast, in unconstrained case we have $\epsilon_t$ on the right hand side.
+%
+%By induction, one can show that
+%\begin{equation}
+%    f(x^{(t)})-f(x^{\star})\le \frac{3\beta\|x^{(0)}-x^{\star}\|_2^2+f(x^{(0)})-f(x^{\star})}{t}.
+%\end{equation}
+%
+%\subsection{Minimizing Strongly Smooth and Strongly Convex Functions}
+%Still let $\eta_t=\frac{1}{\beta}$. Using \eqref{consStrSmoothConv}, one can show that $\|x^{(t+1)}-x^{\star}\|_2^2\le\left(1-\frac{\alpha}{\beta}\right)\|x^{(t)}-x^{\star}\|_2^2$.
+
+\chapter{Mirror Descent}\label{chp:MD}
+In some sense, gradient descent is more related to the $\ell_2$-norm. It can be extended to \textbf{mirror descent}, which is compatible with some general norm in certain cases.
+
+\section{Minimizing General Convex Functions}
+Suppose we try to minimize $f:C\to \mathbb{R}$. In the following we make the following assumptions:
+\begin{itemize}
+    \item $C$ is non-empty closed convex.
+    \item $f$ is convex and sub-differentiable everywhere.
+    \item $\omega:C\to \mathbb{R}$ is 1-strongly convex w.r.t. $\|\cdot\|$ and differentiable. Given $\omega$, the \textbf{Bregman distance} between $x,y\in C$ is defined as $D_{\omega}(x,y)=\omega(x)-\omega(y)-\langle\nabla\omega(y),x-y\rangle$.
+\end{itemize}
+\begin{example}
+    Below are some examples of Bregman distance:
+    \begin{itemize}
+        \item If $C=\mathbb{R}^n$ and $\omega(x)=\frac{1}{2}\|x\|_2^2$, then $D_{\omega}(x,y)=\frac{1}{2}\|x-y\|_2^2$.
+        \item If $C=\Delta_n$ and $\omega(x)=\sum_{i=1}^{n}x_i\ln x_i$, then $D_{\omega}(x,y)=\sum_{i=1}^{n}x_i\ln \frac{x_i}{y_i}$.
+    \end{itemize}
+\end{example}
+
+The updating rule of mirror descent is
+\begin{equation}\label{MDUpdate}
+    x^{(t+1)}=\arg\min_{x\in C}\left(f(x^{(t)})+\langle\partial f(x^{(t)}),x-x^{(t)}\rangle+\frac{1}{\eta_t}D_{\omega}(x,x^{(t)})\right).
+\end{equation}
+Alternatively, it can be described as
+\begin{equation}\label{MDUpdateAlt}
+    x^{(t+1)*}=\nabla\omega(x^{(t)})-\eta_t\partial f(x^{(t)}),\quad x^{(t+1)}=\nabla\omega^*(x^{(t+1)*}).
+\end{equation}
+\begin{remark}
+    Compared with dual averaging described below, mirror descent requires $\omega$ to be differentiable, and has the alternative update rule \eqref{MDUpdate}. In some sense, mirror descent is more related to the primal while dual averaging is more related to the dual.
+\end{remark}
+
+Below is a useful lemma:
+\begin{lemma}
+    For any $x,y,z\in C$, $D_{\omega}(x,z)=D_{\omega}(x,y)+D_{\omega}(y,z)-\langle\nabla\omega(z)-\nabla\omega(y),x-y\rangle$.
+\end{lemma}
+We then have for any $x\in C$,
+\begin{equation*}
+    \begin{split}
+         & \eta_t\left(f(x^{(t)})-f(x)\right) \\
+        \le & \langle\eta_t\partial f(x^{(t)}),x^{(t)}-x\rangle \\
+        = & \langle\eta_t\partial f(x^{(t)}),x^{(t)}-x^{(t+1)}\rangle+\langle\eta_t\partial f(x^{(t)}),x^{(t+1)}-x\rangle \\
+        = & \langle\eta_t\partial f(x^{(t)}),x^{(t)}-x^{(t+1)}\rangle+\langle\nabla\omega(x^{(t)})-x^{(t+1)*},x^{(t+1)}-x\rangle \\
+        \le & \langle\eta_t\partial f(x^{(t)}),x^{(t)}-x^{(t+1)}\rangle+\langle\nabla\omega(x^{(t)})-\nabla\omega(x^{(t+1)}),x^{(t+1)}-x\rangle \\
+        = & \langle\eta_t\partial f(x^{(t)}),x^{(t)}-x^{(t+1)}\rangle+D_{\omega}(x,x^{(t)})-D_{\omega}(x,x^{(t+1)})-D_{\omega}(x^{(t+1)},x^{(t)}) \\
+        \le & \langle\eta_t\partial f(x^{(t)}),x^{(t)}-x^{(t+1)}\rangle-\frac{1}{2}\|x^{(t+1)}-x^{(t)}\|^2+D_{\omega}(x,x^{(t)})-D_{\omega}(x,x^{(t+1)}) \\
+        \le & \frac{\eta_t^2}{2}\|\partial f(x^{(t)})\|_*^2+D_{\omega}(x,x^{(t)})-D_{\omega}(x,x^{(t+1)}). \\
+    \end{split}
+\end{equation*}
+We can then sum them up, and have the following result.
+\begin{theorem}\label{thm:MDGuarantee}
+    For any $x\in C$ and $T\ge1$, we can guarantee that
+    \begin{equation*}
+        \sum_{t=0}^{T-1}\eta_t\left(f(x^{(t)})-f(x)\right)\le\left(D_{\omega}(x,x^{(0)})-D_{\omega}(x,x^{(T)})\right)+\sum_{t=0}^{T-1}\frac{\eta_t^2}{2}\|\partial f(x^{(t)})\|_*^2.
+    \end{equation*}
+
+    If furthermore $(\alpha_t)$ is some non-negative non-decreasing sequence and for any $x\in C$, $x^{\star}$ a minimizer of $f$, $D_{\omega}(x^{\star},x)\le R^2/2$, then
+    \begin{equation*}
+        \sum_{t=0}^{T-1}\alpha_t\eta_t\left(f(x^{(t)})-f(x)\right)\le \frac{\alpha_{T-1}R^2}{2}+\sum_{t=0}^{T-1}\frac{\alpha_t\eta_t^2}{2}\|\partial f(x^{(t)})\|_*^2.
+    \end{equation*}
+\end{theorem}
+
+\paragraph{Dual Averaging}
+There is another related process called dual averaging. Here it is only required that $\omega$ is $1$-strongly closed convex. It starts with $x^{(0)*}=0$ and $x^{(0)}=\nabla\omega^*(0)=\arg\min_{x\in C}\omega(x)$. At step $t$, it performs the following update:
+\begin{equation}\label{DAUpdate}
+    \begin{split}
+        x^{(t+1)*} & =x^{(t)*}-\lambda_t\partial f(x^{(t)}), \\
+        x^{(t+1)} & =\nabla\omega^*\left(\frac{x^{(t+1)*}}{\alpha_{t+1}}\right)=\arg\max_{x\in C}\left(\langle x^{(t+1)*},x\rangle-\alpha_{t+1}\omega(x)\right),
+    \end{split}
+\end{equation}
+where $(\alpha_t)$ is some non-negative non-decreasing sequence with $\alpha_0=0$.
+\begin{remark}
+    One can compare \eqref{DAUpdate} and \eqref{MDUpdateAlt} when $\alpha_t=1$. The only difference is how we get $x^{(t+1)*}$.
+\end{remark}
+
+The following ideas come from \cite{N09}. The second part of \eqref{DAUpdate} can also be written as for $t\ge1$,
+\begin{equation*}
+    x^{(t)*}\in\partial(\alpha_t\omega)(x^{(t)}),\quad x^{(t)}=\nabla(\alpha_t\omega)^*(x^{(t)*}).
+\end{equation*}
+For $\alpha\ge0$, let $G_{\alpha}(x^*)=\max_{x\in C}\left(\langle x^*,x-x^{(0)}\rangle-\alpha_t\left(\omega(x)-\omega(x^{(0)})\right)\right)$. Note that $G_{\alpha}$ is non-negative, non-increasing in $\alpha$, $1/\alpha$-strongly smooth, and furthermore for $t\ge0$,
+\begin{equation*}
+    x^{(t)}-x^{(0)}=\nabla G_{\alpha_t}(x^{(t)*}).
+\end{equation*}
+$G_{\alpha}$ is the key potential function in the analysis of dual averaging.
+\begin{theorem}
+    For any $x\in C$ and $T\ge1$, we can guarantee that
+    \begin{equation*}
+            \sum_{t=0}^{T-1}\lambda_t\left(f(x^{(t)})-f(x)\right)\le\alpha_T\omega(x)-\alpha_T\omega(x^{(0)})+\sum_{t=0}^{T-1}\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2.
+    \end{equation*}
+\end{theorem}
+\begin{proof}
+    First of all,
+    \begin{align*}
+        \sum_{t=0}^{T-1}\lambda_t\left(f(x^{(t)})-f(x)\right) & =\langle x^{(T)*},x-x^{(0)}\rangle+\sum_{t=0}^{T-1}\langle\lambda_t\partial f(x^{(t)}),x^{(t)}-x^{(0)}\rangle.
+    \end{align*}
+    Then
+    \begin{align*}
+        \sum_{t=0}^{T-1}\langle\lambda_t\partial f(x^{(t)}),x^{(t)}-x^{(0)}\rangle & =\sum_{t=0}^{T-1}\langle x^{(t)^*}-x^{(t+1)*},x^{(t)}-x^{(0)}\rangle \\
+         & =\sum_{t=0}^{T-1}\langle x^{(t)^*}-x^{(t+1)*},\nabla G_{\alpha_t}(x^{(t)*})\rangle \\
+         & \le \sum_{t=0}^{T-1}\left(G_{\alpha_t}(x^{(t)*})-G_{\alpha_t}(x^{(t+1)*})+\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2\right) \\
+         & \le \sum_{t=0}^{T-1}\left(G_{\alpha_t}(x^{(t)*})-G_{\alpha_{t+1}}(x^{(t+1)*})+\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2\right) \\
+         & =-G_{\alpha_T}(x^{(T)*})+\sum_{t=0}^{T-1}\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2.
+    \end{align*}
+    Furthermore,
+    \begin{align*}
+        \langle x^{(T)*},x-x^{(0)}\rangle-G_{\alpha_T}(x^{(T)*}) & =\alpha_T\omega(x)-\alpha_T\omega(x^{(0)}) \\
+         & \quad-\left(\alpha_T\omega(x)-\alpha_T\omega(x^{(T)})-\langle x^{(T)*},x-x^{(T)}\rangle\right) \\
+         & \le\alpha_T\omega(x)-\alpha_T\omega(x^{(0)}).
+    \end{align*}
+\end{proof}
+
+\subsection{Online Setting}
+Both mirror descent and dual averaging can be extended to the online setting naturally.
+
+\subsection{Stochastic Setting}
+Both mirror descent and dual averaging can be extended to the case where we only have an unbiased estimator (or even biased estimator) of $\partial f(x)$, assuming we can control the variance (and bias). Below we illustrate the idea for mirror descent.
+
+Suppose at step $t$, suppose we can get $g^{(t)}=\nabla f(x^{(t)})+\xi^{(t)}$, where $\mathbb{E}[\xi^{(t)}]$ may or may not be $0$. If we do the calculations again, we will get
+\begin{equation*}
+    \begin{split}
+         \eta_t\left(f(x^{(t)})-f(x)\right) & \le \frac{\eta_t^2}{2}\|g^{(t)}\|_*^2+D_{\omega}(x,x^{(t)})-D_{\omega}(x,x^{(t+1)}) \\
+          & \quad\,-\eta_t \langle\xi^{(t)},x^{(t)}-x\rangle.
+    \end{split}
+\end{equation*}
+If we sum them up and take expectations on both sides, we can get similar results as Theorem \ref{thm:MDGuarantee}. To get meaningful bounds, it is usually necessary to let the order of bias be smaller than the order of step size.
+\begin{remark}
+    This framework can be used to solve the zeroth order optimization problem. See \cite{DJWW15}.
+\end{remark}
+
+\section{Minimizing Strongly Smooth and Convex Functions}
+Now suppose $f$ is $\beta$-strongly smooth and convex w.r.t. $\|\cdot\|$. If we let $\eta_t=\frac{1}{\beta}$, and make use of the strong smoothness of $f$, we have the following theorem.
+\begin{theorem}
+    Suppose $f$ is $\beta$-strongly smooth and convex, set $\eta_t=\frac{1}{\beta}$, mirror descent ensures that for any $x\in C$ and $T\ge1$,
+    \begin{equation*}
+        f(x^{(T)})-f(x)\le\frac{1}{T}\sum_{t=1}^{T}\left(f(x^{(t)})-f(x)\right)\le \frac{\beta\left(D_{\omega}(x,x^{(0)})-D_{\omega}(x,x^{(T)})\right)}{T}.
+    \end{equation*}
+\end{theorem}
+
+Both mirror descent and dual averaging can be accelerated; see my course project for UIUC CS 598 MJT F17.
+
+Neither mirror descent or dual averaging for smooth functions can be extended to online or stochastic case. However, smoothness can help reduce the variance in the stochastic case, using the usual stochastic analysis.
+
+\chapter{Coordinate Descent}
+In \textbf{coordinate descent}, each step one only optimize along one coordinate or a subset of coordinates. For simplicity, suppose at each step only one coordinate is considered, and all coordinates take value in $\mathbb{R}$. Then formally speaking, at each step we first pick a coordinate $i_t$, and do the following update
+\begin{equation}
+    x^{(t+1)}_{i_t}=\arg\min_{x_{i_t}\in \mathbb{R}}\tilde{f}(x_{i_t},x^{(t)}_{-i_t}),
+\end{equation}
+and $x^{(t+1)}_i$ remains unchanged for $i\ne i_t$. Here $\tilde{f}$ may be $f$ itself, or some approximation of $f$, such as the second-order approximation of smooth functions, which will lead to an update rule similar to gradient descent, called \textbf{coordinate gradient descent}. One can also update a block of variables at each step, which will lead to \textbf{block coordinate descent} and \textbf{block coordinate gradient descent}. Although for simplicity we do not consider block algorithms here, our presented algorithms can be extended to that case easily.
+
+There are many different ways to choose the coordinate each step:
+\begin{itemize}
+    \item \textbf{Random sampling}: Randomly sample (with replacement) a coordinate to update.
+    \item \textbf{Gauss-Southwell}: Select $i_t$ such that $i_t\in\arg\max_{1\le i\le n}|\nabla_i f(x^{(t)})|$.
+    \item \textbf{Cyclic order}: The coordinates are updated cyclicly. At the beginning of the algorithm, one can first \textbf{random permute} the coordinates. The coordinates may be updated sequentially, in a \textbf{Gauss-Siedel style}, or parallel, in a \textbf{Jacobi style}.
+\end{itemize}
+
+Coordinate descent is simple, has cheap iteration and less memory usage. However, if may not converge for non-convex functions, or convex but non-smooth functions (such as $f(x)=|x_1+x_2|+3|x_1-x_2|)$ and $x^{(0)}=(-1,-1)$.
+
+Note that the Gauss-Southwell Coordinate gradient descent can be described as a generalized gradient descent:
+\begin{equation}
+    x^{(t+1)}\in\arg\min_{x\in \mathbb{R}^n}\left(f(x^{(t)})+\langle\nabla f(x^{(t)}),x-x^{(t)}\rangle+\frac{1}{2\eta_t}\|x-x^{(t)}\|^2\right).
+\end{equation}
+
+\begin{comment}
+Below we give some coordinate descent algorithms. Suppose $f$ is $\beta$-strongly smooth and convex, and for all $1\le i\le n$, all $x_{-i}\in \mathbb{R}^{n-1}$, $f(\cdot,x_{-i})$ is $\beta_i$-strongly smooth and convex. We have for all $1\le i\le n$, $\beta_i\le\beta\le \sum_{i=1}^{n}\beta_i$. Also let $\beta_{\mathrm{max}}=\max_{i=1}^{n}\beta_i$ and $\beta_{\mathrm{min}}=\min_{i=1}^{n}\beta_i$.
+
+\section{Gauss-Southwell Block Coordinate Gradient Descent}
+In this variation, at step $t$ we choose $i_t$ such that $i_t\in\arg\max_{1\le i\le n}|\nabla_if(x^{(t)})|$, and use $\frac{1}{\beta_{i_t}}$ as the step size. One then can prove the following key property:
+\begin{equation}
+    f(x^{(t)})-f^{(t+1)}\ge \frac{1}{2\beta_{i_t}}\|\nabla_{i_t}f(x^{(t)})\|_2^2\ge \frac{1}{2n\beta_{\mathrm{max}}}\|\nabla f(x^{(t)})\|_2^2.
+\end{equation}
+In other words, $n\beta$ can be seen as the smoothness parameter. Thus we can get the following result:
+\begin{theorem}
+    If $f$ is $\beta$-strongly smooth and convex, then
+    \begin{equation}
+        f(x^{(t)})-f(x^{\star})\le \frac{2n\beta_{\mathrm{max}}\|x^{(0)}-x^{\star}\|_2^2}{t}.
+    \end{equation}
+    If $f$ is further $\alpha$-strongly convex, then
+    \begin{equation}
+        f(x^{(t)})-f(x^{\star})\le(1-\frac{\alpha}{n\beta_{\mathrm{max}}})^t(f(x^{(0)})-f(x^{\star})).
+    \end{equation}
+\end{theorem}
+
+\section{Randomized Block Coordinate Gradient Descent}
+Here at step $t$, we pick coordinate $i$ as $i_t$ with probability $\frac{\beta_i}{\sum_{i=1}^n\beta_i}$, and the step size is $\frac{1}{\beta_{i_t}}$. One can then prove that, conditioned on $x^{(t)}$,
+\begin{equation}
+    f(x^{(t)})-\mathbb{E}[f(x^{(t+1)})]\ge \frac{1}{2\sum_{i=1}^{n}\beta_i}\|\nabla f(x^{(t)})\|_2^2.
+\end{equation}
+However, to continue one need the following value:
+\begin{equation}
+    R_0=\max\{\|x-x^{\star}\|_2|f(x)\le f(x^{(0)})\}.
+\end{equation}
+In fact the function value decreases at each step, and the above value is enough to capture the initial distance from $x^{\star}$. Then we have, for a specific $x^{(t)}$,
+\begin{equation}
+    R_0\|\nabla f(x^{(t)})\|_2\ge f(x^{(t)})-f(x^{\star}).
+\end{equation}
+Since $\mathbb{E}[\|\nabla f(x^{(t)})\|_2^2]\ge \mathbb{E}[\|\nabla f(x^{(t)})\|_2]^2$, we have
+\begin{theorem}
+    If $f$ is $\beta$-strongly smooth and convex, then
+    \begin{equation}
+        \mathbb{E}[f(x^{(t)})]-f(x^{\star})\le \frac{(2 \sum_{i=1}^{n}\beta_i)R_0^2}{t}.
+    \end{equation}
+    If $f$ is further $\alpha$-strongly convex, then
+    \begin{equation}
+        \mathbb{E}[f(x^{(t)})]-f(x^{\star})\le(1-\frac{\alpha}{\sum_{i=1}^{n}\beta_i})^t(f(x^{(0)})-f(x^{\star})).
+    \end{equation}
+\end{theorem}
+\end{comment}
+
+\chapter{Frank-Wolfe Algorithm}
+Here we present another gradient-based but projection-free algorithm.
+
+Consider minimizing $\beta$-strongly smooth and convex $f$ over a convex compact set $C$. Let $D=\max_{x,y\in C}\|x-y\|$ denote the diameter of $C$.
+
+The algorithm is the following: Start with any $x^{(0)}\in C$. At time step $t$, first find $y^{(t)}$ minimizing the linear approximation
+\begin{equation}\label{linApprox}
+    y^{(t)}\in\arg\min_{y\in C}\left(f(x^{(t)})+\langle\nabla f(x^{(t)}),y-x^{(t)}\rangle\right),
+\end{equation}
+then update $x^{(t)}$ to $x^{(t+1)}$ satisfying
+\begin{equation}
+    f(x^{(t+1)})\le f(\eta_ty^{(t)}+(1-\eta_t)x^{(t)}),
+\end{equation}
+where $\eta_t=\frac{2}{t+2}$.
+\begin{remark}
+    Notice that if $x^{(t)}$ is a minimizer of $f$ on $C$, then $x^{(t)}=y^{(t)}$.
+\end{remark}
+
+\begin{theorem}
+    Given a $\beta$-strongly smooth and convex function $f$ and a convex compact set $C$ with diameter $D$, we can guarantee that for any $t\ge1$,
+    \begin{equation}\label{FABound}
+        f(x^{(t)})-f(x^{\star})\le \frac{2\beta D^2}{t+1}.
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    We have for any $t\ge1$,
+    \begin{equation*}
+        \begin{split}
+             & \langle\nabla f(x^{(t-1)}),x^{(t-1)}-x^{\star}\rangle \\
+            \le & \langle\nabla f(x^{(t-1)}),x^{(t-1)}-y^{(t-1)}\rangle \\
+            = & \frac{1}{\eta_{t-1}}\langle\nabla f(x^{(t-1)}),x^{(t-1)}-x^{(t)}\rangle \\
+            \le & \frac{1}{\eta_{t-1}}\left(f(x^{(t-1)})-f(x^{(t)})+\frac{\beta}{2}\|x^{(t-1)}-x^{(t)}\|^2\right) \\
+            = & \frac{1}{\eta_{t-1}}\left(f(x^{(t-1)})-f(x^{(t)})+\frac{\beta\eta_{t-1}^2}{2}\|x^{(t-1)}-y^{(t-1)}\|^2\right) \\
+            \le & \frac{1}{\eta_{t-1}}\left(f(x^{(t-1)})-f(x^{(t)})+\frac{\beta\eta_{t-1}^2}{2}D^2\right).
+        \end{split}
+    \end{equation*}
+    As a result,
+    \begin{equation*}
+        f(x^{(t)})-f(x^{\star})\le(1-\eta_{t-1})(f(x^{(t-1)})-f(x^{\star}))+\frac{\beta\eta_{t-1}^2}{2}D^2.
+    \end{equation*}
+    Let $\eta_t=\frac{2}{t+2}$, and multiply both sides by $t(t+1)$. We have
+    \begin{equation*}
+        f(x^{(t)})-f(x^{\star})\le \frac{2\beta D^2}{t+1}.
+    \end{equation*}
+\end{proof}
+
+\begin{theorem}
+    For any $1\le t\le \frac{n}{2}-1$ and any $x^{(0)}\in \mathbb{R}^n$, there exists a $\beta$-strongly smooth and convex function $f$ and a convex compact set $C$ with diameter $D$ such that for any gradient-based algorithm which only uses a linear minimization oracle, we have
+    \begin{equation}
+        f(x^{(t)})-f(x^{\star})\ge \frac{\beta D^2}{8(t+1)}.
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    Consider $f(x)=\frac{\beta}{2}\|x\|_2^2$ and $C=\left\{x\ge0\middle|\|x\|_1=D_0=\frac{D}{\sqrt{2}}\right\}$. Let the standard orthonormal basis denoted by $\{e_1,\ldots,e_n\}$. Without loss of generality, let $x^{(0)}=D_0e_1$. Then one can prove that there are at most $t+1$ non-zero coordinates in $x^{(t)}$. Further notice $n\ge2(t+1)$, one can complete the proof.
+\end{proof}
+\begin{remark}
+    In contrast to gradient descent method, in Frank-Wolfe algorithm at step $t$ there may be more than one choice for $x^{(t+1)}$. Actually our proof work only if the algorithm makes the worst choice at each step.
+\end{remark}
+
+%\begin{comment}
+\chapter{Online Convex Optimization}
+\section{Greedy Algorithms}
+In this section, we describe some heuristic greedy algorithms for the online convex optimization problem. One can see that these greedy algorithms can achieve good bounds, but the computational cost per step may be large.
+
+The first algorithm is called \textbf{Follow-the-Leader} algorithm. In step $t$, the algorithm sets $x^{(t)}\in\arg\min_{x\in C}\sum_{\tau=1}^{t-1}f_{\tau}(x)$. The regret bound of the Follow-the-Leader algorithm is given by the following theorem:
+\begin{theorem}\label{followLeadert}
+    For any $u\in C$, we have
+    \begin{equation}
+        \mathrm{Regret}_u(T)=\sum_{t=1}^{T}(f_t(x^{(t)})-f_t(u))\le \sum_{t=1}^{T}(f_t(x^{(t)})-f_t(x^{(t+1)})).
+    \end{equation}
+\end{theorem}
+\begin{remark}
+    The above guarantee is actually much weaker than what Follow-the-Leader can get. In fact, to achieve the above guarantee, we can just require $x^{(t)}$ to maximize $f_{t-1}$. However, Follow-the-Leader can be modified to Follow-the-Regularized-Leader more easily.
+\end{remark}
+
+Follow-the-Leader works well in some cases, such as online quadratic optimization (\cite{S11} Corollary 2.2). However, its performance is very bad for online linear optimization (\cite{S11} Example 2.2). The reason is that $x^{(t+1)}$ is very unstable from round to round. Thus people propose the \textbf{Follow-the-Regularized-Leader} algorithm.
+
+In this algorithm, we first fix a regularization function $R:C\to \mathbb{R}$. Then at step $t$, we choose $x^{(t)}\in\arg\min_{x\in C}\sum_{\tau=1}^{t-1}f_{\tau}(x)+R(x)$. (Notice that $x^{(1)}$ is the minimizer of $R$ now.) One can show that
+\begin{theorem}\label{followRegLeaderthm}
+    For any $u\in C$,
+    \begin{equation}\label{followRegLeader}
+        \mathrm{Regret}_u(T)=\sum_{t=1}^{T}(f_t(x^{(t)})-f_t(u))\le R(u)-R(x^{(1)})+\sum_{t=1}^{T}(f_t(x^{(t)})-f_t(x^{(t+1)})).
+    \end{equation}
+\end{theorem}
+
+\begin{example}[Online Linear Optimization]
+    Follow-the-Regularized-Leader works well for the online linear optimization problem. Let $f_t(x)=\langle x,z^{(t)}\rangle$, and $C=\mathbb{R}^n$. Choose the regularizer $R(x)=\frac{1}{2\eta}\|x\|_2^2$. Then we can get that for all $u\in \mathbb{R}^n$,
+    \begin{equation}\label{onlineLOBound}
+        \mathrm{Regret}_u(T)\le \frac{1}{2\eta}\|u\|_2^2+\eta \sum_{t=1}^{T}\|z^{(t)}\|_2^2.
+    \end{equation}
+    Furthermore, if we consider the set $U=\{u|\|u\|_2\le B\}$ and let $\lambda$ satisfy $\frac{1}{T}\sum_{t=1}^{T}\|z^{(t)}\|_2^2\le\lambda^2$, then by setting $\eta=\frac{B}{\lambda\sqrt{2T}}$ we can get
+    \begin{equation}
+        \mathrm{Regret}_U(T)\le B\lambda\sqrt{2T}.
+    \end{equation}
+    For the proof, please refer to \cite{S11} Theorem 2.4.
+\end{example}
+
+The above analysis depends on the fact that $C=\mathbb{R}^n$. However, we can get rid of this assumption by exploiting the strong convexity of regularization functions.
+\begin{lemma}[\cite{S11} Lemma 2.10]
+    Let $R:C\to \mathbb{R}$ be an $\alpha$-strongly convex function w.r.t. a norm $\|\cdot\|$. If for all $t$, $f_t$ is $\lambda_t$-Lipschitz continuous w.r.t. norm $\|\cdot\|$, then
+    \begin{equation}
+        f_t(x^{(t)})-f_t(x^{(t+1)})\le\lambda_t\|x^{(t)}-x^{(t+1)}\|\le \frac{\lambda_t^2}{\alpha}.
+    \end{equation}
+\end{lemma}
+\begin{proof}
+    Make use of Theorem \ref{thm:convSubgrad}.
+\end{proof}
+Thus we can get a specific version of Theorem \ref{followRegLeaderthm}:
+\begin{theorem}\label{followRegLeaderLipst}
+    Let $f_1,\ldots,f_T$ be convex functions from $C$ to $\mathbb{R}$. Assume $f_t$ is $\lambda_t$-Lipschitz continuous w.r.t. some norm $\|\cdot\|$, and $R$ is $\alpha$-strongly convex w.r.t. the same norm, then for any $u\in C$,
+    \begin{equation}
+        \mathrm{Regret}_u(T)\le R(u)-R(x^{(1)})+\frac{1}{\alpha}\sum_{t=1}^{T}\lambda_t^2.
+    \end{equation}
+\end{theorem}
+
+\begin{example}
+    We can now apply Theorem \ref{followRegLeaderLipst} to different strongly convex regularizers. Below are two examples:
+    \begin{itemize}
+        \item Let $R(x)=\frac{1}{2\eta}\|x\|_2^2$, and apply Theorem \ref{followRegLeaderLipst} with $\ell_2$-norm, we get that for any $u\in C$,
+        \begin{equation}
+            \mathrm{Regret}_u(T)\le \frac{1}{2\eta}\|u\|_2^2+\eta \sum_{t=1}^{T}\lambda_t^2.
+        \end{equation}
+        Specifically, if $f_t(x)=\langle x,z^{(t)}\rangle$ is a linear function, then
+        \begin{equation}
+            \mathrm{Regret}_u(T)\le \frac{1}{2\eta}\|u\|_2^2+\eta \sum_{t=1}^{T}\|z^{(t)}\|_2^2.
+        \end{equation}
+        Furthermore, the behavior of the algorithm can be described as \textbf{online gradient descent with lazy projection}.
+
+        \item Let $C=\Delta_n$ and $R(x)=\frac{1}{\eta}\sum_{i=1}^{n}x_i\ln x_i$, apply Theorem \ref{followRegLeaderLipst} with $\ell_1$-norm, we get that for any $u\in C$,
+        \begin{equation}
+            \mathrm{Regret}_u(T)\le \frac{1}{\eta}\ln n+\eta \sum_{t=1}^{T}\lambda_t^2.
+        \end{equation}
+        Specifically, if $f_t(x)=\langle x,z^{(t)}\rangle$ is a linear function, then
+        \begin{equation}
+            \mathrm{Regret}_u(T)\le \frac{1}{\eta}\ln n+\eta \sum_{t=1}^{T}\|z^{(t)}\|_{\infty}^2.
+        \end{equation}
+        Furthermore, the behavior can be described as \textbf{normalized exponentiated gradient}. One can in fact prove a stronger bound:
+        \begin{theorem}\label{NEGLocalNorm}
+            Suppose the normalized exponentiated gradient algorithm is run on a sequence of linear loss function, and for all $t$ and $i$ we have $\eta z_i^{(t)}\ge-1$. Then we have
+            \begin{equation}
+                \sum_{t=1}^{T}\langle x^{(t)}-u,z^{(t)}\rangle\le \frac{1}{\eta}\ln n+\eta \sum_{t=1}^{T}\sum_{i=1}^{n}x^{(t)}_iz^{(t)2}_i.
+            \end{equation}
+        \end{theorem}
+    \end{itemize}
+\end{example}
+\begin{remark}
+    Note that the above results for online linear optimization does not require that $C=\mathbb{R}^n$.
+\end{remark}
+
+One reason we are interested in online linear optimization is that each step of the Follow-the-Regularized-Leader algorithm requires solving one optimization problem, which can be expensive in general. We can avoid this, if we can query subgradients, by reducing an online convex optimization problem to an online linear optimization problem. One such algorithm will be in the online mirror descent section.
+
+\section{Online Gradient Descent}
+The Mirror Descent method can also be applied to online convex optimization. Here for convenience we only present online gradient descent. Assume $U=C$, and let $D$ denote the diameter of $C$. At step $t$, after observing $f_t$, we choose an arbitrary $g_t(x^{(t)})\in\partial f_t(x^{(t)})$, and update $x^{(t)}$ to $x^{(t+1)}$ in the following way:
+\begin{equation}\label{onlineSubgradUpdate}
+    x^{(t+1)}=\Pi_C(x^{(t)}-\eta_tg_t(x^{(t)})).
+\end{equation}
+
+We assume that for all $1\le t\le T$ and $x\in C$, $\partial f_t(x)$ is non-empty and bounded by a universal constant. One sufficient condition is that for all $1\le t\le T$, $f_t$ is $\lambda$-Lipschitz continuous. We can prove the following guarantee:
+\begin{theorem}
+    Assume for all $1\le t\le T$, $f_t$ is $\lambda$-Lipschitz continuous. Then with
+    \begin{itemize}
+        \item $\eta_t=\frac{D}{\lambda\sqrt{T}}$, we have
+        \begin{equation}
+            \mathrm{Regret}_C(T)\le D\lambda\sqrt{T}.
+        \end{equation}
+        \item $\eta_t=\frac{D}{\lambda\sqrt{t}}$, we have
+        \begin{equation}
+            \mathrm{Regret}_C(T)\le \frac{3}{2}D\lambda\sqrt{T}.
+        \end{equation}
+    \end{itemize}
+\end{theorem}
+
+For strongly convex objective functions, we can achieve logarithmic regret.
+\begin{theorem}
+    Suppose for all $1\le t\le T$, $f_t$ is $\lambda$-Lipschitz continuous and $\alpha$-strongly convex. Then with $\eta_t=\frac{1}{\alpha t}$, we have
+    \begin{equation}
+        \mathrm{Regret}_C(T)\le \frac{\lambda^2(\ln T+1)}{2\alpha}.
+    \end{equation}
+\end{theorem}
+
+\section{Online Dual Averaging}
+Recall that if we can query subgradients, the general online gradient descent problem can be reduced to online linear optimization problem, which in turn can be solved by Follow-the-Regularized-Leader algorithm. At step $t$ we compute $x^{(t)}=\arg\min_{x\in C}(R(x)+\sum_{\tau=1}^{t-1}\langle x,z^{(\tau)}\rangle)=\arg\max_{x\in C}(\langle x,-\sum_{\tau=1}^{t-1}z^{(\tau)}\rangle-R(x))$. Thus if we set $g(y)=\arg\max_{x\in C}(\langle y,x\rangle-R(x))$, then our operations at step $t$ can be described as ($y^{(1)}=0$)
+\begin{enumerate}
+    \item $x^{(t)}=g(y^{(t)})$,
+    \item $y^{(t+1)}=y^{(t)}-z^{(t)}$, where $z^{(t)}\in\partial f_t(x^{(t)})$.
+\end{enumerate}
+
+Let $R$ to be a $\frac{1}{\eta}$-strongly convex function over $C$, and apply Theorem \ref{followRegLeaderLipst}, we get that for any $u\in C$,
+\begin{equation}
+    \mathrm{Regret}_u(T)\ge R(u)-R(x^{(1)})+\eta \sum_{t=1}^{T}\|z^{(t)}\|_*^2.
+\end{equation}
+
+Below we apply convex conjugates and get a slightly better result.
+\begin{theorem}\label{onlineDABound1}
+    We have for any $u\in C$,
+    \begin{equation}
+        \sum_{t=1}^{T}\langle x^{(t)}-u,z^{(t)}\rangle\le R(u)-R(x^{(1)})+\sum_{t=1}^{T}D_{R^*}(y^{(t+1)}\Vert y^{(t)}),
+    \end{equation}
+    and equality holds for $u=\arg\min_{u'\in C}R(u')-\langle u',y^{(T+1)}\rangle$.
+\end{theorem}
+\begin{proof}
+    Note that at step $t$, $x^{(t)}=g(y^{(t)})=\nabla R^*(y^{(t)})$, and $y^{(t)}=-\sum_{\tau=1}^{t-1}z^{(t)}$. Then for all $1\le t\le T$, we have
+    \begin{equation}
+        \begin{array}{rcl}
+            \langle x^{(t)},z^{(t)}\rangle & = & \langle x^{(t)},y^{(t)}-y^{(t+1)}\rangle \\
+             & = & D_{R^*}(y^{(t+1)}||y^{(t)})+R^*(y^{(t)})-R^*(y^{(t+1)}).
+        \end{array}
+    \end{equation}
+    Also, $R^*(y^{(1)})=R^*(0)=-\min_{x\in C}R(x)=-R(x^{(1)})$, and $\langle u,y^{(T+1)}\rangle\le R(u)+R^*(y^{(T+1)})$.
+\end{proof}
+\begin{theorem}\label{onlineDABound2}
+    Suppose $R$ is $\frac{1}{\eta}$-strongly convex w.r.t. norm $\|\cdot\|$. Then online mirror descent guarantees that
+    \begin{equation}
+        \sum_{t=1}^{T}\langle x^{(t)}-u,z^{(t)}\rangle\le R(u)-R(x^{(1)})+\frac{\eta}{2}\sum_{t=1}^{T}\|z^{(t)}\|_*^2.
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    This comes from Theorem \ref{onlineDABound1} and the duality of strong convexity and strong smoothness.
+\end{proof}
+\begin{remark}
+    Note that Theorem \ref{onlineDABound1} and \ref{onlineDABound2} are still true even if $z^{(t)}$ is not chosen as the subgradient of $f_t$.
+\end{remark}
+
+\section{Online Stochastic Convex Optimization}
+The previous algorithms require the computation of $\partial f_t(x^{(t)})$ at step $t$. In this section, it is assumed that at step $t$, only an estimate of the subgradient can be computed. Formally, at step $t$, we will be given $z^{(t)}$ such that
+\begin{equation}
+    \hat{z}^{(t)}=\mathbb{E}[z^{(t)}|z^{(1)},\ldots,z^{(t-1)}]\in\partial f_t(x^{(t)}).
+\end{equation}
+The previous algorithms still work as long as the variance of the estimated subgradients is not too large.
+
+\begin{theorem}
+    Assume that for all $1\le t\le T$ and all $z^{(1)},\ldots,z^{(t-1)}$, we have $\mathbb{E}[\|z^{(t)}\|_2^2|z^{(1)},\ldots,z^{(t-1)}]\le\lambda^2$, and the diamemter of $C$ is $D$. Then if online gradient descent is run with
+    \begin{itemize}
+        \item $\eta_t=\frac{D}{\lambda\sqrt{T}}$, we have
+        \begin{equation}
+            \mathbb{E}[\mathrm{Regret}_C(T)]\le D\lambda\sqrt{T}.
+        \end{equation}
+        \item $\eta_t=\frac{D}{\lambda\sqrt{t}}$, we have
+        \begin{equation}
+            \mathbb{E}[\mathrm{Regret}_C(T)]\le \frac{3}{2}D\lambda\sqrt{T}.
+        \end{equation}
+    \end{itemize}
+\end{theorem}
+\begin{theorem}
+    Suppose for all $1\le t\le T$, $f_t$ is $\alpha$-strongly convex, and for all $z^{(1)},\ldots,z^{(t-1)}$, $\mathbb{E}[\|z^{(t)}\|_2^2|z^{(1)},\ldots,z^{(t-1)}]\le\lambda^2$. Then if online gradient descent is run with $\eta_t=\frac{1}{\alpha t}$, we have
+    \begin{equation}
+        \mathrm{Regret}_C(T)\le \frac{\lambda^2(\ln T+1)}{2\alpha}.
+    \end{equation}
+\end{theorem}
+\begin{theorem}
+    Suppose $R$ is $\frac{1}{\eta}$-strongly convex w.r.t. norm $\|\cdot\|$. Then online mirror descent guarantees that
+    \begin{equation}
+        \mathbb{E}[\mathrm{Regret}_u(T)]\le R(u)-R(x^{(1)})+\frac{\eta}{2}\sum_{t=1}^{T}\mathbb{E}[\|z^{(t)}\|_*^2].
+    \end{equation}
+\end{theorem}
+
+\subsection{Bandit Online Convex Optimization and the Multi-Armed Bandit Problem}
+In the bandit online convex optimization problem, at step $t$, after $x^{(t)}$ is chosen, only the cost at $x^{(t)}$, $f_t(x^{(t)})$, is revealed. In other words, we cannot compute the subgradient directly. The idea is to construct an unbiased estimator of the subgradient using the revealed information, then invoke algorithm for online stochastic convex optimization.
+
+Here we consider a simple example, the adversarial multi-armed bandit problem. The key feature of the multi-armed bandit problem is that only the loss of the pulled arm is given to us, not the whole loss vector, which is naturally the gradient. However, as we are allowed to make use of randomization, we can construct an unbiased estimator of the loss vector.
+
+Basically the normalized exponentiated gradient algorithm is run, and after sampling an arm $i_t$ based on distribution $p^{(t)}$ and receiving the loss $\ell_{i_t}^{(t)}$ at step $t$, we use $\frac{\ell_{i_t}^{(t)}}{p_{i_t}^{(t)}}e^{(i_t)}$ as an unbiased estimator of the gradient, where $e^{(i)}$ has 1 on the $i$-th coordinate and $0$ on the other coordinates.
+
+To analyze the performance, we make use of Theorem \ref{NEGLocalNorm} and take the randomness into consideration. The key step is that
+\begin{equation}
+    \mathbb{E}\left[\sum_{i=1}^{n}x_i^{(t)}z_i^{(t)2}\middle|z^{(1)},\ldots,z^{(t-1)}\right]\le n.
+\end{equation}
+The overall bound of the multi-armed bandit problem is thus $\frac{\ln n}{\eta}+\eta nT$. By letting $\eta=\sqrt{\frac{\ln n}{nT}}$, we can get a regret of $2\sqrt{Tn\ln n}$.
+\begin{remark}
+    In fact a better bound of $\sqrt{2Tn\ln n}$ when $\eta=\sqrt{\frac{2\ln n}{nT}}$ can be shown. Also, we can get an anytime algorithm if $T$ is not known in advance. Please refer to \cite{BC12}.
+\end{remark}
+%\end{comment}
+
+\chapter{Smoothing Techniques}
+In this chapter, we try to minimize a non-smooth convex closed proper function $f$ over $\mathbb{R}^n$. (However, notice that the effective domain may not be $\mathbb{R}^n$ and may even be bounded.) Subgradient descent may take too much time. One possible way is to approximate $f$ using some smooth function $f_{\mu}$, and then invoke algorithms for smooth convex functions.
+
+\begin{example}
+    Suppose we want to minimize the absolute value function $f(x)=|x|$. The following function, which is called Huber function, is often used to approximate $f$:
+    \begin{equation}
+        f_{\mu}(x)=\left\{
+        \begin{array}{ll}
+            \frac{x^2}{2\mu} & |x|\le\mu, \\
+            |x|-\frac{\mu}{2} & |x|>\mu.
+        \end{array}
+        \right.
+    \end{equation}
+    One can show that $f_{\mu}$ is $\frac{1}{\mu}$-strongly smooth, convex, and $f(x)-\frac{\mu}{2}\le f_{\mu}(x)\le f(x)$.
+\end{example}
+
+\section{Nesterov's Smoothing Technique}
+Given a convex closed proper function $f$ over $\mathbb{R}^n$, we smooth it with the help of its conjugate:
+\begin{equation}\label{NesterovSmooth}
+    f_{\mu}(x)=\max_{y\in \mathbb{R}^n}\left\{\langle x,y\rangle-f^*(y)-\mu d(y)\right\}.
+\end{equation}
+Here $d$ is some proximity function. We can impose some properties on $d$:
+\begin{itemize}
+    \item $d$ is continuously differentiable and $1$-strongly convex;
+    \item $\min_{y\in \mathbb{R}^n}d(y)=0$.
+    \item $0=\arg\min_{y\in \mathbb{R}^n}d(y)$. In this case, $x\in\arg\min_{x'\in \mathbb{R}^n}f(x')\iff x\in\partial f^*(0)\iff x\in\partial (f^*+\mu d)(0)\iff x\in\arg\min_{x'\in \mathbb{R}^n}f_{\mu}(x')$. In other words, minimizing $f$ is equivalent to minimizing $f_{\mu}$.
+\end{itemize}
+
+\begin{example}
+    Below are some typical choices for $d$:
+    \begin{itemize}
+        \item $d(y)=\frac{1}{2}\|y-y_0\|_2^2$, or $d(y)=\sum_{i=1}^{n}w_i(y_i-(y_0)_i)^2$ with $w_i\ge1$ for $1\le i\le n$.
+        \item $d(y)=\omega(y)-\omega(y_0)-\langle\nabla\omega(y_0),y-y_0\rangle$ with some continuously differentiable strongly convex function $\omega$.
+    \end{itemize}
+\end{example}
+
+\begin{example}
+    Consider $f(x)=|x|$. Its convex conjugate is $I_{[-1,+1]}$.
+    \begin{itemize}
+        \item If $d(y)=\frac{1}{2}y^2$, then $f_{\mu}$ gives the Huder function.
+        \item If $d(y)=1-\sqrt{1-y^2}$, then $f_{\mu}=\sqrt{x^2+\mu^2}-\mu$.
+    \end{itemize}
+\end{example}
+
+\subsection{Minimizing General Convex Functions}
+Given a general convex function $f$, from the above construction, we have $f_{\mu}$ is $\frac{1}{\mu}$-strongly smooth and convex, and if $\max_{y\in \mathbf{dom }f^*}d(y)=D_Y^2$,
+\begin{equation}
+    f(x)-\mu D_Y^2\le f_{\mu}(x)\le f(x).
+\end{equation}
+We then can apply accelerated gradient descent to $f_{\mu}$. If $D_X$ denotes the diameter of $\mathbf{dom }\,f$, then $f_{\mu}(x^{(t)})-f_{\mu}(x_{\mu}^*)\le \frac{2D_X^2}{\mu t^2}$. What's more, $f(x^{(t)})-f_{\mu}(x^{(t)})\le\mu D_Y^2$. To balance the two terms, we set $\mu=\frac{\sqrt{2}D_X}{tD_Y}$, and then $f(x^{(t)})-f(x^{\star})\le \frac{2\sqrt{2}D_XD_Y}{t}$.
+
+Compared with subgradient descent, we get a $O(\frac{1}{\epsilon})$ time complexity, but we need to compute the maximizer of $\langle x,y\rangle-f^*(y)-\mu d(y)$, which is another optimization problem. For example, if we know how to compute gradient of $f^*$, then we can use another gradient descent to compute the maximizer.
+
+\begin{remark}
+    If we want the algorithm to converge, we need $\mathbf{dom }\,f$ and $\mathbf{dom }\,f^*$ to be bounded. If the minimizer of $d$ is $0$, the dependency on $\mathbf{dom }\,f$ can be replaced with dependency on $\|x^{(0)}-x^{\star}\|_2$. Essentially the same thing is required in subgradient descent method.
+\end{remark}
+
+Let us consider how to solve the optimization problem in \eqref{NesterovSmooth}. Let $d(y)=\frac{1}{2}\|y\|_2^2$. Given $x$, we want to find $y$ such that $x-\mu y\in\partial f^*(y)$. Suppose $x-\mu y=g(y)\in\partial f^*(y)$.
+
+We know that $x^{\star}\in\partial f^*(0)$. Since $f^*$ is convex, we know $\langle g(y)-x^{\star},y\rangle\ge0$, and furthermore $\langle g(y)-x^{\star}+\mu y,y\rangle=\langle x-x^{\star},y\rangle\ge\mu\|y\|_2^2$. Thus $\|y\|_2\le\|x-x^{\star}\|_2/\mu\le \frac{D}{\mu}$. In other words, we only need to consider $y$ whose norm is no more than $\frac{D}{\mu}$.
+
+However, our ultimate goal is to bound the norm of subgradients. Since $f_{\mu}$ and $f$ have the same set of minimizers, we can just minimize $f_{\mu}$ over $\mathbf{dom }\,f$. The diameter of the set of subgradients of $f^*$ is also bounded by $D$. $\|\mu y\|_2$ is also bounded by $D$ from the discussion in the previous paragraph. Thus the norm of subgradients is bounded by $3D$. Since \eqref{NesterovSmooth} is a strongly convex function minimization problem, we can solve it in $\frac{9D^2}{\mu t}$. The total time complexity actually matches subgradient descent.
+
+However, there is a self-contradicting point: Actually we should not know too much of $f^*$, since $f^*(0)=-\min_{x\in \mathbb{R}^n}f(x)$ and $x^{\star}\in\partial f^*(0)$.
+
+\paragraph{Remark}
+Although we give a searching area in terms of $D$ when solving \eqref{NesterovSmooth}, there is still a dependency on $D_Y$. More precisely, in our analysis, we need to bound $f(x^{(t)})-f_{\mu}(x^{(t)})$ , or the size of subgradients of $f$ at $x^{(t)}$. However, this can be very hard: $f$ may admit $0$ subgradient at nowhere else other than the optimum point.
+
+\subsection{Minimizing Strongly Convex Functions}
+Here the duality of strong convexity and strong smoothness will help us. Suppose $f$ is $\alpha$-strongly convex. Then $f^*$ is $\frac{1}{\alpha}$-strongly smooth and convex, and $f_{\mu}$ is $\frac{1}{\mu}$-strongly smooth and $\frac{\alpha}{1+\alpha\mu}$-strongly convex.
+
+The good thing here is we only need to make $\|x^{(t)}-x^{\star}\|_2$ small, since $x^{\star}$ is the common minimizer of all $f_{\mu}$'s.
+
+\paragraph{Remark}
+The convergence rate only depends on $\|x^{(0)}-x^{\star}\|_2$, if we can compute $\nabla f_{\mu}$ efficiently.
+
+\section{Moreau-Yosida Regularization}
+The Moread-Yosida regularization is given by:
+\begin{equation}\label{MoreauYosida}
+    f_{\mu}(x)=\inf_{x'\in \mathbb{R}^n}\left\{f(x')+\frac{1}{2\mu}\|x-x'\|_2^2\right\}.
+\end{equation}
+
+This is just a special case of Nesterov's smoothing with $d(y)=\frac{1}{2}\|y\|_2^2$, which comes from the property of infimal convolution. We need to assume that $\mathbf{relint}\,\mathbf{dom }\,f^*\ne\emptyset$, or equivalently $f^*\ne I_{\{y\}}$ for some $y\in \mathbb{R}^n$, or equivalently $f$ is not a linear function on $\mathbb{R}^n$. Under such a circumstance, we also know that the infimum in \eqref{MoreauYosida} is attained by invoking Slater's condition.
+
+\section{The Proximal Operator}
+\begin{definition}
+    Given a convex closed proper function $f$, the proximal operator of $f$ at $x$ is defined as
+    \begin{equation}\label{proximal}
+        \mathrm{Prox}_f(x)=\arg\min_{x'\in \mathbb{R}^n}\left\{f(x')+\frac{1}{2}\|x-x'\|_2^2\right\}.
+    \end{equation}
+    And consequently for any $\mu>0$,
+    \begin{equation}
+        \mathrm{Prox}_{\mu f}(x)=\arg\min_{x'\in \mathbb{R}^n}\left\{f(x')+\frac{1}{2\mu}\|x-x'\|_2^2\right\}.
+    \end{equation}
+\end{definition}
+
+One can give two interpretations of the proximal operator:
+\begin{itemize}
+    \item Let $u$ denote $\mathrm{Prox}_f(x)$. Then $x\in\{u\}+\partial f(u)$.
+    \item $\mathrm{Prox}_{\mu f}(x)=x-\mu\nabla f_{\mu}(x)$. In other words, the proximal operator basically perform one step of gradient descent on the smoothed function.
+\end{itemize}
+With those observations, we can further show the following properties:
+\begin{itemize}
+    \item $x^{\star}\in\arg\min_{x\in \mathbb{R}^n}f(x)\iff x^{\star}=\mathrm{Prox}_f(x^{\star})$.
+    \item $\|\mathrm{Prox}_f(y)-\mathrm{Prox}_f(x)\|_2\le\|y-x\|_2$.
+    \item $x=\mathrm{Prox}_f(x)+\mathrm{Prox}_{f^*}(x)$.
+\end{itemize}
+
+\subsection{Proximal Point Algorithm}
+The above discussion inspires the proximal point algorithm, where at step $t$, we update $x^{(t)}$ to $x^{(t+1)}$ as following:
+\begin{equation}\label{proxAlg}
+    x^{(t+1)}=\mathrm{Prox}_{\eta_t f}(x^{(t)}).
+\end{equation}
+
+\paragraph{Remark}
+We can also explain the above algorithm using the two heuristics:
+\begin{itemize}
+    \item Majorization and minimization: We are upper-bounding $f(x)$ using $f(x)+\frac{1}{2\eta_t}\|x-x^{(t)}\|_2^2$.
+    \item Fixed point iteration: We are trying to find a fixed point of the proximal operator.
+\end{itemize}
+And there are two nice properties:
+\begin{itemize}
+    \item $f(x^{(t)})-f(x^{(t+1)})\ge \frac{1}{2\eta_t}\|x^{(t)}-x^{(t+1)}\|_2^2$, which means that the function value is non-increasing.
+    \item $\|x^{(t+1)}-x^{\star}\|_2\le\|x^{(t)}-x^{\star}\|_2$, since all $f_{\mu}$'s have the same set of minimizer.
+\end{itemize}
+
+We can prove that:
+\begin{equation}
+    f(x^{(t)})-f(x^{\star})\le \frac{\|x^{(0)}-x^{\star}\|_2^2}{2 \sum_{\tau=0}^{t-1}\eta_t}.
+\end{equation}
+
+\paragraph{Remark}
+The convergence rate only depends on $\|x^{(0)}-x^{\star}\|_2$, assuming the proximal opertor can be computed efficiently.
+
+\paragraph{Robustness}
+If we use Nesterov's smoothing to compute the proximal operator, then the proximal point algorithm cannot tolerate noisy gradient. If we use Moreau-Yosida regularization, we need to find ways to get a small gradient.
+
+If $f$ is $\alpha$-strongly convex, then take $\eta_t=\frac{1}{\alpha t}$ and we can get
+\begin{equation}
+    f(x^{(t)})-f(x^{\star})\le \frac{\|x^{(0)}-x^{\star}\|_2^2}{2\alpha t}.
+\end{equation}
+The convergence rate is almost the same, but the computation of proximal operator will become easier and esaier.
+
+\subsection{Accelerated Proximal Point Algorithm}
+There also exists accelerated proximal point algorithm giving $f(x^{(t)})-f(x^{\star})=O\left(\frac{1}{\mu t^2}\right)$.
+
+\section{Randomized Smoothing}
+Assume $f:\mathbb{R}^n\to \mathbb{R}$ is a $\lambda$-Lipschitz continuous convex function. For any $\delta>0$ and any $x\in \mathbb{R}^n$, define
+\begin{equation}
+    f_{\mu}(x)=\mathbb{E}_{v\sim \mathbb{B}}[f(x+\mu v)],
+\end{equation}
+where $\mathbb{B}=\{x\in \mathbb{R}^n|\|x\|_2\le1\}$ and $v\sim \mathbb{B}$ means $v$ is uniformly distributed in the unit ball.
+
+\begin{theorem}
+    $f_{\mu}$ satisfies the following properties:
+    \begin{itemize}
+        \item $f_{\mu}$ is $\frac{n\lambda}{\mu}$-strongly smooth and convex;
+        \item $|f_{\mu}(x)-f(x)|\le\mu\lambda$ for any $x\in \mathbb{R}^n$.
+    \end{itemize}
+\end{theorem}
+\begin{proof}
+    We make use of the Stoke's theorem:
+    \begin{equation}
+        \mathbb{E}_{v\sim \mathbb{S}}[\langle f(x+\mu v),v\rangle]=\frac{\mu}{n}\nabla f_{\mu}(x),
+    \end{equation}
+    where $\mathbb{S}=\{x\in \mathbb{R}^n|\|x\|_2=1\}$ is the unit sphere.
+\end{proof}
+
+\begin{comment}
+\chapter[Convex Optimization in Finite Dimension]{Convex Optimization in Finite Dimension\footnote{This chapter is based on Chapter 2 of \cite{B14}.}}
+In this chapter, we assume $C$ is convex compact and $f:C\rightarrow[-B,B]$ is a convex function. We want to minimize $f(x)$ over $C$.
+
+\section{The Center of Gravity Method}
+Consider the following algorithm:
+Initialize $C_1$ to $C$. At time step $\tau$, we do the following:
+\begin{enumerate}
+    \item Compute $c_{\tau}=\frac{1}{\mathbf{vol}\,C_{\tau}}\int_{x\in C_{\tau}}x \mathrm{d}x$.
+    \item Compute $g(c_{\tau})\in\partial f(c_{\tau})$. Let $C_{\tau+1}=C_{\tau}\cap\{x\in \mathbb{R}^n|\langle x-c_{\tau},g(c_{\tau})\rangle\le0\}$.
+\end{enumerate}
+After $t$ steps, we output $x_t=\arg\min_{1\le\tau\le t}f(c_{\tau})$.
+
+We have the following guarante:
+\begin{theorem}[\cite{B14} Theorem 2.1]\label{centerGrav}
+    $f(x_t)-f(x^{\star})\le2B(1-\frac{1}{e})^{t/n}$.
+\end{theorem}
+
+\paragraph{Remark}
+$\Omega(n\log \frac{1}{\epsilon})$ is a lower bound.
+
+\paragraph{Remark}
+One can also initialize $C_1$ to some superset of $C$. If at some step $\tau$, $c_{\tau}$ is not in $C$, we query the separation oracle to set value for $g(c_{\tau})$. We can get a similar guarantee, as long as $\mathbf{vol}\,C_1$ is not much larger than $\mathbf{vol}\,C$.
+
+\paragraph{Remark}
+Actually the center of gravity is hard to compute.
+
+\section{The Ellipsoid Method}
+In this chapter, we further assume that $C$ is contained in a ball of radius $R$, and contains a ball of radius $r$.
+
+Recall that an ellipsoid is given by $\mathcal{E}=\{x\in \mathbb{R}^n|(x-c)^{\mathrm{T}}H^{-1}(x-c)\le1\}$, where $c\in \mathbb{R}^n$ is the center. The ellipsoid method is based on the following geometric lemma:
+\begin{lemma}[\cite{B14} Lemma 2.3]
+    Let $\mathcal{E}_0=\{x\in \mathbb{R}^n|(x-c_0)^{\mathrm{T}}H_0^{-1}(x-c_0)\le1\}$. For any $w\ne0$, there exists an ellipsoid $\mathcal{E}$ such that $\mathcal{E}\supset\{x\in \mathcal{E}_0|\langle x-c_0,w\rangle\le0\}$, and $\mathbf{vol}\,\mathcal{E}\le\exp(-\frac{1}{2n})\mathbf{vol}\,\mathcal{E}_0$.
+\end{lemma}
+
+The basic idea is similar to the center of gravity method. However, we replace the center of gravity with the center of surrounding ellipsoid, which can be computed much more efficiently. We have the following guarantee:
+\begin{theorem}\label{ellipsoidMethod}
+    For $t\ge2n^2\ln \frac{R}{r}$ we have $\{c_1,c_2,\ldots,c_t\}\cap C\ne\emptyset$, and $f(x_t)-f(x^{\star})\le \frac{2BR}{r}\exp(-\frac{t}{2n^2})$.
+\end{theorem}
+
+\paragraph{Remark}
+The running time now becomes $O(n^2\log \frac{1}{\epsilon})$, which is worse than the center of gravity method. However, as metioned before, the computational cost each step is much cheaper.
+\end{comment}
+
+\part{Second-Order Methods}
+\chapter{Newton Method}
+Let $f:\mathbb{R}^n\to \mathbb{R}$ be a twice continuously differentiable function. By Taylor's expansion of $f$ at $x$, we have
+\begin{equation}
+    f(x+h)=f(x)+\langle\nabla f(x),h\rangle+\frac{1}{2}\langle\nabla^2f(x)h,h\rangle+o(\|h\|_2^2).
+\end{equation}
+Omitting the $o(\cdot)$ part and minimizing the rest, we have $h=-[\nabla^2f(x)]^{-1}\nabla f(x)$, which is used as the update rule in Newton's method:
+\begin{equation}
+    x^{(t+1)}=x^{(t)}-[\nabla^2f(x^{(t)})]^{-1}\nabla f(x^{(t)}).
+\end{equation}
+
+\begin{theorem}
+    Assume that $f$ has a Lipschitz continuous Hessian with parameter $\beta$. Let $x^{\star}$ be a local minimum of $f$ where $\nabla^2f(x^{\star})\succ\alpha I$, $\alpha>0$. Suppose that the initial point $x^{(0)}$ satisfies $\|x^{(0)}-x^{\star}\|\le \frac{\alpha}{2\beta}$, then Newton's method is well-defined and has a quadratic convergence rate:
+    \begin{equation}
+        \|x^{(t+1)}-x^{\star}\|_2\le \frac{\beta}{\alpha}\|x^{(t)}-x^{\star}\|_2^2.
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    \begin{equation*}
+        \begin{array}{cl}
+             & \|x^{(t+1)}-x^{\star}\|_2 \\
+            = & \|x^{(t)}-x^{\star}-[\nabla^2f(x^{(t)})]^{-1}\nabla f(x^{(t)})\|_2 \\
+            = & \|[\nabla^2f(x^{(t)})]^{-1}\int_0^1[\nabla^2f(x^{(t)})-\nabla^2f(x^{\star}+s(x^{(t)}-x^{\star}))](x^{(t)}-x^{\star})\mathrm{d}s\|_2 \\
+            \le & \|[\nabla^2f(x^{(t)})]^{-1}\|\cdot(\int_0^1\|\nabla^2f(x^{(t)})-\nabla^2f(x^{\star}+s(x^{(t)}-x^{\star}))\|\mathrm{d}s)\|x^{(t)}-x^{\star}\|_2 \\
+            \le & \|[\nabla^2f(x^{(t)})]^{-1}\|\cdot \frac{\beta}{2}\|x^{(t)}-x^{\star}\|_2^2.
+        \end{array}
+    \end{equation*}
+    Also,
+    \begin{equation*}
+        \begin{array}{cl}
+             & \nabla^2f(x^{(t)}) \\
+            \succ & \nabla^2f(x^{\star})-\beta\|x^{(t)}-x^{\star}\|I \\
+            \succ & (\alpha-\beta\|x^{(t)}-x^{\star}\|)I \\
+            \succ & \frac{\alpha}{2}I,
+        \end{array}
+    \end{equation*}
+    since we can inductively show $\|x^{(t)}-x^{\star}\|_2\le \frac{\alpha}{2\beta}$.
+\end{proof}
+
+\begin{comment}
+\part{Stochastic and Online Convex Optimization}
+\chapter{Stochastic Convex Optimization}
+\section{Stochastic Variance Reduced Gradient}
+From this section on, we will focus on the finite sum minimization problem. Let $f(x)=\frac{1}{m}\sum_{i=1}^{m}f_i(x)$. The stochastic variance reduced gradient algorithm (SVRG) looks like:
+\begin{algorithm}
+    \caption{SVRG algorithm}
+    \label{SVRG}
+    \begin{algorithmic}
+        \STATE{Initialize $T$, $\eta$, and $\tilde{x}^{(0)}$.}
+        \FOR{$s=1,2,\ldots$}
+        \STATE{Let $x^{(0)}=\tilde{x}=\tilde{x}^{(s-1)}$.}
+        \STATE{$\tilde{\mu}=\frac{1}{m}\sum_{i=1}^{m}\nabla f_i(\tilde{x})$.}
+        \FOR{$t=1$ \TO $T$}
+        \STATE{Randomly pick $i_t\in\{1,2,\ldots,m\}$.}
+        \STATE{$x^{(t+1)}=x^{(t)}-\eta(\nabla f_i(x^{(t)})-\nabla f_i(\tilde{x})+\tilde{\mu})$.}
+        \ENDFOR
+        \STATE{Let $\tilde{x}^s=x^{(T)}$, or $x^{(t)}$ where $t$ is chosen randomly from $\{0,1,\ldots,T-1\}$.}
+        \ENDFOR
+    \end{algorithmic}
+\end{algorithm}
+\end{comment}
+
+\part{Non-Convex Optimization}
+\chapter{Cubic Regularization}
+Let $C$ be a convex closed set with non-empty interior. We are going to minimize a twice-differentiable function $f$ over $C$, starting from some $x_0\in \mathbf{int}\,C$. We assume that $C$ contains the level set $C_{f(x_0)}=\{x\in \mathbb{R}^n|f(x)\le f(x_0)\}$. (We make this assumption to avoid operations like projection.)
+
+In this chapter, we assume the following condition, the Lipschitz continuity of $\nabla^2f$:
+\begin{equation}
+    \|\nabla^2f(x)-\nabla^2f(y)\|\le\beta\|x-y\|_2,
+\end{equation}
+for some $\beta>0$ and any $x,y\in C$. Here for the matrix norm we use the spectral norm, or the largest singular value. Direct properties include:
+\begin{lemma}[\cite{NP06} Lemma 1]\label{thirdOrderUpperBound}
+    For any $x,y\in C$ we have
+    \begin{equation}
+        \|\nabla f(y)-\nabla f(x)-\nabla^2f(x)(y-x)\|_2\le \frac{\beta}{2}\|y-x\|_2^2,
+    \end{equation}
+    and
+    \begin{equation}
+        |f(y)-f(x)-\langle\nabla f(x),y-x\rangle-\frac{1}{2}\langle\nabla^2f(x)(y-x),y-x\rangle|\le \frac{\beta}{6}\|y-x\|_2^3.
+    \end{equation}
+\end{lemma}
+
+Recall that in Newton's method, at each step we minimize the second-order Taylor approximation $f(x)+\langle\nabla f(x),y-x\rangle+\frac{1}{2}\langle\nabla^2f(x)(y-x),y-x\rangle$. Here we try to minimize the second-order approximation plus some \textbf{cubic regularization} term:
+\begin{equation}\label{cubicRegUpdate}
+    T_M(x)\in\arg\min_{y\in \mathbb{R}^n}\left[f(x)+\langle\nabla f(x),y-x\rangle+\frac{1}{2}\langle\nabla^2f(x)(y-x),y-x\rangle+\frac{M}{6}\|y-x\|_2^3\right],
+\end{equation}
+where $M>0$ is a constant. In \cite{NP06} more general choices of $M$ are discussed, but here for convenience we let $M=\beta$. In this case let $T(x)=T_{\beta}(x)$, and $\bar{f}(x)=\min_{y\in \mathbb{R}^n}\phi_x(y)$, where $\phi_x(y)=f(x)+\langle\nabla f(x),y-x\rangle+\frac{1}{2}\langle\nabla^2f(x)(y-x),y-x\rangle+\frac{\beta}{6}\|y-x\|_2^3$. Note that by Lemma \ref{thirdOrderUpperBound}, $\phi_x$ is an upper bound of $f$, and thus $f(T(x))\le\phi_x(T(x))$ if $T(x)\in C$.
+
+Take the first derivative of \eqref{cubicRegUpdate}, and multiply both sides by $T(x)-x$, we get
+\begin{equation}\label{cubicRegFirstOrder}
+    \langle\nabla f(x),T(x)-x\rangle+\langle\nabla^2f(x)(T(x)-x),T(x)-x\rangle+\frac{\beta}{2}r^3(x)=0.
+\end{equation}
+
+Since the objective in \eqref{cubicRegUpdate} is not in general convex, we need to find some way to optimize it. Also, it is not clear whether $T_M(x)\in C$. Furthermore, what guarantee can we get from this iterative process?
+
+\section{Solving the Cubic Regularization}
+In this section, we will show how to solve $T(x)$, and prove a technical lemma
+\begin{lemma}\label{PSDLemma}
+    For any $x\in C$,
+    \begin{equation}
+        \nabla^2f(x)+\frac{\beta}{2}r(x)I\succeq0.
+    \end{equation}
+\end{lemma}
+
+In this section, we focus on the more general optimization problem
+\begin{equation}
+    \min_{h\in \mathbb{R}^n}u(h)=\left[\langle g,h\rangle+\frac{1}{2}\langle Hh,h\rangle+\frac{M}{6}\|h\|_2^3\right].
+\end{equation}
+
+\section{Technical Lemmas}
+\begin{lemma}
+    For any $x\in C$, $\langle\nabla f(x),x-T(x)\rangle\ge0$.
+\end{lemma}
+\begin{proof}
+    By Lemma \ref{PSDLemma}, we have
+    \begin{equation*}
+        \langle\nabla^2f(x)(T(x)-x),T(x)-x\rangle+\frac{\beta}{2}r^3(x)\ge0.
+    \end{equation*}
+    Combined with \eqref{cubicRegFirstOrder}, we know that $\langle\nabla f(x),x-T(x)\rangle\ge0$.
+\end{proof}
+\begin{lemma}\label{funcDeltaLemma}
+    Suppose for $x\in \mathbf{int}\,C$, $f(x)\le f(x_0)$, then $T(x)\in \mathbf{int}\,C$ and $f(T(x))\le f(x)-\frac{\beta}{12}r^3(x)$.
+\end{lemma}
+\begin{proof}
+    First, suppose $T(x)\not\in C$, and thus $r(x)>0$. Suppose for $\alpha\in(0,1)$, $x_{\alpha}=x+\alpha(T(x)-x)$ lies on the boundary of $C$. Then
+    \begin{equation*}
+        \begin{array}{rcl}
+            f(x_{\alpha}) & \le & \displaystyle f(x)+\langle\nabla f(x),x_{\alpha}-x\rangle+\frac{1}{2}\langle\nabla^2f(x)(x_{\alpha}-x),x_{\alpha}-x\rangle+\frac{\alpha^3\beta}{6}r^3(x) \\
+             & = & \displaystyle f(x)+(\alpha-\frac{\alpha^2}{2})\langle\nabla f(x),T(x)-x\rangle-\frac{\alpha^2\beta}{4}(1-\frac{2}{3}\alpha)r^3(x) \\
+             & < & f(x),
+        \end{array}
+    \end{equation*}
+    and since $f$ is continuous, $x_{\alpha}$ should lie in the interior of $C$, which is a contradiction.
+
+    Now since $T(x)\in C$, we have
+    \begin{equation}
+        \begin{array}{rcl}
+            f(T(x)) & \le & \displaystyle f(x)+\langle\nabla f(x),T(x)-x\rangle+\frac{1}{2}\langle\nabla^2f(x)(T(x)-x),T(x)-x\rangle+\frac{\beta}{6}r(x)^3 \\
+             & = & \displaystyle f(x)+\frac{1}{2}\langle\nabla f(x),T(x)-x\rangle-\frac{\beta}{12}r^3(x) \\
+             & \le & \displaystyle f(x)-\frac{\beta}{12}r^3(x). \\
+        \end{array}
+    \end{equation}
+    Note that if $r(x)>0$, then $f(T(x))<f(x)\le f(x_0)$, and by the continuity of $f$, $T(x)\in \mathbf{int}\,C$. If $r(x)=0$, then $T(x)=x$, and $T(x)\in \mathbf{int}\,C$ since we assume $x\in \mathbf{int}\, C$.
+\end{proof}
+In other words, Lemma \ref{funcDeltaLemma} says that at each step if we do make a move, then the function value will decrease.
+
+\section{General Convergence Results}
+When analyzing the performance of cubic regularization, we look at the following value:
+\begin{equation}
+    \mu(x)=\max\{\sqrt{\frac{1}{\beta}\|\nabla f(x)\|_2},-\frac{2}{3\beta}\lambda_n(\nabla^2f(x))\}.
+\end{equation}
+\begin{lemma}\label{errorBoundLemma}
+    For any $x\in C$ we have $\mu(T(x))\le r(x)$.
+\end{lemma}
+\begin{proof}
+    Since $\nabla \phi_x(T(x))=0$, we have
+    \begin{equation*}
+        \|\nabla f(x)+\nabla^2f(x)(T(x)-x)\|_2=\frac{\beta}{2}r^2(x).
+    \end{equation*}
+    And by Lemma \ref{thirdOrderUpperBound}, we have
+    \begin{equation*}
+        \|\nabla f(T(x))-\nabla f(x)-\nabla^2f(x)(T(x)-x)\|_2\le \frac{\beta}{2}r^2(x).
+    \end{equation*}
+    From the above inequalities, we have
+    \begin{equation*}
+        \|\nabla f(T(x))\|_2\le\beta r^2(x).
+    \end{equation*}
+    At the same time, by Lemma \ref{PSDLemma}
+    \begin{equation*}
+        \nabla^2f(T(x))\succeq\nabla^2f(x)-\beta r(x)I\succeq-(\frac{\beta}{2}+\beta)r(x)I=-\frac{3\beta}{2}r(x)I.
+    \end{equation*}
+\end{proof}
+\begin{theorem}
+    Assume $f$ is bonuded below by $f^*$ on $C$. Then $\sum_{t=0}^{\infty}r^3(x^{(t)})\le \frac{\beta}{12}(f(x^{(0)}-f^*)$. Furthermore, $\lim_{t\to\infty}\mu(x^{(t)})=0$ and for any $T\ge1$ we have
+    \begin{equation}
+        \min_{1\le t\le T}\mu(x^{(t)})\le\sqrt[3]{\frac{12(f(x^{(0)})-f^*)}{\beta T}}.
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    By Lemma \ref{funcDeltaLemma} and Lemma \ref{errorBoundLemma}, for any $T\ge 1$,
+    \begin{equation*}
+        f(x^{(0)})-f^*\ge \sum_{t=0}^{T-1}(f(x^{(t)})-f(x^{(t+1)}))\ge \sum_{t=0}^{T-1}\frac{\beta}{12}r^3(x^{(t)})\ge \sum_{t=1}^{T}\frac{\beta}{12}\mu^3(x^{(t)}).
+    \end{equation*}
+\end{proof}
+
+\begin{comment}
+\part{Application}
+\chapter{Online Learning}
+\section{Problem Specification}
+In a typical online learning problem, there are a sequence of steps. In step $t$, we are given a "question" $x^{(t)}$ taken from an instance set $\mathcal{X}$, and required to provide an answer $a_t\in \mathcal{A}$. After we select the answer, the true answer $y_t\in \mathcal{Y}$ will be revealed to us an a loss $l(a_t,y_t)$ will be incurred. If $\mathcal{Y}=\{0,1\}$, the problem is called online classification.
+
+The learner's goal is to minimize the cumulative loss. If there is no correlation between different steps, then learning seems hopeless, and thus typically some statistical assumptions are made. However, here we do not make such assumptions. More restrictions on the model are needed, otherwise the loss can be arbitrarily large.
+\begin{itemize}
+    \item The first possible assumption is called realizability. We assume the true answers are generated by some function $h^*:\mathcal{X}\to \mathcal{Y}$, and $h^*$ belongs to a hypothesis class $\mathcal{H}$, which is known by us. Here we allow an adversary to choose both $h^*$ and $\{x^{(t)}\}$, and $A$ should try to minimize the loss under an adversarial choice.
+
+    More formally, for an online algorithm $A$, define
+    \begin{equation}\label{onlineMistake}
+        M_{\mathcal{H}}(A)=\max_{\substack{h\in \mathcal{H}, \\ x^{(1)},\ldots,x^{(T)}\in \mathcal{X}}}\sum_{t=1}^{T}l(a_t,h(x^{(t)})).
+    \end{equation}
+    A bound on $M_A(\mathcal{H})$ is called a mistake-bound, which we want to minimize.
+
+    \item The second possible assumption is weaker than realizability. We do not assume all answers are generated by some $h^*\in \mathcal{H}$, but require our algorithm $A$ to be comparable to any single function in $\mathcal{H}$. Formally, we define the regret of $A$ with respect to $h\in \mathcal{H}$ as
+    \begin{equation}\label{OnlineRegretH}
+        \mathrm{Regret}_{h}(A)=\max_{x^{(1)},y_1,\ldots}\sum_{t=1}^{T}l(a_t,y_t)-\sum_{t=1}^{T}l(h(x^{(t)}),y_t).
+    \end{equation}
+    Notice that we do not specify the range of $x^{(t)}$'s and $y_t$'s. They may take different values in different applications. The regret of $A$ with respect to $\mathcal{H}$ is defined as
+    \begin{equation}
+        \mathrm{Regret}_{\mathcal{H}}(A)=\max_{h\in \mathcal{H}}\mathrm{Regret}_{h}(A).
+    \end{equation}
+    Note that mistake minimization can be seen as a special case of regret minimization.
+\end{itemize}
+
+We finish the problem specification section by briefly discussing the online classification problem, where $\mathcal{A}=\mathcal{Y}=\{0,1\}$ and $l(a,y)=|a-y|$. We first make the following assumption:
+\begin{itemize}
+    \item (Finite Hypothesis Class) $\mathcal{H}$ is finite.
+\end{itemize}
+However, even if $|\mathcal{H}|=2$, the regret will be linear for the hypothesis class $\{h_0,h_1\}$ where $h_0\equiv0$ and $h_1\equiv1$. Thus we need to restrict the power of the adversary.
+\begin{itemize}
+    \item Realizability: We can assume that all true answers are generated by some $h^*\in \mathcal{H}$. We analyze two simple algorithms. The first is called \textsc{Consistent}:
+    \begin{itemize}
+        \item $\mathcal{V}_1\leftarrow \mathcal{H}$.
+        \item For $t=1,2,\ldots,T$:
+        \begin{itemize}
+            \item Receive $x^{(t)}$;
+            \item Pick an arbitrary $h_t\in \mathcal{V}_t$;
+            \item $a_t\leftarrow h_t(x^{(t)})$;
+            \item Receive $y_t$;
+            \item $\mathcal{V}_{t+1}=\{h\in \mathcal{V}_t|h(x^{(t)})=y_t\}$.
+        \end{itemize}
+    \end{itemize}
+    Since $\mathcal{V}_{T+1}\ge1$ and each time \textsc{Consitent} makes a mistake the number of candidate functions will decrease by at least 1, we can guarantee that $M_{\mathcal{H}}(\textsc{Consistent})\le|\mathcal{H}|-1$.
+
+    Now consider the following algorithm called \textsc{Halving}.
+    \begin{itemize}
+        \item $\mathcal{V}_1\leftarrow \mathcal{H}$.
+        \item For $t=1,2,\ldots,T$:
+        \begin{itemize}
+            \item Receive $x^{(t)}$;
+            \item Let $a_t$ be the majority in $\{h(x^{(t)})|h\in \mathcal{V}_t\}$;
+            \item Receive $y_t$;
+            \item $\mathcal{V}_{t+1}=\{h\in \mathcal{V}_t|h(x^{(t)})=y_t\}$.
+        \end{itemize}
+    \end{itemize}
+    Since each time \textsc{Halving} makes a mistake the number of candidate functions will decrease by at least half, we have $M_{\mathcal{H}}(\textsc{Halving})\le\log_2|\mathcal{H}|$. However, \textsc{Halving} needs more time to compute the answer at each step.
+
+    \item Randomization: In this case, we allow the algorithm to randomize at each step. The adversary doesn't know the learner's random choice when deciding $y_t$, even he knows all previous random choices. Expected loss is considered in this case.
+\end{itemize}
+Although the above two methods look different, they can both be interpreted as convexification techniques.
+\end{comment}
+
+\bibliography{Notes_on_Optimization}
+\bibliographystyle{plainnat}
+
+\end{document}

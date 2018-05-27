@@ -1,0 +1,211 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+
+\title{Summary of Essentials of Game Theory}
+\author{Ziwei Ji}
+
+\begin{document}
+\maketitle
+
+\section{What is Game Theory?}
+Game theory studies what happens when self-interested agents interact. Here are some notes we would like to make:
+\paragraph{What does ``self-interested'' mean?}
+Self-interested agents may not do harm to others, even may not care only about themselves. Actually they just have different opinions about what an ideal world should be, which includes good things to other agents.
+
+\paragraph{How to measure ``interest''?}
+Here we resort to the utility theory. Specifically, a utility function maps states of the world to real numbers which measure the levels of satisfaction of agents.
+
+\paragraph{How to deal with interaction?}
+With the help of the utility function, our task can be reduced to an optimization problem when there is only one agent. However, if more than one agent exists, their interaction can make things more complex. To study such settings, we must turn to noncooperative game theory and coalitional game theory. However, note that the former isn't only applicable to situations where agents' interests conflict and the latter isn't exclusive to situations where agents' interests get aligned.
+
+\section{How to describe games?}
+\subsection{Games in Normal Form}
+\begin{definition}
+A normal-form $n$-player game is a tuple $(N,A,u)$ where
+\begin{itemize}
+\item $N$ is the set of $n$ players indexed by $i$;
+\item $A=A_1\times A_2\times\cdots\times A_n$, where $A_i$ is the finite set of actions of player $i$. Each vector $a=(a_1,a_2,\ldots,a_n)\in A$ is called an action profile;
+\item $u=(u_1,u_2,\ldots,u_n)$ where $u_i:A\rightarrow\mathbb{R}$ is the utility function for player $i$.
+\end{itemize}
+\end{definition}
+
+\paragraph{Examples}
+\begin{itemize}
+\item Prisoner's Dilemma.
+\item Common-payoff games, where all players get the same payoff for every action profile. They are also called pure-coordination games or team games since all agents are willing to strive for the maximum social welfare. 
+\item Zero-sum games, which are meaningful primarily when there are two players. Here the profit of one player must come from the loss of the other player. While common-payoff games represent pure coordination, zero-sum games represent pure competition. Concrete examples include
+\begin{itemize}
+\item Matching pennies.
+\item Rock, Paper, or Scissors.
+\end{itemize}
+\item Battle of the Sex, which includes both coordination and competition.
+\end{itemize}
+
+\paragraph{Strategies}
+\begin{itemize}
+\item Pure strategies, or single actions. Each agent chooses a pure strategy and a pure strategy profile is achieved.
+\item Mixed strategies. Agent $i$ chooses a probability distribution $s_i$ from the set $S_i$ of all distributions over $A_i$ and a mixed strategy profile in $S=S_1\times S_2\times\cdots\times S_n$ is achieved. We denote the probability that $a_i$ will be played under $s_i$ by $s_i(a_i)$. The domain of the utility function $u_i$ can also be extended from $A_i$ to $S_i$.
+\end{itemize}
+
+\paragraph{Solution Concepts}
+In multi-agent systems, we are interested certain subsets of outcomes which are interesting in one sense or another. Below are some important solution concepts:
+\begin{itemize}
+\item Pareto optimality. 
+
+First we play the role of a neutral outside observer. Even if we do not give specific weights to interests of different agents, in some situations it is safe to say one strategy profile is better than another.
+\begin{definition}
+Strategy profile $s$ Pareto dominates strategy profile $s'$ if $u_i(s)\ge u_i(s')$ for all $i\in N$ and the inequality is strict for at least one agent.
+\end{definition}
+\begin{definition}
+Strategy profile $s$ is Pareto-optimal if no other strategy profile Pareto dominates it.
+\end{definition}
+
+Some results about Pareto optimal profiles:
+\begin{itemize}
+\item Every game has at least one Pareto optimal pure strategy profile.
+\item For a zero-sum game, every strategy profile is Pareto optimal.
+\item For a common-payoff game, all Pareto optimal strategies have the same payoffs.
+\end{itemize}
+
+\item Maxmin and minmax strategies.
+
+In the following we focus on the individual interests. First let us consider some solution concepts which make sense if the game is strongly competitive. 
+
+The maxmin strategy of player $i$ is the strategy which maximizes $i$'s worst-case payoff, where all the other players coordinate to do the greatest harm to $i$. Note that this may not make sense if the game contains some sort of coordination. The maxmin value of player $i$ is given by his or her maxmin strategy.
+
+\begin{definition}
+The maxmin strategy of player $i$ is $\arg\max_{s_i}min_{s_{-i}}u_i(s_i,s_{-i})$, and the maxmin value of player $i$ is $\max_{s_i}min_{s_{-i}}u_i(s_i,s_{-i})$.
+\end{definition}
+
+From this definition we can see that first player $i$ makes a choice, followed by strategies of the other players chosen by an adversary. The goal of player $i$ is to maximize such a worst-case payoff.
+
+The minmax strategy and value are usually defined in two-player games. The minmax strategy of one player is the strategy which allows him or her to do the greatest harm to the other player. And the minmax value of one player is given by the minmax strategy of \textbf{the other} player. More formally,
+\begin{definition}
+Suppose there are two players. Then the minmax strategy of player 1 is $\arg\min_{s_1}\max_{s_2}u_2(s_1,s_2)$ and the minmax value of player 2 is $\min_{s_1}\max_{s_2}u_2(s_1,s_2)$. The minmax strategy of player 2 and minmax value of player 1 can be defined similarly.
+\end{definition}
+
+Similar as before, the above definition can be seen as the two-round game. First player 1 chooses a strategy, and then player 2 makes the best response. Player 1 needs to minimize the payoff of player 2.
+
+If in strategy profile $s=(s_1,s_2,\ldots,s_n)$, $s_i$ is a maxmin profile of player $i$ for all $i\in N$, then $s$ is a maxmin strategy profile. In two-player games, minmax strategy profile can be defined similarly.
+
+Properties of maxmin and minmax strategy and value:
+\begin{itemize}
+\item In two-player games, a player's maxmin value equals his or her minmax value. In general games, a player's maxmin value is less than or equal to his or her minmax value.
+\item Consider a finite two-player zero-sum game. For both players the set of maxmin strategies coincides with the set of minmax strategies. What's more, any maxmin strategy profile is a Nash equilibrium and these are all the Nash equilibria.
+\end{itemize}
+
+\item Minimax regret.
+
+Now suppose the other agents are not totally malicious. Instead we assume that they are unpredictable. In such a setting, the agent may be interested in minimizing his or her worst-case loss. This intuition is formalized in the following definitions:
+\begin{definition}
+An agent $i$'s regret for playing an action $a_i$ when the action profile $a_{-i}$ is adopted by the other players is
+$$\left[\max_{a_{i}'\in A_i}u_i(a_{i}',a_{-i})\right]-u_i(a_i,a_{-i})$$
+\end{definition}
+\begin{definition}
+An agent $i$'s regret for playing action $a_i$ is
+$$\max_{a_{-i}\in A_{-i}}\left(\left[\max_{a_{i}'\in A_i}u_i(a_{i}',a_{-i})\right]-u_i(a_i,a_{-i})\right)$$
+\end{definition}
+\begin{definition}
+An agent $i$'s minimum regret is
+$$\min_{a_i\in A_i}\left[\max_{a_{-i}\in A_{-i}}\left(\left[\max_{a_{i}'\in A_i}u_i(a_{i}',a_{-i})\right]-u_i(a_i,a_{-i})\right)\right]$$
+\end{definition}
+
+In other words, first player $i$ chooses an action and the other players choose an action profile which causes the greatest loss to player $i$. Player $i$ fights for the minimum loss. We can define the notion of minimax regret action profile easily. What's more, it is enough to consider actions instead of mixed strategies because of the linearity of expectation. (In the third expression, first show that we are satisfies with $a_{-i}$ and $a_{i'}$.)
+
+\item Nash equilibrium. 
+
+In reality, the agents may be neither completely malicious nor completely unpredictable. In fact, it is plausible to assume that each individual cares most about his or her own utility. What's more, we assume it is a common sense that every agent is clear that the others are self-interested. Then we get the famous notion of Nash equilibrium:
+\begin{definition}
+A strategy profile $s=(s_1,s_2,\ldots,s_n)$ is a Nash equilibrium if $s_i$ is a best response to $s_{-i}$ for all $i\in N$.
+\end{definition}
+For strict Nash equilibrium, we replace the ``best response'' in the definition with ``unique best response''. Otherwise we get a weak Nash equilibrium. Mixed strategy Nash equilibria are always weak while pure strategy Nash equilibria can be either weak or strict.
+
+The existence of Nash equilibrium is guaranteed by the following theorem:
+\begin{theorem}
+Every game with a finite number of players and action profiles has at least one Nash equilibrium.
+\end{theorem}
+Even with this theorem, the computation of Nash equilibria is hard in general. However, if the support of the equilibrium strategy is known, the equilibrium can be computed by solving a set of linear equations.
+
+\item $\epsilon$-Nash equilibrium.
+
+An $\epsilon$-Nash equilibrium is a strategy profile where no agent can benefit more than $\epsilon$ by deviating. A Nash equilibrium is necessarily surrounded by $\epsilon$-Nash equilibria, but the reverse is not true. In other words, an $\epsilon$-Nash equilibrium can be far away from any Nash equilibrium.
+
+
+
+
+
+\item Removal of dominated strategies
+
+\begin{definition}
+For player $i$,
+\begin{itemize}
+\item $s_i$ strictly dominates $s_{i}'$ if for all $s_{-i}\in S_{-i}$, $u_i(s_i,s_{-i})>u_i(s_{i}',s_{-i})$.
+\item $s_i$ weakly dominates $s_{i}'$ if for all $s_{-i}\in S_{-i}$, $u_i(s_i,s_{-i})\ge u_i(s_{i}',s_{-i})$ and for at least one $s_{-i}$ the inequality is strict.
+\end{itemize}
+\end{definition}
+
+\begin{definition}
+A strategy is strictly (weakly) dominant for player $i$ if it strictly (weakly) dominates any other strategy of player $i$.
+\end{definition}
+
+A dominant strategy profile is a Nash equilibrium. A strictly dominant strategy profile is necessarily the unique Nash equilibrium.
+
+The hardness of the Prisoner's Dilemma is that the strictly dominant strategy is the only one which is not Pareto optimal.
+
+Games with dominant strategies are popular in game theory, especially in mechanism design. However, natural games usually do not have dominant strategies. Instead we study dominated strategies:
+
+\begin{definition}
+A strategy is strictly (weakly) dominated for player $i$ if it is strictly (weakly) dominated by another strategy of player $i$.
+\end{definition}
+
+We can remove pure strictly dominated strategies from the game as long as there exists one. This will result in a weaker solution concept than Nash equilibrium. What's more, the result is independent of the elimination order (Church-Rosser property).
+
+\item Rationalizability.
+
+For each agent $i$ we define an infinite sequence of strategy sets $S_i^0,S_i^1,\ldots$, and let $S_i^0=S_i$. Then define $S_i^k$ as following:
+$$S_i^k=\left\{s_i\in S_i^{k-1}\bigg|\exists s_{-i}\in\prod_{j\ne i}\mathrm{CH}(S_j^{k-1}),\forall s_i'\in S_i^{k-1},u_i(s_i,s_{-i})\ge u_i(s_i',s_{-i})\right\}$$
+
+Here $\mathrm{CH}(\cdot)$ refers to convex hull, which is used to take the rationality of the other agents into account. Then the rationalizable strategies of player $i$ is defined as 
+$$\bigcap_{k\ge0}S_i^k$$
+
+Note that Nash equilibria are always rationalizable strategies. However, the elimination of strictly dominated strategies will result in a weaker solution concept.
+
+\item Correlated equilibrium.
+
+In Nash equilibrium, each agent chooses his or her own strategy. The strategy profile $s$ actually induces a distribution over $A$. However, such a distribution is limited. If general distribution is allowed, we end up with the notion of correlated equilibrium.
+
+\begin{definition}
+Suppose $\pi$ is a distribution over $A$. it is said to be a correlated equilibrium if for any $i\in N$ and any $a_i,a_i'\in A_i$, 
+$$\sum_{a_{-i}\in A_{-i}}(u_i(a_i,a_{-i})-u_i(a_i',a_{-i}))\pi(a_i,a_{-i})\ge0$$
+\end{definition}
+
+We can imagine that there is a central controller who sample an action profile according to $\pi$ and then tells each agent which action he or she should take. If agent $i$ believes in the controller (this is reflected in the above definition since we use $\pi(a_i,a_{-i})$, not $\pi(a_i',a_{-i})$), then he or she has no incentive to switch to another action.
+
+A Nash equilibrium is always a correlated equilibrium. However, the reverse is not true. The convex combination of two correlated equilibria is still a correlated equilibrium.
+
+\item Evolutionary stable strategies.
+
+Consider a symmetric two-player game. What's more, we restrict our attention to the symmetric strategy profile. Such a strategy profile may refer to a species distribution among a large population, and the payoff is the expected utility experienced by a random species from the interaction among different species. Now suppose an $\epsilon$ fraction of the population gets replaced by some invaders which exhibit a different species distribution. We want to know how stable the original population is faced with such an invasion.
+
+\begin{definition}
+Consider a symmetric two-player game and a symmetric mixed strategy $S$. We say $S$ is evolutionary stable if for some $\epsilon>0$ and all other $S'$
+$$u(S,(1-\epsilon)S+\epsilon S')>u(S',(1-\epsilon)S+\epsilon S'))$$
+Or equivalently
+$$(1-\epsilon)u(S,S)+\epsilon u(S,S')>(1-\epsilon)u(S',S)+\epsilon u(S',S')$$
+$$u(S,S)>u(S',S)\quad\mathrm{or}\quad u(S,S)=u(S',S)\ \mathrm{and}\ u(S,S')>u(S',S')$$
+\end{definition}
+
+For weak ESS, the second strict inequality in the last expression gets replaced with a non-strict one.
+
+If $S$ is an ESS, then $(S,S)$ is a symmetric Nash equilibrium. The reverse is not true. However, a strict symmetric Nash equilibrium is always an ESS.
+
+\end{itemize}
+
+\end{document}

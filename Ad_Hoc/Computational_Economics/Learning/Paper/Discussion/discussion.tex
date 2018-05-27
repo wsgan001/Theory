@@ -1,0 +1,435 @@
+\documentclass{article}
+\usepackage{comment}
+\usepackage[margin=1.25in]{geometry}
+\usepackage[round,comma]{natbib}
+\usepackage{amsmath}
+\usepackage{amssymb,graphicx,dsfont}
+
+%hoping the following suffices to give me proper \qedhere placement..
+%http://tex.stackexchange.com/questions/2274/problem-with-qedhere
+\usepackage{amsthm}
+%%ntheorem gets mad at being combined with natbib?  as in, things break as soon
+%% as I make a citation?  it must at the core be some complaint with thmtools, I guess..
+%% for now just avoiding ntheorem..
+%\usepackage[amsmath,amsthm,thmmarks]{ntheorem}
+%thmtools documentation says some things break when ntheorem is used.. hmm
+\usepackage{thmtools}
+\usepackage{subfig} %must be after thmtools..
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{mathrsfs}
+\usepackage{wrapfig}
+\usepackage{mathtools}
+\usepackage{nicefrac}
+
+%%%% stolen from djhsu
+%
+\def\ddefloop#1{\ifx\ddefloop#1\else\ddef{#1}\expandafter\ddefloop\fi}
+% \bA, \bB, ...
+\def\ddef#1{\expandafter\def\csname b#1\endcsname{\ensuremath{\mathbf{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+% \bbA, \bbB, ...
+\def\ddef#1{\expandafter\def\csname bb#1\endcsname{\ensuremath{\mathbb{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+% \cA, \cB, ...
+\def\ddef#1{\expandafter\def\csname c#1\endcsname{\ensuremath{\mathcal{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+% \vA, \vB, ..., \va, \vb, ...
+\def\ddef#1{\expandafter\def\csname v#1\endcsname{\ensuremath{\boldsymbol{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\ddefloop
+% \valpha, \vbeta, ...,  \vGamma, \vDelta, ...,
+\def\ddef#1{\expandafter\def\csname
+  v#1\endcsname{\ensuremath{\boldsymbol{\csname #1\endcsname}}}}
+\ddefloop
+    {alpha}{beta}{gamma}{delta}{epsilon}{varepsilon}{zeta}{eta}{theta}{vartheta}{iota}{kappa}{lambda}{mu}{nu}{xi}{pi}{varpi}{rho}{varrho}{sigma}{varsigma}{tau}{upsilon}{phi}{varphi}{chi}{psi}{omega}{Gamma}{Delta}{Theta}{Lambda}{Xi}{Pi}{Sigma}{varSigma}{Upsilon}{Phi}{Psi}{Omega}\ddefloop
+
+
+%\def\1{\mathds 1}
+\def\1{\mathbf 1}
+\def\R{\mathbb R}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+
+\def\int{\textup{int}}
+\def\epi{\textup{epi}}
+\def\dom{\textup{dom}}
+\newcommand{\ip}[2]{\left\langle #1, #2 \right \rangle}
+\newcommand{\argmax}{\operatornamewithlimits{arg\,max}}
+\newcommand{\argmin}{\operatornamewithlimits{arg\,min}}
+
+\newtheorem{defn}{Definition}
+\newtheorem{thm}{Theorem}
+\newtheorem{lem}{Lemma}
+\newtheorem{cor}{Corollary}
+
+\author{}
+\title{Revealed Preferences}
+
+\begin{document}
+\newcommand{\tbf}[1]{\textbf{#1}}
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mbb}[1]{\mathbb{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\let\onlyif\Longleftarrow
+
+\maketitle
+
+\section*{The Model}
+Here we consider a Fisher market, where one seller interacts with multiple customers. Below are some components of the model:
+\begin{itemize}
+\item The seller: The seller has $m$ kinds of goods and a \textbf{convex continuous} cost function $c:\mbb{R}_+^m\rightarrow\mbb{R}_+$. We assume that the seller can set the prices $p$ for goods and can observe the bundle $x(p)$ chosen by the customer. There are some different possibilities for the goods:
+\begin{itemize}
+\item Good $i$  can be replenished, or has a fixed supply of $s_i$.
+\item Goods can be divisible or indivisible.
+\end{itemize}
+
+\item Customers: We assume there are in total $T$ time steps. At each step, one or more customer may come for goods. Each buyer has a valation function which looks like $v:\mbb{R}_+^m\rightarrow\mbb{R}$, and is assumed to be rational, which means he or she will choose among possible bundles the one that gives the maximum utility. $v$ can be assumed to be \textbf{concave continuous}.
+
+There may also be some variations for customers:
+\begin{itemize}
+\item At each time step, either one customer may come whose valuation is fixed or follows some unknown distribution, or more than one customer may come and the aggreagte demand is shown to us.
+\item Customers' valuations may satisfy certain properties, such as quasi-linearity, linearity, CES conditions, single-mindedness, unit-demand-property, etc.
+\end{itemize}
+
+\item Goals: Different goals can be set, including:
+\begin{itemize}
+\item Revenue / Profit maximization
+\item Social welfare maximization
+\item Market Clearance
+\item Utility parameters and budgets learning
+\end{itemize}
+\end{itemize}
+
+We use $\mathcal{S}$ to denote the set of bundles from which each customer can choose. Intuitively we can say $\mathcal{S}$ represents the limited supply or bounded replenishing speed. It is fair to assume that $\mathcal{S}$ is \textbf{convex}, \textbf{compact}, \textbf{contained in} $\mathbb{R}^m_+$, and contains $0$ (customer can be allowed to buy nothing). The diameter of $\mathcal{S}$ is denoted by $D=\max_{x,y\in \mathcal{S}}\|x-y\|_2$. We will state the restriction on $\mathcal{S}$ clearly in each case discussed below.
+
+\section{Divisible Goods}
+\subsection{Without Budget Constraint}
+\subsubsection{With Replenishment}
+Here we assume the quasi-linear utility function $u(x,p)=v(x)-\langle x,p\rangle$.
+
+We can first look at how the consumer makes a decision facing a price. With price $p$, the buyer will select the bundle which maximizes $u(x,p)=v(x)-\langle x,p\rangle$, subject to the constraint $x\in\mathcal{S}$. Let $x(p)$ denote the choice of the buyer with price $p$, and let $s(p)=v(x(p))-\langle p,x(p)\rangle$ with $p\in \mathbb{R}_+^m$. We can make more assumptions such as \textbf{strict concavity} to ensure a unique value for $x(p)$. Here $s$ refers to "surplus", and $s(p)$ which is convex of $p$ is similar to the convex conjugate of $v(x)$.
+
+From the second point in the convexity section, \eqref{conjGrad}, we know that if the domain of $s$ is $\mathbb{R}^m$, then for any $(x,p)\in \mathcal{S}\times \mathbb{R}^m$,
+\begin{align}\label{dualPrice}
+p \in \partial v(x)
+\iff
+x \in \argmax_{x'\in \mathcal{S}} ( v(x')-\ip{p}{x'} )
+  &\iff
+  -x \in \partial s(p)
+  \iff
+  p \in \argmin_{p'\in \mathbb{R}^m} ( \ip{p'}{x} + s(p') ).
+\end{align}
+However, if we require the prices to be non-negative, then the second equivalence should be replaced with an implication. However, if we assume $v$ is \textbf{monotonically non-decreasing}, then the above equivalence still holds. The reason is that $v(x)$ has a non-negative subgradient for each $x$.
+
+In our model, we cannot compute $v(x)$, $\partial v(x)$, or $s(p)$ directly, but can get $x(p)\in\partial s(p)$ directly from the buyer oracle.
+
+\paragraph{Social Walfare Maximization}
+Here the seller's goal is to decide a price $p^*$, which maximizes $\mathrm{SW}(p)=v(x(p))-c(x(p))$. However, in general this will be a non-convex function of $p$. To deal with this problem, denote $\mathcal{S}'=\{x\in\mathcal{S}|\exists p\in \mathbb{R}_+^m, x=x(p)\}$. Then we only need to maximize $\mathrm{SW}(x)=v(x)-c(x)$ over $\mathcal{S}'$; in other words, to find $x^*\in \mathcal{C'}$ where $\partial v(x^*)\cap\partial c(x^*)\ne\emptyset$, and a corresponding price $p^*\in\partial v(x^*)$. As before, if we assume that $v$ is \textbf{strictly concave}, then $\mathbf{int}\,\mathcal{S}\subset \mathcal{S}'$.
+
+First note that if $c(\cdot)$ is linear, we can just set $p^*=c$, and $x^*=x(c)$. The reason is that, from \eqref{dualPrice} we have $c\in\partial v(x(c))$, and of course $c\in\partial c(x(c))$. Also, $x(c)\in \mathcal{S}'$. Although no seller will post such a price since no profit can be made then, it is a mathematical solution.
+
+With non-linear cost function, if there is only one good we still have fast algorithms. We want to find the zero point of $v'(x)-c'(x)$; we can do this using binary search, if we can decide at each $x$ which one is larger, $v'(x)-c'(x)$ or $0$. Actually we can set $c'(x)$ as the price, and notice that $x(c'(x))>x$ if and only if $v'(x)>c'(x)$, assuming \textbf{strict concavity}. However, it is not clear how to extend this to high-dimensional case.
+
+In general, we apply subgradient descent to maximize social welfare. However, we cannot compute $\partial v(x)$ directly. From \eqref{dualPrice}, we know that $p\in\partial v(x)\implies p \in \arg\min_{p'\in \mathbb{R}_+^m} ( \ip{p'}{x} + s(p') )$. Thus we can just minimize $g(p')=\ip{p'}{x} + s(p')$ over $\mathbb{R}_+^m$. Also from \eqref{dualPrice}, we know $x-x(p')\in\partial g(p')$ and thus subgradient descent can be used. If $v$ is \textbf{strictly concave}, then in fact $g$ is differentiable and $\nabla g(p')=x-x(p')$. In other words, we have a two-level subgradient descent: On the upper level we optimize $v(x)-c(x)$ and on the lower level we optimize $g(p')$. This is the most general framework, and we can further make different assumptions on $v$ and $c$.
+
+In the general model, we only assume that $-v$ and $c$ are convex continuous. Here for simplicity, as we mentioned before, we assume $v$ is \textbf{strictly concave} and \textbf{monotonically non-decreasing}. We will mainly focus on the following assumptions on $v$:
+\begin{itemize}
+    \item First-order conditions: $v$ is $\lambda_v$-Lipschitz continuous.
+    \item Second-order conditions: $v$ is $\alpha$-strongly concave; or $v$ is $\beta_v$-strongly smooth and concave. Notice that with a bounded $\mathcal{S}$, actually smoothness of $v$ implies Lischitz continuity on $\mathcal{S}$.
+\end{itemize}
+We will make firts-order or second-order assumptions on $c$ accordingly. Since $c$ is known, actually we can smooth it if we want; however, making explict assumptions can make the statements clearer.
+
+Basically we need to consider two problems:
+\begin{itemize}
+    \item Are we able to design better algorithms if we assume more on $-v$ and $c$?
+    \item No matter what algorithms we use, there will be some error in the lower-level optimization, which will also be propagate to the upper level. How to deal with it?
+
+    With the most general subgradient descent method, in each lower level optimization, we can get some $p^{\tau}$ such that $g(p^{(\tau)})-g(p^*)\le\epsilon$. However, this is not enough for us. Actually either of the following two is fine for us:
+    \begin{itemize}
+        \item $\|p^{(\tau)}-p^*\|_2\le\epsilon$, which means that we can compute an approximated subgradient of $v$. This can come from the strong convexity of $g$, or strong smoothness of $v$.
+        \item $\|x(p^{(\tau)})-x(p^*)\|_2\le\epsilon$, or equivalently $\|\partial g(p^{(\tau)})\|_2\le\epsilon$. This can come from the strong smoothness of $g$, or strong concavity of $v$.
+    \end{itemize}
+\end{itemize}
+
+\subparagraph{With Lipschitz condition}
+First, we replace $\mathcal{S}$ with some convex compact subset $\mathcal{S}_{\delta}$ which is close to $\mathcal{S}$ but doesn't intersect $\mathbf{bd}\,C$. Such a change will not affect the optimum objective value too much, and it can also be assumed that $v$ has subgradient everywhere on $\mathcal{S}$ and thus $\mathcal{S}=\mathcal{S}'$. The Lipschitz condition means that for all $x\in \mathcal{S}$ and $p\in\partial\,v(x)$, $\|p\|_2\le\lambda_v$.
+
+In this case, we cannot solve the problem directly because of the error propogation. However, we can use the smoothing techniques to deal with error propogation.
+
+Recall that given $v:\mathcal{S}\rightarrow \mathbb{R}$, $s(p)=\max_{x\in \mathcal{S}}\{v(x)-\langle x,p\rangle\}$ can be seen as the conjugate of $v$. From the duality property, we also have $v(x)=\min_{p\in \mathbb{R}_+^m,\|p\|_2\le\lambda_v}\{\langle x,p\rangle+s(p)\}$. Now define $v_{\mu}(x)=\min_{p\in \mathbb{R}_+^m,\|p\|_2\le\lambda_v}\{\langle x,p\rangle+s(p)+\frac{\mu}{2}\|p\|_2^2\}$, and denote $s+\frac{\mu}{2}\|\cdot\|_2^2$ by $s_{\mu}$. $v_{\mu}$ is a smoothed version of $v$, and we optimize $v_{\mu}-c$ instead of $v-c$. We can prove the following properties:
+\begin{itemize}
+    \item For all $x\in \mathcal{S}$, $v(x)\le v_{\mu}(x)\le v(x)+\frac{\mu}{2}\lambda_v^2$.
+    \item $\langle x,p\rangle+s_{\mu}(p)$ is $\mu$-strongly convex, which can be optimized using subgradient descent efficiently. More precisely, after $\tau$ steps, we can compute a price $p_{\mu}^{\tau}$ such that $\|p_{\mu}^{(\tau)}-p_{\mu}^*\|_2\le \frac{2(2D+\mu\lambda_v)}{\mu\sqrt{\tau}}$.
+    \item To optimize $v_{\mu}-c$, we need to compute $\nabla v_{\mu}-\nabla c$. However, actually we can only compute an approximation of $\nabla v_{\mu}$. Gradient descent or accelerated gradient descent cannot work with noisy gradients directly.
+
+    One way is to use subgradient descent. We also assume that $c$ is $\lambda_c$-\textbf{Lipschitz continuous}. If at each step the norm of the noise added to the gradient is no more than $\epsilon'$, then after $t$ steps, we can get an $x_{\mu}^{(t)}$ such that $(v_{\mu}-c)(x_{\mu}^*)-(v_{\mu}-c)(x_{\mu}^{(t)})\le \frac{D^2+(\lambda_v+\lambda_c)^2\eta^2t}{2\eta t}+\epsilon' D$. Also notice that $(v_{\mu}-c)(x_{\mu}^*)\ge(v_{\mu}-c)(x^*)\ge(v-c)(x^*)$, and $(v_{\mu}-c)(x_{\mu}^{(t)})\le (v-c)(x_{\mu}^{(t)})+\frac{\mu}{2}\lambda_v^2$. Put everything together, we need $\eta=\frac{D}{(\lambda_v+\lambda_c)\sqrt{t}}$, $\mu=\frac{2\sqrt{2}D}{\lambda_v\sqrt[4]{\tau}}$, $\tau=\frac{D^4\lambda_v^4}{\epsilon^4}$ and $t=\frac{D^2(\lambda_v+\lambda_c)^2}{\epsilon^2}$ to ensure $(v-c)(x^*)-(v-c)(x_{\mu}^{(t)})\le6\epsilon$. The total running time is $O\left(\frac{1}{\epsilon^6}\right)$.
+\end{itemize}
+
+The above algorithm only requires Lipschitz continuity of $v$ and $c$. If further assumptions are made, then better algorithms can be achieved.
+\begin{itemize}
+    \item Suppose $v$ is $\beta_v$-strongly smooth, which means $s$ is $\frac{1}{\beta_v}$-strongly convex. Then we no longer need to do smoothing. The other parts of the algorithm remain unchanged. Now if we set $t=\frac{25D^2(\lambda_v+\lambda_c)^2}{\epsilon^2}$, $\tau=\frac{25D^4\beta_v^2}{\epsilon^2}$, we can guarantee $(v-c)(x^*)-(v-c)(x^{(t)})\le\epsilon$. The total time complexity is $O\left(\frac{1}{\epsilon^4}\right)$.
+    \item Suppose $v$ is $\alpha$-strongly concave, which means $s$ is $\frac{1}{\alpha}$-strongly smooth and convex. One can directly run accelerated gradient descent on the dual problem and subgradient descent on the primal problem. We can set $t=\frac{5D^2(\lambda_v+\lambda_c)^2}{\epsilon^2}$ and $\tau=\frac{\sqrt{5}\lambda_v(\lambda_v+\lambda_c)}{\epsilon\alpha}$. The total time complexity will be $O\left(\frac{1}{\epsilon^3}\right)$.
+
+    We can also apply smoothing to this case. Further assume $c$ is $\beta_c$-\textbf{strongly smooth}. (However, wo do not need Lipschitz continuity of $c$.) By the duality of strong convexity (concavity) and strong smoothness, we know that $s$ is $\frac{1}{\alpha}$-strongly smooth and convex, $s_{\mu}$ is $\mu$-strongly convex and $(\frac{1}{\alpha}+\mu)$-strongly smooth, and $v_{\mu}$ is $\frac{\alpha}{1+\alpha\mu}$-strongly concave and $\frac{1}{\mu}$-strongly smooth. Now we can run gradient descent on both the primal and dual problems, which converges in logarithmic time and tolerant of noisy gradients. We have the following properties:
+    \begin{itemize}
+        \item $\|p_{\mu}^{(\tau)}-p_{\mu}^*\|_2\le\left(\frac{1}{1+\alpha\mu}\right)^{\tau}\lambda_v\le\epsilon'$.
+        \item $(v_{\mu}-c)(x_{\mu}^*)-(v_{\mu}-c)(x_{\mu}^{(t)})\le(1-\frac{\tilde{\alpha}}{\tilde{\beta}}+\epsilon')^t\frac{\tilde{\beta}}{2}D^2+\frac{\epsilon'}{\tilde{\alpha}-\tilde{\beta}\epsilon'}$,
+        where $\tilde{\alpha}=\frac{\alpha}{1+\alpha\mu}$, $\tilde{\beta}=\frac{1}{\mu}+\beta_c$.
+        \item As before, we have $(v_{\mu}-c)(x_{\mu}^*)\ge(v_{\mu}-c)(x^*)\ge(v-c)(x^*)$, and $(v_{\mu}-c)(x_{\mu}^{(t)})\le (v-c)(x_{\mu}^{(t)})+\frac{\mu}{2}\lambda_v^2$.
+    \end{itemize}
+    Putting everything together, we can set $\mu=\frac{2\epsilon}{\lambda_v^2}$, $\tau=O(\frac{1}{\epsilon}\log \frac{1}{\epsilon})$, $t=O(\frac{1}{\epsilon}\log \frac{1}{\epsilon})$. The total running time is $O(\frac{1}{\epsilon^2}\log^2 \frac{1}{\epsilon})$.
+\end{itemize}
+
+\subparagraph{Without Lipschitz continuity}
+It is possible to drop the Lipschitz continuity assumption assuming strong smoothness of $v$ and $c$. In this case, $s$ will be strongly convex, and we can use subgradient descent in the dual problem. In the primal problem, we need a noise-tolerant method, and Frank-Wolfe algorithm is one choice. The total running time is $O(\frac{1}{\epsilon^5})$. However, we need to assume that, as required by the Frank-Wolfe algorithm, we have access to a linear minimization oracle.
+
+It is also possible to drop the Lipschitz continuity condition if we assume Strong smoothness of $v$ and $c$ and strong concavity of $v$. However, it seems that such an assumption is too strong.
+
+\paragraph{Profit Maximization}
+\subparagraph{1-Dimensional Case}
+We start with the case where $m=1$. Then $\mathcal{S}$ will be $[0,s]$. Still assume $v$ is $\lambda_v$-Lipschitz continuous. For simplicity, assume $v$ is continuously differentiable on $[0,s]$, and $c=0$.
+
+Our goal is to find the maximum of $xv'(x)$ on $[0,s]$. Since $v$ is concave, $v'$ will be non-increasing on $[0,s]$. On the other hand, $v'$ can be any non-increasing continuous function on $[0,s]$.
+
+To find an $\epsilon$-additive appoximate maximum of $xv'(x)$, we have two ways:
+\begin{itemize}
+    \item Set the prices to be $\lambda_v,\lambda_v-\frac{\epsilon}{s},\ldots,\frac{2\epsilon}{s},\frac{\epsilon}{s},0$. There will be in total $\frac{s\lambda_v}{\epsilon}$ different prices. Check all those prices and output the price which gives the maximum revenue. The running time is $O(\frac{1}{\epsilon})$.
+
+    To prove the correctness, let $p^*$ denote the global optimum price. Then there exists some $k$, such that $\hat{p}=\frac{k\epsilon}{s}\le p^*\le \frac{(k+1)\epsilon}{s}=\hat{p}'$. Then we know that $p^*x(p^*)\le p^*x(\hat{p})\le(\hat{p}+\frac{\epsilon}{s})x(\hat{p})\le\hat{p}x(\hat{p})+\epsilon$.
+
+    \item In the above method, we divide the searching space uniformly. The following method divides the space non-uniformly, and gives an $O(\frac{1}{\epsilon}\log \frac{1}{\epsilon})$ algorithm. Although the running time is a little worse, this method can give us some inspiration about the hardness result.
+
+    we can set the price to be $\lambda_v,\frac{\lambda_v}{1+\epsilon'},\ldots,\frac{\lambda_v}{(1+\epsilon')^r}$ where $\epsilon'=\frac{\epsilon}{s\lambda_v}$ and $\frac{\lambda_v}{(1+\epsilon')^r}\le \frac{\epsilon}{s}$. Thus $r\ge\ln (\frac{s\lambda_v}{\epsilon})/\ln(1+\epsilon')$ is enough, in other words the running time is $O(\frac{1}{\epsilon}\log \frac{1}{\epsilon})$. To prove the correctness, let $p^*$ denote the optimum price, and assume $\hat{p}=\frac{\lambda_v}{(1+\epsilon')^{z+1}}\le p^*\le \frac{\lambda_v}{(1+\epsilon')^z}=\hat{p}'$. (If $p^*<\frac{\lambda_v}{(1+\epsilon')^r}$, then the optimum revenue will be less than $\epsilon$, and any price will be fine.) Then we have $p^*x(p^*)\le p^*x(\hat{p})\le(1+\epsilon')\hat{p}x(\hat{p})\le \hat{p}x(\hat{p})+\epsilon$.
+\end{itemize}
+
+Also, $\Omega(\frac{1}{\epsilon})$ is a lower bound of the running time. Let $q$ be some integer such that $\frac{s}{(1+\epsilon)^q}=\frac{1}{\lambda_v}$. $q$ is $\Omega(\frac{1}{\epsilon})$. Let $\tilde{v}'(x)=\lambda_v$ on $[0,\frac{s}{(1+\epsilon)^q}]$, and $\frac{1}{x}$ on $[\frac{s}{(1+\epsilon)^q},s]$. The global maximum revenue is then $1$. However, if the running time of an algorithm $\mathcal{A}$ is less than $O(\frac{1}{\epsilon})$, then there must exist some $z$ such that no $x\in[\frac{s}{(1+\epsilon)^{z+1}},\frac{s}{(1+\epsilon)^z}]$ is considered. We can then modify $\tilde{v}'(x)$ and let it take the value $\frac{(1+\epsilon)^{z+1}}{s}$ on $[\frac{s}{(1+\epsilon)^{z+1}},\frac{s}{(1+\epsilon)^z}]$. (There will be a discontinuity at $\frac{s}{(1+\epsilon)^z}$, but we can make it continuous easily.) The optimum revenue is $1+\epsilon$ now, but $\mathcal{A}$ cannot detect it.
+
+\subparagraph{2-Dimensional Case}
+It seems difficult to extend the 1-dimensinoal algorithm to 2-dimensional case. For example, suppose we know that the optimum price $(p^*_1,p^*_2)$ lies in some rectangle $[\hat{p}_1,\hat{p}'_1]\times[\hat{p}_2,\hat{p}'_2]$. However, now it is unclear what is the relationship between $x(p^*)$ and $x(\hat{p})$: They may be uncomparable.
+
+We can still use the uniform grid algorithm if $\langle x,\nabla v(x)\rangle$ is Lipschitz continuous. This requires the Lipschitz continuity of $\nabla v(x)$, or the strong smoothness of $v$.
+
+Below is a (not strong) hardness result. Consider $f(x)=\ln \|x\|_1$. For simplicity, let the domain $\mathcal{S}$ be $(0,1]^n$, which is not closed. The gradient is $\frac{1}{\|x\|_1}\mathbf{1}$. Consider a corner $\tilde{x}\in\{0,1\}^n$, $\tilde{x}\ne \mathbf{0}$. Let $S(\tilde{x})=\langle \mathbf{1},\tilde{x}\rangle$ denote the number of $1$'s in $\tilde{x}$. Also define $y(\tilde{x})\in\{-1,1\}^n$ such that for $1\le i\le n$, $y(\tilde{x})_i=-1$ if $\tilde{x}_i=0$, or $y(\tilde{x})_i=1$ otherwise. Now one can verify that $N(\tilde{x})=\mathcal{S}\cap\{x|S(\tilde{x})-\frac{1}{2}\le \langle y(\tilde{x}),x\rangle\le S(\tilde{x})\}$ does not intersect for different corners. In fact, by our construction, for any $x\in N(\tilde{x})$, $\|x-\tilde{x}\|_1\le \frac{1}{2}$.
+
+Now, if less than $2^n-1$ points are checked, then one of these corners must be missed. Denote it by $\hat{x}$, and let $\hat{S}=S(\hat{x})$ and $\hat{y}=y(\hat{x})$. We are going to redefine the function in $N(\hat{x})$ using the function values and gradients on $\mathcal{T}=\mathcal{S}\cap\{x|\langle \hat{y},x\rangle=\hat{S}-\frac{1}{2}\}$. Let $i$ be a specific coordinate such that $\hat{x}_i=1$. Then for any $x\in N(\hat{x})$, define
+\begin{equation}
+    \hat{f}(x)=f(x_{-i},z(x))+\frac{1}{\|x_{-i}\|_1+z(x)}(\langle\hat{y},x\rangle-S+\frac{1}{2}),
+\end{equation}
+where $z(x)=\hat{S}-\frac{1}{2}-\langle \hat{y}_{-i},x_{-i}\rangle$. $z(x)\ge0$ because $\langle \hat{y},x\rangle\le\hat{S}$ and $\frac{1}{2}\le x_i\le 1$. Intuitively, we just take function values on $\mathcal{T}$ and extend it linearly using the gradients on $\mathcal{T}$.
+
+By calculation, one can show that in $N(\hat{x})$, $\nabla\hat{f}(x)=\nabla f(x_{-i},z(x))$, and $\hat{f}$ is indeed concave. Now $\langle x,\nabla\hat{f}(x)\rangle=\langle x,\nabla f(x_{-i},z(x))\rangle=1+(x_i-z(x))\nabla_i f(x_{-i},z(x))\le 1+\frac{1}{2n}$. We can achieve this error arbitrarily.
+
+\subsubsection{Without Replenishment}
+\textsl{Try to find some connections to online linear and convex programming! Consider the distribution case or random arrival case and see if everything goes through. Try to compare the multi-armed bandit model with multiplicative weight update method.}
+
+\subsection{With Budget Constraint}
+This problem may be hard. The reason is that, suppose $v$ is Lipschitz continuous and differentiable, then for each $x\in \mathbf{int}\,\mathcal{S}$, the price inducing $x$ will be $-\nabla v(x)$. In other words, we want to maximize $v(x)-c(x)$ over those $x$ such that $\langle x,-\nabla v(x)\rangle\le b$. However, such a set may be non-convex!
+
+\section{Indivisible Goods}
+\textsl{Read the paper on Walrasian equilibrium computation!}
+
+\appendix
+\section{Convexity}
+\subsection{Basic Definitions}
+Let $f : \R^d\to\R\cup \{\infty\}$ be convex, and define its \emph{effective domain} $\dom(f) := \{x \in\R^d : f(x) < \infty\}$.
+$f$ is \emph{closed} when $\epi(f) := \{ (x,y) : y\geq f(x)\}$is a closed set.
+$f$ is \emph{proper} when $\dom(f)\ne\emptyset$.
+For every $x\in\dom(f)$, define the \emph{subdifferential}
+\begin{equation}\label{subDiff}
+    \partial f(x) = \{s\in\R^d : \forall x'\in\R^d, f(x') \geq f(x) + \ip{s}{x'-x}\}.
+\end{equation}
+We have the following properties (See \citep[Theorem 3.1.13, Theorem 3.1.15]{N13})
+\begin{itemize}
+    \item For all $x\in\int(\dom(f))$, $\partial f(x)\ne\emptyset$.
+    \item $x\in\arg\min f(x)\iff0\in\partial f(x)$.
+\end{itemize}
+
+$f$ is $\alpha$-strongly convex if for all $x,y\in\dom(f)$ and all $\lambda\in[0,1]$,
+\begin{equation}
+    \lambda f(x)+(1-\lambda)f(y)\ge f(\lambda x+(1-\lambda)y)+\frac{\alpha}{2}\lambda(1-\lambda)\|x-y\|_2^2.
+\end{equation}
+If $f$ is differentiable, then equivalently for all $x,y\in\dom(f)$,
+\begin{equation}
+    f(y)-f(x)\ge \langle\nabla f(x),y-x\rangle+\frac{\alpha}{2}\|y-x\|_2^2.
+\end{equation}
+
+$f$ is $\beta$-strongly smooth and convex if $f$ is convex and differentable, and for all $x,y\in\dom(f)$,
+\begin{equation}\label{smooth}
+    f(y)-f(x)\le \langle\nabla f(x),y-x\rangle+\frac{\beta}{2}\|y-x\|_2^2.
+\end{equation}
+
+\subsection{Fenchel Conjugate}
+For an arbitrary $f : \R^d\to\R\cup \{\infty\}$, $f\not\equiv\infty$, the \emph{fenchel conjugate} $f^*(s) := \sup_x \ip{x}{s} - f(x)$ is closed convex.
+    If $f$ is convex closed proper, then $f=f^{**}$, and
+    every pair $(x,s) \in \R^d\times\R^d$ satisfy
+    \begin{align}\label{conjGrad}
+    s \in \partial f(x)
+      &\iff
+      x \in \partial f^*(s)
+     %\\
+     %&
+      \iff
+      x \in \argmax_{x'} ( \ip{s}{x'} - f(x') )
+     %\\
+     %&
+      \iff
+      s \in \argmax_{s'} ( \ip{s'}{x} - f^*(s') ).
+    \end{align}
+    See for instance
+    \citep[Theorem 23.5]{ROC}
+    or \citep[Corollary E.1.4.4]{HULL}.
+
+    \begin{proof}
+        First,
+        \begin{equation}
+            s\in\partial f(x)\iff0\in\partial(\langle s,x\rangle-f(x))\iff x\in\arg\max_{x'}(\langle s,x'\rangle-f(x')),
+        \end{equation}
+        and similarly
+        \begin{equation}
+            x\in\partial f^*(s)\iff0\in\partial(\langle x,s\rangle-f^*(s))\iff s\in\arg\max_{s'}(\langle s',x\rangle-f^*(s')).
+        \end{equation}
+        Finally,
+        \begin{equation}
+            x\in\arg\max_{x'}(\langle s,x'\rangle-f(x'))\iff f(x)+f^*(s)=\langle s,x\rangle\iff s\in\arg\max_{s'}(\langle s',x\rangle-f^*(s')).
+        \end{equation}
+    \end{proof}
+
+\subsection{Duality of Strong Convexity and Strong Smoothness}
+$f$ is $\alpha$-strongly convex if and only if $f^*$ is $\frac{1}{\alpha}$ strongly smooth and convex over $\mathbb{R}^d$. Proof can be found at \citep[Lemma 15]{S07} and \citep[Theorem 6]{KST09}. For completeness we also give a proof here.
+\begin{proof}
+
+\end{proof}
+
+\subsection{Subgradient Descent}
+Let $f :\R^d \to \R$ be closed convex proper and $S$ be closed convex. \emph{Subgradient descent} consists of the following steps:
+\begin{enumerate}
+    \item
+    Let $x_0 \in S$ be given.
+    \item
+    for $i\in \{1,\ldots,t\}$:
+
+    \begin{enumerate}
+        \item
+        Choose $s_i \in \partial f(x_{i-1})$.
+        \item
+        Set $w_i := \Pi_S(w_{i-1} - \eta_i s_i)$, where $\eta_i$ is a step size and $\Pi_S$ denotes orthogonal projection onto $S$.
+    \end{enumerate}
+\end{enumerate}
+The standard guarantees are as follows \citep[Chapter 3]{bubeck}.
+
+\begin{itemize}
+    \item
+    If $S$ is compact with $\sup_{x,y\in S} \|x-y\|_2 \leq R$ and $f$ is $L$-lipschitz over $S$, then the choice $\eta_i := \eta := R / (L\sqrt{t})$ implies the average iterate $w = (t+1)^{-1} \sum_i w_i$ satisfies $f(w) - \inf_w f(w) \leq RL/\sqrt{t+1}$. It will still work if at each step $s_i$ or $w_i$ is perturbed slightly.
+
+    \item
+    If $f$ is $\beta$-smooth, then $\eta_i := \eta := 1/\beta$ gives $f(w_t) - \inf_w f(w) = \cO(1/t)$
+\end{itemize}
+
+\bibliography{discussion}
+\bibliographystyle{plain}
+
+\end{document}
+
+
+
+
+
+\begin{comment}
+\section{Indivisible Goods with Market Prices}\label{ima}
+\subsection{Profit Maximization as the Goal}
+If the seller just takes the market prices but still wants to maximize his or her profit, we must allow him or her to control something. Here we assume that the seller can select a subset of the goods which will be recommended to the customer. The customer will make choices within this subset.
+
+\paragraph{Valuations revealed on arrival}
+If the customers' valuations are quasi-linear and unit-demand, then the problem is basically the \textbf{online vertex-weighted matching problem}. Actually we can construct a bipartite graph, the left-hand-side nodes represent goods which can be matched multiple times since each good has a limited supply and whose weights correspond to prices, while the right-hand-side nodes represent customers. There is an edge between a good and a customer if and only if the customer is willing to buy the good according to his or her utility function.
+
+There are plenty of work on online matching problem. It is first discussed in \cite{KVV90} where nodes are unweighted and can be matched at most once. For this problem, a simple greedy algorithm which always matches an arriving node if it has an unmatched neighbor achieves a maximal matching, and thus ensures a competitive ratio of 1/2. It is also easy to show that no deterministic algorithm may have a higher competitive ratio. For randomized algorithm, in \cite{KVV90} an algorithm called RANKING is shown to have a competitive ratio of $1-1/e$. What's more, this bound is tight.
+
+The model is further generalized to online vertex-weighted bipartite matching in \cite{AGKM11} and online AdWords problem in \cite{MSVV07}. For the online vertex-weighted bipartite matching, a $(1-1/e)$-competitive algorithm is also given. In AdWords problem, each node on the left hand side represents a bidder. Each bidder has a budget, and will make a bid on arrival of a right-hand-side node. We must assign the RHS node to at most one bidder and the money we collect from each bidder cannot exceed his or her budget.  If budgets are far more than bids, a $(1-1/e)$-competitive algorithm is designed. In \cite{DJK13}, an simple analysis of RANKING algorithm is given, which can also be extended to online vertex-weighted matching and online AdWords problem.
+
+Above are all for the worst-case model, where customers' valuations are chosen by an adversary. There are also many statistical models.
+
+If customers' valuations are quasi-linear and single-minded, the problem can be reduced to the online packing problem.
+
+\paragraph{Valuations unrevealed on arrival}
+In this situation, the seller needs to first learn customers' valuations and then try to make recommendations. Not so familiar with this topic.
+
+\subsection{Supply Chain Management as the Goal}
+In this setting, generally we assume that customers' valuations are drawn from an unknown distribution and unknown to us. The customer may choose from all possible goods, and we try to learn their valuations by looking at their choices. Their are some results on this direction for divisible goods, please refer to Section \ref{dma}.
+
+
+
+
+
+\section{Indivisible Goods with Monopoly Prices}\label{imo}
+\subsection{Profit Maximization as the Goal}
+\paragraph{Valuations revealed on arrival} In this setting basically the seller can control what customers will buy.
+
+If the customers' valuations are quasi-linear and unit demand, then the problem can be reduced to the online edge matching problem, which is also an extension to the online vertex weighted problem.
+
+If the customers' valuations are quasi-linear and single-minded, the problem can still be reduced to an online packing problem.
+
+\paragraph{Valuations unrevealed on arrival}
+There are some results on the divisible version.
+
+
+
+
+
+\section{Divisible Goods with Market Prices}\label{dma}
+
+
+
+
+
+\section{Divisible Goods with Monopoly Prices}\label{dmo}
+
+
+
+
+
+\section{Profit Maximization with Unknown Valuation Distribution}
+Here we assume that the seller can set the prices, goods are divisible, and the cost function $c$ is $\lambda$-Lipschitz. We make a relative unnatural assumption that each good has an \textbf{unlimited supply or replenish speed}. This is necessary because otherwise we cannot relate the profit function to the valuation function. However, this will not lead to unlimited demand because each customer is assumed to have a strong concave valuation. More discussion of $\mathcal{S}$ can be found later.
+
+Each step a valuation $v_i$ is drawn from some unknown distribution $\Psi$. Both $v_i$ and $\Psi$ are unknown to the customer. We assume that $v_i$ is monotonically increasing, $(\lambda,\beta)$-H\"older continuous, and $\sigma$-strongly concave. Here \textbf{strong} concavity may actually be a too strong assumption. Could we relax this assumption, or at least find efficient algorithm for some \textbf{special valuations}?
+
+For a given price $p$, let $x_v(p)$ denote the induced bundle when valuation $v$ sees price $p$. Note that since we assume $v$ is strongly concave, this function is well-defined. Then let $x_{\Psi}(p)$ denote the expected induced bundle.
+
+\subsection{Express Profit as a Convex Function of the Expected Induced Bundle}
+If we set a price, then the profit will be determined. However, such a function may not be concave, and thus may be hard to optimize. Here the idea is to express the profit as a function of the expected induced bundle. There are 2 problems:
+\begin{itemize}
+\item For a given $x_{\Psi}(p)$, does there exist a price $p$ which induce $x_{\Psi}(p)$?
+\item If there exists such a price $p$, how many possible such prices are there and is the profit unique?
+\end{itemize}
+
+Now suppose a possible expected induced bundle $\hat{x}$ is given. To answer these problems, we define the following (primal) convex program:
+\begin{equation}\label{scp}
+\begin{array}{rl}
+\mr{maximize} & \sum_{i=1}^nq_iv_i(x_i) \\
+\mr{s.t.} & \sum_{i=1}^nq_ix_i\le\hat{x} \\
+\end{array}
+\end{equation}
+Here $q_i$ represents the distribution. Let $P(\hat{x})$ denote this program or the optimal value of this program, depending on the context. First, in contrast to what we point out in the introduction, let's assume the replenish speed is limited, and $\mathcal{S}$ is the convex compact set where $x_i$'s can take value from. Also, let $\hat{x}\in\mbf{int}\,\mathcal{S}$ to ensure that $\hat{x}$ lies in the interior of the domain of $v$ and Slater's condition holds. Since $v_i$'s are strongly concave, there \textbf{is} a \textbf{unique} optimal solution $x^*=(x_1^*, x_2^*,\ldots,x_n^*)$.
+
+The first thing we need to consider is whether $\hat{x}$ a convex combination of $x_1^*,x_2^*,\ldots,x_n^*$. Since $v_i$'s are all monotonically increasing and strongly concave, it seems to be so. However, there is some counterexamples if no further assumption is made about $\mathcal{S}$. (Please refer to Appendix \ref{distv}.) Thus we would like to assume that $\mathcal{S}$ is a \textbf{cuboid} with $[0,1]^m\subset\mathcal{S}\subset\mbb{R}^m_+$. Now we have $\sum_{i=1}^nq_ix_i^*=\hat{x}$.
+
+The next thing is whether there exists a price which induces $x_i^*$ for $i\le i\le m$ and thus $\hat{x}$. Here we refer to the Lagrangian of the program:
+\begin{equation}
+L(x,p)=L(x_1,x_2,\ldots,x_n,p)=\sum_{i=1}^nq_iv_i(x_i)+p^{\mr{T}}(\hat{x}-\sum_{i=1}^nq_ix_i)
+\end{equation}
+And define the dual function $g(p)=\max_{x\in\mathcal{S}^n}L(x,p)$. Since Slater's condition holds, a dual optimal solution $p^*$ always exists. By KKT conditions, one can show that $x_i^*$ is indeed a best response of $v_i$ to price $p^*$. What's more, also by KKT conditions it can be proved that any price $p$ which induces $\hat{x}$ will actually induce $x^*$ and is a dual optimal solution. Let $P(\hat{x})$ denote the optimal value of program \eqref{scp}, then it also represents the expected valuation when $\hat{x}$ is the expected purchased bundle. Remember that this function is well-defined for any $\hat{x}\in\mbf{int}\,\mathcal{S}$.
+
+Now let's consider the profit. Note that for each $1\le i\le n$, $x_i^*$ is a best response to $p^*$. If at least one $x_i^*$ lies in the interior of $\mathcal{S}$, then $\nabla v_i(x_i^*)=p^*$ and $p^*$ is unique. However, in general $x_i^*$ may lie on the boundary of $\mathcal{S}$ where $\nabla v_i(x_i^*)\ne p^*$. However, one can show that $p^*$ is always a subgradient of $v_i$ at $x_i^*$ on $\mathcal{S}$. If what we want to do is only to optimize $v_i(x_i^*)$, then there is no problem since subgradients also work; but in profit maximization, what we would like to show is that $\langle p^*,\hat{x}\rangle=\sum_{i=1}^nq_i\langle p^*,x_i^*\rangle$ is a concave function of $\hat{x}$. If $p^*=\nabla v_i(x_i^*)$, then $\langle p^*,x_i^*\rangle=\langle\nabla v_i(x_i^*),x_i^*\rangle=kv_i(x_i^*)$, and $\langle p^*,\hat{x}\rangle=kP(\hat{x})$ is concave of $\hat{x}$.
+
+One observation is that if for a certain valuation $i$, if the price of a certain good $j$, $p^*_j$, is so high for him that he buys 0 unit of $j$ ($x_{i,j}^*=0$), then the above problem can be avoided. Furthermore, let's assume that the replenishing speed is \textbf{large} enough so that a customer's rational demand can always be satisfied. More formally, since $v_i$'s are all $(\lambda,\beta)$-H\"older continuous and $\sigma$-strongly concave, one can show that there is always a point $\tilde{x}$ where the gradient of $v_i$ is 0 and $\|\tilde{x}\|_2\le(2\lambda/\sigma)^{1/(2-\beta)}$. Let's take $\mathcal{S}=[0,(2\lambda/\sigma)^{1/(2-\beta)}]^m$. Then the problem described in the previous paragraph will not appear.
+
+Let's put everything together. Let $\mathcal{S}=[0,(2\lambda/\sigma)^{1/(2-\beta)}]^m$. For each $\hat{x}\in\mathcal{S}$, it can be induced by some price $p^*$, which is also a dual optimal solution of $P(\hat{x})$. $p^*$ may not be unique, but the profit is unique and concave, $\mr{Profit}(\hat{x})=kP(\hat{x})-\langle c,x\rangle$.
+
+At point $\hat{x}$, one subgradient is $kp^*-c$. $p^*$ can be learned using a subgradient descent on the dual program.
+
+\appendix
+\section{Counterexamples}
+\subsection{Problem with a Distribution over Valuations}\label{distv}
+\end{comment}

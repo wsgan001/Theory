@@ -1,0 +1,246 @@
+\documentclass[openany]{book}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\newtheorem{defn}{Definition}[chapter]
+\newtheorem{thm}{Theorem}[chapter]
+\newtheorem{lem}{Lemma}[chapter]
+\newtheorem{cor}{Corollary}[chapter]
+\newtheorem{exa}{Example}[chapter]
+% When giving labels for above environments or algorithm environments, use the initials.
+
+\author{Ziwei Ji}
+\title{Notes on Algorithms\footnote{This note is intended to be a basic introduction to a variety of algorithm-related areas. There should be specific notes in detail for each area.}}
+
+\begin{document}
+\newcommand{\tbf}[1]{\textbf{#1}}
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mbb}[1]{\mathbb{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+
+\maketitle
+
+This folder needs drastical and careful reconstruction. Ideally, I hope all algorithmic things other than a few core areas (currently algorithmic game theory, machine learning and optimization) will be included in this folder.
+
+I plan to introduce the following categorization:
+\begin{itemize}
+    \item General design schemes, including greedy techniques, devide and conquer, and dynamic programming. I hope that instructions on how to apply those ideas under different circumstances can be included.
+    \item Combinatorial optimization algorithms, such as flow algorithms.
+    \item Randomized algorithms, such as hashing schemes.
+    \item Small space algorithms, which also usually adopt randomization and approximation.
+\end{itemize}
+It would be very nice if I can point out some general ideas and try to see how those ideas are used in different areas.
+
+\chapter{Divide and Conquer}
+
+\section{Polynomials, Convolutions and FFT}
+Different representations of polynomials include:
+\begin{itemize}
+\item Coefficient representation: Evaluation and addition can be completed in linear time while multiplication needs square time.
+\item Root representation: Evaluation and multiplication can be done in linear time, but it seems that addition needs square time. What's more, it is hard to get the root representation from the coefficient representation.
+\item Sample representation: Evaluation seems to be hard, but addition and multiplication can be done in linear time. What's more, sample representation can be got from coefficient representation if we choose the points carefully (using unit roots, or collapsible sets).
+\end{itemize}
+
+Given the coefficient representation, we use the discrete Fourier transform (DFT) to get the sample representation evaluated at the unit roots.
+
+After multiplying two polynomials in sample representation, we can do the inverse Fourier transform to get the coefficient representation of the product.
+
+To implement the algorithm in hardware, typically we start with a bit-reversal permutation of the input (since at each step we divide the whole polynomial into two sub-polynomials) followed by a butterfly network (since to compute the value at $z$ we need the value at $z$ and $-z$ computed in the previous step).
+
+\paragraph{String Matching Problem}
+First we reduce the matching problem to shifted product problem, then to the convolution problem.
+
+\chapter{Dynamic Programming}
+There are many different kinds of recursion:
+\begin{itemize}
+\item Tail recursion: Problem reduced to a single recursive call after some work.
+\item Divide and conquer: Problem reduced to multiple independent sub-problems.
+\item Dynamic programming: Problems reduced to multiple dependent sub-problems.
+\end{itemize}
+
+The most basic principle is to pay attention to base case, sub-cases, and how to combine solutions for sub-cases into a solution for the whole problem. Be careful!
+
+One design pattern is that if problem is not decomposable then introduce the “information” required to decompose as new variable(s).
+
+\section{Minimum weight dominating set} The general problem is NP-hard, but can be solved efficiently using dynamic programming on a tree. However, pay attention that we need at least 3 states at each node, since the existence of the father of a node may affect the "independence" of the subtree rooted at the node.
+
+\section{Shortest Path Related Problems}
+If there is a negative cycle, then the shortest paths are undefined. If restricted to simple paths, then the problem is NP-hard. Thus we assume that there is no negative path in the graph. Here we only consider directed graphs. The problem can still be solved for undirected graphs, but the algorithm is more involving.
+
+Dijkstra's algorithm has a time complexity of $O(|E|+|V|\log|V|)$ but may fail with negative-length edges because a wrong assumption is made. Bellman-Ford can deal with negative-length edges but needs $O(|V||E|)$ time. If a negative cycle can be reached from the source, the Bellman-Ford algorithm will report it or even find it if we use another array to keep record of choices made at each step. It can also detect a negative cycle efficiently by adding a additional node as the source.
+
+For DAG's, we have a $O(E)$ algorithm. Actually we can also find the longest paths in DAG's.
+
+For all-pairs shortest paths, we can use Floyd-Warshall algorithm ($O(|V|^3)$) or Johnson's algorithm ($O(|V||E|+|V|^2\log|V|)$). By recording whether we use an index along the shortest path from source to destination, we can find the shortest paths or negative cycles if exist.
+
+In Jeff's notes on shortest paths, the Exercise 4 gives another $O(|V|^3)$ algorithm. Negative paths can be detected and found when eliminating a node. $O(|V|^2)$ time is needed when adding again the node in two the graph, since we need to compute shortest paths from this node to other nodes and vice versa, and information needed to construct shortest paths should also be updated.
+
+\section{Edit Distance}
+Basically edit distance can be computed in $O(mn)$ time and $O(m+n)$ space. However, if we also want to find how to modify one string to the other, divide and conquer is needed to maintain the same amount of consumption of time and space. Actually at each level of the recursion tree we just invoke the traditional edit distance algorithm, and we reuse space when coming to a new level. What we do is to recompute some information in order to save space.
+
+\section{Longest Increasing Subsequence}
+The trivial algorithm gives $O(n^2)$ time, which can be reduced to $O(n\log n)$ time by recording the index of the minimum possible elements with which a subsequence of length $j$ ends. For details refer to Wikipedia.
+
+\chapter{Graph Algorithms}
+\section{Matching}
+In any graph without isolated vertices, the sum of the matching number and the edge covering number equals the number of vertices.
+
+For edge-weighted matching problem, one can use the Hungarian algorithm. For details refer to Wikipedia. Below are some comments:
+\begin{itemize}
+\item Without loss of generality our task is to find a minimum perfect matching in a bipartite graph.
+\item After adjusting the potential function, the number of tight edges between $Z\cap S$ and $Z\cap T$ remains unchanged, the number of those between $Z\cap S$ and $T-Z$ increases by at least 1, the number of those between $S-Z$ and $T-Z$ remains unchanged, and the number of those between $S-Z$ and $Z\cap T$ may decrease.
+\end{itemize}
+
+\section{Max-Flow and Min-Cut}
+One could make use of max-flow-min-cut theorem and the $O(mn)$ algorithm by first constructing the suitable graph and then interpret the candidate solutions as flows or cuts. In the flow case, usually some upper and lower bounds are put on the edges or some demand requirements are put on nodes. Sometimes it is also helpful to think the feasibility case. It is usually a good indicator when there is a binary relationship which can be encoded using a bipartite graph. Common binary relationship include node-edge, node-node, edge-edge, etc., and sometimes the original nodes may turn out to be edges or vice versa in the new graph. In the cut case, usually we need to separate a set into two subsets, which can be categorized by a cut. Information related to degrees is also a good indicator for cut. One can also set infinite-capacity edge to prohibit them in minimum cut.
+
+\chapter{Randomized Algorithms}
+\textbf{Note: Please refer to the notes on randomized algorithms! Only brief introduction in contained here.}
+
+\section{Introduction}
+\subsection{Deterministic Algorithm and Average Case Analysis vs. Randomized Algorithm and Analysis}
+In average case analysis, we fix a \textbf{deterministic} algorithm, assume inputs comes from a probability distribution, and analyze the algorithm's average performance \textbf{over this distribution}.
+
+In randomized algorithm analysis, we analyze algorithm's average performance over the given input where the average is over the \textbf{random bits that the algorithm uses}. We analyze the algorithm's performance for \textbf{any input}.
+
+\subsection{Concentration Inequalities}
+The following concentration inequalities will be used very often:
+\begin{itemize}
+    \item Markov's inequality: For a nonnegative random variable $X$,
+    \begin{equation}\label{Markov}
+        \mathrm{Pr}[X\ge a]\le \frac{\mathbb{E}[X]}{a}.
+    \end{equation}
+    Markov's inequality can be applied to sum of arbitrary random variables: Suppose $X_1,X_2,\ldots,X_n$ are random variables and let $X=\sum_{i=1}^{n}X_i$. Then
+    \begin{equation}\label{MarkovSum}
+        \mathrm{Pr}[X\ge(1+\delta)\mathbb{E}[X]]\le \frac{1}{1+\delta}.
+    \end{equation}
+
+    \item Chebyshev's inequality: For a random variable $X$,
+    \begin{equation}\label{Chebyshev}
+        \mathrm{Pr}[|X-\mathbb{E}[X]|\ge a]\le \frac{\mathrm{Var}[X]}{a^2}.
+    \end{equation}
+    We also have the one side Chebyshev's inequality:
+    \begin{equation}\label{oneSideChebushev}
+        \mathrm{Pr}[X\ge \mathbb{E}[X]+a]\le \frac{\mathrm{Var}[X]}{\mathrm{Var}[X]+a^2}.
+    \end{equation}
+    Chebyshev's inequality can be applied to sum of pairwise independent random variables: Suppose $X_1,X_2,\ldots,X_n$ are pairwise independent random variables and let $X=\sum_{i=1}^{n}X_i$. Then
+    \begin{equation}\label{ChebyshevSum}
+        \mathrm{Pr}[|X-\mathbb{E}[X]|\ge\delta \mathbb{E}[X]]\le \frac{\mathrm{Var}[X]}{\delta^2 \mathbb{E}[X]^2}.
+    \end{equation}
+    If we assume that $X_i$'s share the same expectation $\mu$ and variance $\sigma^2$, then the RHS of \eqref{ChebyshevSum} is $\frac{\sigma^2}{n\delta^2\mu^2}$. For one side case, the RHS will be $\frac{\sigma^2}{\sigma^2+n\delta^2\mu^2}$. We can notice that the probability is decreasing at a rate of $O(1/n)$.
+
+    \item Chernoff's inequality: Chernoff's inequality applies to sum of independent random variables. Suppose $X_1,X_2,\ldots,X_n\in[0,1]$ are mutually independent random variables and let $X=\sum_{i=1}^{n}X_i$. Then
+    \begin{eqnarray}
+        \mathrm{Pr}[X\ge(1+\delta)\mathbb{E}[X]] & \le & \exp\left(-\frac{\mathbb{E}[X]\delta^2}{2+\delta}\right), \\
+        \mathrm{Pr}[X\le(1-\delta)\mathbb{E}[X]] & \le & \exp\left(-\frac{\mathbb{E}[X]\delta^2}{2}\right).
+    \end{eqnarray}
+    If $X_i$'s share a common expectation, then the RHS will decrease at a rate of $O(1/e^n)$.
+
+    Sometimes we need the following, more general form of Chernoff:
+    \begin{eqnarray}
+        \mr{Pr}[X\ge(1+\delta)\mathbb{E}[X]] & \le & \left(\frac{e^{\delta}}{(1+\delta)^{1+\delta}}\right)^{\mathbb{E}[X]}, \\ \mr{Pr}[X\le(1-\delta)\mathbb{E}[X]] & \le & \left(\frac{e^{-\delta}}{(1-\delta)^{1-\delta}}\right)^{\mathbb{E}[X]}.
+    \end{eqnarray}
+\end{itemize}
+
+\subsection{Common Techniques}
+Below are some techniques usually used in randomized algorithms:
+\begin{itemize}
+\item One can make random choices by first assigning a weight in $[0,1]$ and then choose the one with the lowest weight.
+
+\item  When dealing with maximum elements or worst-case analysis, w.h.p. results are usually needed, which can be achieved by combining concentration inequalities and union bound. Notice that different concentration inequalities need different kinds of dependency, and union bound can be used to deal with dependency in general.
+
+However, one need to pay attention to the direction of inequality. To show the minimum of some values is samller than a threshold, we could make use of union bound, although sometimes it is too weak. To show the minimum is larger than a threshold, then union bound cannot be used but some kinds of independency is needed. In some special cases, such as independent and identically uniformly distributed variables, we can further estimate the position of quantiles of random variables. Actually the cumulative distribution function of the $k$-th smallest number can be computed using binomial distribution.
+
+\item One can get w.h.p results from expectation or vice versa.
+\end{itemize}
+
+\section{Randomized QuickSort}
+Using Chernoff bound, one can show that with probability at least $1-1/n^3$, the running time of the algorithm is no more than $O(n\log n)$.
+
+\section{Treap}
+Treap is a binary search tree with a heap. Basically we assign a randomly chosen priority, say in $[0,1]$, to each number which are to be put into the binary search tree. Then we add the numbers into the tree according to their priority. In other words, we first choose the insertion order, and then build the tree. Thus if the priority is fixed, the structure of the tree is fixed.
+
+Now let $\mathbbm{1}_{i\uparrow j}$ denote the indicator for the event that the $i$-th smallest element is an ancestor of the $j$-th smallest element. One can show that if $i\ne j$, this even happens if and only if the $i$-th smallest element is assigned the smallest priority among the $i$-th, $(i+1)$-th, $\ldots$, $j$-th element, and thus $\mbb{E}[\mathbbm{1}_{i\uparrow j}]=[i\ne j]/(|i-j|+1)$. Using the linearity of expectation, one can show that for a specific element, its expected depth is $O(\log n)$.
+
+Now we want to analyze the probability distribution. Notice that for a fixed $j$ and all $i<j$, $\mathbbm{1}_{i\uparrow j}$ are mutually independent. The same is true for all $i>j$. Using Chernoff bound, one can show a concentration inequality for each element. Then using the union bound, we can even derive bounds for the height of the tree, or the maximum of depths of all elements. More concretely, we probability at least $1-2/n$, the height of the tree is no more than $8\ln n$.
+
+\section{Balls and Bins}
+If we throw $n$ balls into $n$ bins independently and uniformly, then the expected maximum number of balls in a bin is $\Theta(\ln n/\ln\ln n)$.
+
+\section{Hashing}
+In a dictionary data structure, we have 3 main components:
+\begin{itemize}
+    \item A universal set $\mathcal{U}$ of size $N$;
+    \item A set $S\subset \mathcal{U}$ of size $n$ we need to store;
+    \item A hash table $T$ of size $m$.
+\end{itemize}
+Oprations include search, insertion and deletion. The data structure can either be static, where $S$ is given in advance and changed very infrequently, or dynamic where $S$ is changed very often. The goal is to support those operations in $O(1)$ time.
+
+One possible method is to use hashing, given by a hash function $h:\mathcal{U}\rightarrow T$. Note that if we only use deterministic hash functions, then any function will work badly for some $S$. Thus the idea is to pick a \textbf{family} of hash functions and choose one from it randomly. Hopefully we can prove that this random hash function will work fine for \textbf{any} $S$. Below are some objectives:
+\begin{itemize}
+    \item $h$ should be easy to sample, express and evaluate.
+    \item The look-up time, or the load factor should be small. This can actually be achieved by the following properties of universality.
+    \item $k$-universal: For any distinct $x_1,x_2,\ldots,x_k\in \mathcal{U}$,
+    \begin{equation}
+        \mathrm{Pr}\left[h(x_1)=h(x_2)=\cdots=h(x_k)\right]\le \frac{1}{m^{k-1}}.
+    \end{equation}
+    \item Strongly $k$-universal: For any distinct $x_1,x_2,\ldots,x_k\in \mathcal{U}$ and any $y_1,y_2,\ldots,y_k\in T$,
+    \begin{equation}
+        \mathrm{Pr}\left[(h(x_1)=y_1)\wedge(h(x_2)=y_2)\wedge\cdots\wedge(h(x_k)=y_k)\right]= \frac{1}{m^k}.
+    \end{equation}
+    When $k=1$, it is called uniformity. Note that strong $k$-universality implies $k$-universality.
+\end{itemize}
+
+Below are some examples ($|\mathcal{U}|=N$, $|S|=n$, $|T|=m$):
+\begin{itemize}
+\item Let $p>|\mathcal{U}|$ be a prime. For each $a\in[p]^+$, let $\mr{Multp}_a(x)=(ax\textrm{ mod }p)\textrm{ mod }m$. The domain is restricted to $[p]$ for convenience. Note that here we must pick the minimum non-negative remainder since we do the modular operation twice with different denominator. Let $\mathcal{MP}$ denote the set of functions.
+
+Now for distinct $x,y\in[p]$, $\mr{Pr}[\mr{Multp}_a(x)=\mr{Multp}_a(y)]\le\mr{Pr}[\mr{Multp}_a((x-y)\textrm{ mod }p)=0]+\mr{Pr}[\mr{Multp}_a((y-x)\textrm{ mod }p)=0]\le2/m$. We need to consider both $x-y$ and $y-x$ since, for example, $-m\equiv p-m\pmod{p}$ but $-m\not\equiv p-m\pmod{m}$. In the argument we also put a modular operation to keep consistent with the domain of the function $\mr{Mulpt}$. The last inequality holds because for $z\in[p]^+$, $\mr{Pr}[\mr{Mulpt}_a(z)=0]\le1/m$. This inequality is tight when $p\equiv1\pmod{m}$.
+
+\item Pick a prime $p\ge|\mathcal{U}|$. For $a\in[p]^+$, $b\in[p]$, $h_{a,b}(x)=((ax+b)\textrm{ mod }p)\textrm{ mod }m$. Let $\mathcal{MB}$ denote the set of functions. Then $|\mathcal{MB}|=p(p-1)$. This is a 2-universal hash family. The key observation is that given $x\ne y\in \mathcal{U}$, there is a one-to-one correspondence between $\mathcal{MB}$ and $\{(r,s)|0\le r\ne s\le p-1\}$, which is interpreted as $(ax+b)\textrm{ mod }p$ and $(ay+b)\textrm{ mod }p$. Actually, the probability of collision is strictly less than $1/m$.
+
+\item Now suppose $\mathcal{U}=[2^w]$ and $T=[2^l]$. For an odd number $a\in[2^w]$, let $\mr{Multb}_a(x)=\lfloor(ax\textrm{ mod }2^w)/(2^{w-l})\rfloor$. This set of hash functions is also near universal. For distinct $x,y\in[2^w]$, $\mr{Pr}[\mr{Multb}(x)=\mr{Multb}(y)]\le\mr{Pr}[\mr{Multb}(x-y)=0]+\mr{Pr}[\mr{Multb}(y-x)=0]\le2/2^l$.
+\end{itemize}
+
+Now consider a family of 2-universal hash functions. If $|S|=O(|T|)$, then the expected look-up time is $O(1)$. However, the expected worst-case look-up time may not be a constant. For truly random hash functions, if $|S|=|T|$ the expected worst-case look-up time can be $O(\log n/\log\log n)$.
+
+If we want a constant expected worst-case look-up time, it is enough to have $|T|=|S|^2$. Using Chernoff bound, it can be shown that with high probability the maximum length of chain is a constant if the set of hash functions are truly random. (If we only have 2-near-universal hash functions, the probability of collision can be bounded by a constant.) However, the spaec consumption is large.
+
+It turns out that one can modify the above idea slightly to get expected constant worst-case look-up time with linear space consumption in expectation. The idea is to rehash elements when necessary, or when there is a collision. Even with only near universal hash functions, one can show that the expected space consumption is linear. The expected running time to rehash is also linear. (One can get w.h.p. results on the space and time, but ad additional $O(\log n)$ factor may be needed.)
+
+\paragraph{Karp-Rabin Randomized Algorithm}
+Now suppose we are to find all occurrences of a pattern string $P$ in a long string $A$. We solve this problem step by step with the help of hash functions:
+\begin{enumerate}
+\item Sampling a prime: First, one can sample a prime in $[1,M]$ using $O(\lg M)$ queries to a prime-checking oracle in expectation. What's more, from the prime number theorem, for sufficiently large $k$, if we want $k$ primes, then setting $M\ge2k\lg k$ is enough.
+
+\item (0-1) String equality: Suppose we want to check equality of two 0-1 strings $x$ and $y$ whose lengths are at most $N$, using as little communication as possible. The idea is to choose an $M$ satisfying $\pi(M)\ge sN$, randomly sample a prime $p\in[1,M]$, and send $p$ and $x\textrm{ mod }p$. Note that $x-y$ has less than $N$ prime factors but $p$ has at least $sN$ possible values, thus the probability of a false positive is less than $1/s$. If we actually sample $r$ random primes, the probability of false positive can be reduced to $1/s^r$. Also, the amount of communication is bounded by $r\log M=O(r(\log s+\log N))$, which is far less than $N$.
+
+\item Pattern matching: For simplicity we assume $P$ and $A$ are 0-1 string. Let $|P|=n$ and $|A|=m$. The idea is just not to compare $P$ and substrings of $A$ directly, but to compare the hash value of them. One can use rolling hash to compute hash values of substrings of $A$ in $O(m)$ time (if we assume $\log m$-bit arithmetic can be done in $O(1)$ time). The total time complexity is $O(m+n)$. To reduce the probability of a false $A$ to $1/s$, one need to randomly sample a prime from 1 to $M$ such that $\pi(M)\ge smn$.
+\end{enumerate}
+
+\chapter{Streaming Algorithms}
+The data arrives in a stream which must be accessed in order and can be read only once or a small number of times. We wish to estimate some statistic of the data while using $o(n)$ space.
+
+The basic requirement is false positive is allowed, but false negative is not allowed. This is because sometimes it is trivial if false negative is allowed, for example, in heavy hitters problem we can just report there is no heavy hitter.
+
+Below are some streaming problems:
+\begin{itemize}
+\item Frequency moments: The $k$-th frequency moment of a set of frequencies $\mathbf{a}$  is defined as $F_{k}(\mathbf{a})=\sum_{i=1}^{n}a_{i}^{k}$. The first frequency moment is just the number of elements in the stream. The $0$-th moment is the number of distinct elements.
+\item Heavy hitters: Find the most frequent (popular) elements in a data stream.
+\item Entropy: The (empirical) entropy of a set of frequencies $\mathbf{a}$ is defined as $F_{k}(\mathbf{a})=\sum_{i=1}^{n}\frac {a_{i}}{m}\log\frac{a_{i}}{m}$, where $m=\sum_{i=1}^{n}a_{i}$.
+\end{itemize}
+
+\section{Heavy Hitters Problem}
+Suppose the size of the set of whole values is $m$, and the length of the stream is $n$. Then the space usage is $\frac{1}{\epsilon}(\log m+\log n)$.
+
+\section{Count-Min Sketch}
+Suppose we want to record the number of times that each element appears. If $\epsilon n$ error is allowed, then we can use heavy hitters. However we can do better, if we allow a large error with a small probability. The method is count-min sketch, where only $O(\frac{1}{\epsilon}\log\frac{1}{\delta}\log n)$ is needed.
+
+\end{document}

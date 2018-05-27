@@ -1,0 +1,269 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\title{Useful Tools in TCS}
+\author{Ziwei Ji}
+
+\begin{document}
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\mbb}[1]{\mathbb{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+
+\maketitle
+
+\section{Inequalities}
+
+\begin{itemize}
+
+\item (H\"older's Inequality) 
+
+For $p$, $q>1$, $1/p+1/q=1$, and $\mathbf{x}$, $\mathbf{y}\in \mathbb{R}^n$, we have
+\begin{equation}\label{holder}
+\mathbf{x}\cdot\mathbf{y}\le(\sum_{i=1}^n|x_i|^p)^{1/p}(\sum_{i=1}^n|y_i|^q)^{1/q}
+\end{equation}
+
+\item (Concentration Inequality)
+
+\begin{itemize}
+
+\item (Markov's Inequality)  Let $X$ be a nonnegative random variable, then 
+\begin{equation}
+\mr{Pr}\left(X\ge t\mathbb{E}[X]\right)\le1/t
+\end{equation}
+for any $t>0$.
+
+\item (Chebyshev's Inequality) Let $X$ be a random variable, then 
+\begin{equation}
+\mr{Pr}\left(\left|X-\mathbb{E}[X]\right|\ge t\sqrt{\mr{Var}[X]}\right)\le1/t^2
+\end{equation}
+for any $t>0$.
+
+\item (One-Side Chebyshev's Inequality) Let $X$ be a random variable, then 
+\begin{equation}
+\mr{Pr}\left(X\ge\mbb{E}[X]+t\sqrt{\mr{Var}[X]}\right)\le1/(1+t^2)
+\end{equation}
+for any $t>0$.
+
+\item (Berry-Esseen Theorem) Let $X_1,X_2,\ldots,X_n$ be independent random variables whose summation is $Y$ and $Z\sim\mathcal{N}(\mbb{E}[Y],\mr{Var}[Y])$. Then for any $t$, 
+\begin{equation}
+\left| \mr{Pr}(Y\le t)-\mr{Pr}(Z \le t) \right|\le C\sum_{i=1}^n\mbb{E}[|X_i|^3]/\mr{Var}[Y]^{3/2}.
+\end{equation}
+(In other words, suppose the first, second and third moments are all bounded, then the difference between the two distributions will diminish at a speed of inverse square root of $n$.)
+
+\item (Bounding Normal Distribution) Let $X\sim\mathcal{N}(0,1)$. Define $\phi(t)=\mr{Pr}(X\ge t)=\int_t^{\infty}e^{-t^2/2}\mr{d}t/\sqrt{2\pi}$. Then for any $t>0$,
+\begin{equation}
+\frac{1}{\sqrt{2\pi}}(1-\frac{1}{1+t^2})\frac{e^{-t^2/2}}{t}\le\phi(t)\le\frac{1}{\sqrt{2\pi}}\frac{e^{-t^2/2}}{t}.
+\end{equation}
+
+\item Let $\mathcal{X}=\{x_1,x_2,\ldots,x_N\}$ denote a set of $N$ real numbers. Let $X_1,X_2, \ldots, X_n$ denote $n$ random samples without replacement from $\mathcal{X}$ and $Y_1,Y_2,\ldots,Y_n$ denote $n$ random samples with replacement from $\mathcal{X}$.
+
+If $f:\mathbb{R}\rightarrow\mathbb{R}$ is continuous and convex, then 
+\begin{equation}
+\mathbb{E}[f(\sum_{i=1}^nX_i)]\le\mathbb{E}[f(\sum_{i=1}^nY_i)]
+\end{equation}
+
+Let $\Delta_N=\max_{1\le i\le N}x_i-\min_{1\le i\le N}x_i$, $\sigma_N=\frac{1}{N}\sum_{i=1}^N(x_i-\overline{x})^2$. Then
+
+\begin{equation}
+\mathrm{Pr}(|\frac{1}{n}X_i-\overline{x}|\ge t)\le\left\{
+\begin{array}{ll}
+2\exp(-\frac{2nt^2}{\Delta_N^2}) & (\mathrm{Hoeffding}) \\
+2\exp(-\frac{2nt^2}{(1-(n-1)/N)\Delta_N^2}) & (\mathrm{Serfling}) \\
+2\exp(-\frac{nt^2}{2\sigma_N^2+t\Delta_N}) & (\mathrm{Hoeffding-Bernstein}) \\
+2\exp(-\frac{nt^2}{m\sigma_N^2}) & \mr{if } N=mn\quad(\mathrm{Massart})
+\end{array}
+\right.
+\end{equation}
+
+\begin{equation}
+\mathrm{Pr}(|\frac{1}{n}X_i-\overline{x}|\ge t\overline{x})\le\exp(-\frac{n\overline{x}t^2}{(2+t)\Delta_N})
+\end{equation}
+
+For the expectation, we have
+\begin{equation}
+\mathbb{E}[|\frac{1}{n}X_i-\overline{x}|]\le O(\frac{\Delta}{\sqrt{n}})
+\end{equation}
+\begin{equation}
+\mathbb{E}[|\frac{1}{n}X_i-\overline{x}|]\le O(\frac{\sqrt{\Delta\overline{x}}}{\sqrt{n}})
+\end{equation}
+If we are dealing with $d$-dimensional vectors, we need an additional $\Vert\mathbf{1}\Vert_d\sqrt{\log d}$ factor.
+
+Let $Z_1,Z_2,\ldots,Z_n$ be independent random variables bounded such that $0\le Z_i\le1$ for all $i$. Then
+\begin{eqnarray}
+\mathrm{Pr}[\frac{1}{n}\sum_{i=1}^nZ_i\ge\overline{Z}+t] & \le & \exp(-2nt^2) \\
+\mathrm{Pr}[\frac{1}{n}\sum_{i=1}^nZ_i\le\overline{Z}-t] & \le & \exp(-2nt^2) \\
+\mathrm{Pr}[\frac{1}{n}\sum_{i=1}^nZ_i\ge\overline{Z}(1+t)] & \le & \exp\left(\frac{-n\overline{Z}t^2}{2+t}\right) \\
+\mathrm{Pr}[\frac{1}{n}\sum_{i=1}^nZ_i\le\overline{Z}(1-t)] & \le & \exp(\frac{-n\overline{Z}t^2}{2}) \\
+\end{eqnarray}
+
+\end{itemize}
+
+\item (Union Bound) Union bound is often used together with concentration inequalities to get some further estimate. Below are some applications:
+
+\begin{itemize}
+\item (Johnson-Lindenstrauss Lemma) Given $m$ vectors $\mbf{u}_1,\mbf{u_2},\ldots,\mbf{u}_m\in \mbb{R}^n$ and $0<\epsilon<1$, we can find $k=O((\ln m)/\epsilon^2)$ and another $m$ vectors $\mbf{v}_1,\mbf{v}_2,\ldots,\mbf{v}_m\in \mbb{R}^k$ such that with probability at least $9/10$, for any $1\le i,j\le m$
+\begin{equation}
+(1-\epsilon)\Vert\mbf{u}_i-\mbf{u}_j\Vert\le\Vert\mbf{v}_i-\mbf{v}_j\Vert\le(1+\epsilon)\Vert\mbf{u}_i-\mbf{u}_j\Vert.
+\end{equation}
+This result can be proven by a combination of union bound and concentration inequalities.
+\end{itemize}
+
+\end{itemize}
+
+\section{Vectors and Matrices}
+
+\begin{itemize}
+
+\item (Basic Notions)
+
+Vector space (e.g., $\mathbb{R}^n$)
+
+Linear Transformation; Dual Space (e.g., $\mathbb{R}^n$); Convex Conjugate (from $f$ on $V$ to $f^*$ on $V^*$)
+
+\item (Inner Product; Norm; Dual norm) 
+
+In the $\mathbb{R}^n$ case, the relationship among these notions is clearer. 
+
+Inner product is equivalent to linear maps. 
+
+Among all the norms, the $\ell_2$-norm is defined directly from the inner product and thus is special. For example, since orthogonal transformation preserves the inner product, it also preserves the $\ell_2$-norm, which is not true for other norms. $\ell_p$-norm and $\ell_q$-norm are dual norms if $1/p+1/q=1$. We also have the following inequality, which is equivalent to the H\"older's inequality: $\mathbf{x}^T\mathbf{y}\le\Vert \mathbf{x}\Vert\Vert \mathbf{y}\Vert_*$. Another property is $\Vert \mathbf{x}\Vert_q\le\Vert \mathbf{x}\Vert_p\le n^{1/p-1/q}\Vert \mathbf{x}\Vert_q$ if $1\le p\le q$.
+
+Another example is the $P$-quadratic norm for $P\in\mathbf{S}^n_{++}$, which is defined as $\Vert \mathbf{x}\Vert_P=(\mathbf{x}^TP\mathbf{x})^{1/2}=\Vert P^{1/2}\mathbf{x}\Vert_2$.
+
+The equivalence of norms
+
+\item (Two ways of seeing the product of matrices)
+
+Consider $A_{m\times n}\times B_{n\times p}=C_{m\times p}$.
+
+We can define 
+\begin{equation}\label{mprod1}
+c_{ij}=\sum_{k=1}^na_{ik}b_{kj}
+\end{equation}
+
+Or we can write $A=[A_1\ A_2\ \ldots\ A_n]$ and $B=[B_1^T\ B_2^T\ \ldots\ B_n^T]$. Then
+\begin{equation}\label{mprod2}
+C=\sum_{i=1}^nA_iB_i^T
+\end{equation}
+
+\item (Trace)
+\begin{equation}\label{mdotp}
+\mathrm{tr}(A^\mathrm{T}B)=\mathrm{tr}(AB^\mathrm{T})=\mathrm{tr}(B^\mathrm{T}A)=\mathrm{tr}(BA^\mathrm{T})=\sum_{i,j}A_{ij}B_{ij}
+\end{equation}
+
+In general,
+\begin{equation}
+\mathrm{tr}(ABC)\ne\mathrm{tr}(ACB)
+\end{equation}
+
+\item (Rank)
+
+If $A$ is an $m\times n$ matrix and $B$ is an $n\times k$ matrix, then
+\begin{equation} \label{rofp}
+\mathrm{rank}(A)+\mathrm{rank}(B)-n\le\mathrm{rank}(AB)\le\min(\mathrm{rank}(A),\mathrm{rank}(B))
+\end{equation}
+
+If $A$ and $B$ are all $m\times n$ matrices, then
+\begin{equation}\label{rofs}
+\mathrm{rank}(A+B)\le\mathrm{rank}(A)+\mathrm{rank}(B)
+\end{equation}
+
+\begin{equation}\label{rofaat}
+\mathrm{rank}(A)=\mathrm{rank}(A^{\mathrm{T}})=\mathrm{rank}(AA^{\mathrm{T}})=\mathrm{rank}(A^{\mathrm{T}}A)
+\end{equation}
+
+\item (Determinant)
+
+If $A$ is an $m\times n$ matrix and $B$ is an $n\times m$ matrix, then
+\begin{equation}\label{syl}
+\mathrm{det}(I_m+AB)=\mathrm{det}(I_n+BA)
+\end{equation}
+
+\item (Hadamard's inequality)
+
+Suppose $A$ is a square matrix with columns $\mathbf{v}_i$, then
+\begin{equation}\label{hadai}
+\mathrm{det}(A)\le\prod_{i=1}^n\|\mathbf{v}_i\|
+\end{equation}
+The equality is achieved if and only if $\mathbf{v}_i$'s are orthogonal or t least one of them is $\mathbf{0}$.
+
+\item (Positive definite and semi-definite matrices)
+
+Given a real symmetric matrix $A$, it can be expressed as
+\begin{equation}\label{realsym}
+A=\sum_{i=1}^n\lambda_i\mathbf{v_i}\mathbf{v_i}^T
+\end{equation}
+where $\mathbf{v_1}$, $\mathbf{v_2}$, $\ldots$, $\mathbf{v_n}$ form an orthonormal basis.
+
+A is positive definite (positive semi-definite) if and only if all $\lambda_i$'s are positive (non-negative).
+
+Suppose $A$ and $B$ are all positive semi-definite (definite) matrices, then their Hadamard product is also positive semi-definite (definite), and their inner product is non-negative (positive).
+
+Oppenheim's inequality:
+\begin{equation}\label{oppeni}
+\mathrm{det}(A\circ B)\ge\mathrm{det}(B)\prod_{i=1}^na_{ii}\ge\mathrm{det}(A)\mathrm{det}(B)
+\end{equation}
+
+\item (Generalized Eigenvalues)\footnote{From vector norms, we can define many notions, including matrix norms, eigenvalues, generalized eigenvalues, singular values, etc.}
+
+For $(A,B)\in\mathbf{S}^n\times\mathbf{S}^n$, the generalized eigenvalues of them are the roots of $\mathrm{det}(sB-A)$. 
+
+Usually we further require $B\in\mathbf{S}^n_{++}$. In this way the generalized eigenvalues are also the eigenvalues of $B^{-1/2}AB^{-1/2}$. What's more, $A$ and $B$ can be factored as
+\begin{equation}\label{generaleigen}
+A=V\Lambda V^{\mathrm{T}},\quad B=VV^{\mathrm{T}}
+\end{equation}
+where $V\in R^{n\times n}$ is non-singular, and $\Lambda$ is the diagonal matrix whose entries are the generalized eigenvalues of $(A,B)$.
+
+Also note that $\lambda_{\mathrm{max}}(A,B)=\sup_{\mathbf{x}\ne0}\frac{\mathbf{x}^TA\mathbf{x}}{\mathbf{x}^TB\mathbf{x}}$.
+
+\item (Singular Values)
+
+The largest singular value of $A$ is denoted by $\sigma_{\mathrm{max}}(A)$. It can be expressed as
+\begin{equation}\label{sigmamax}
+\sigma_{\mathrm{max}}(A)=\sup_{\mathbf{x},\mathbf{y}\ne0}\frac{\mathbf{x}^TA\mathbf{y}}{\Vert \mathbf{x}\Vert\Vert \mathbf{y}\Vert}=\sup_{\mathbf{x}\ne0}\frac{\Vert A\mathbf{x}\Vert}{\Vert \mathbf{x}\Vert}
+\end{equation}
+
+The condition number of a non-singular matrix $A\in \mathbb{R}^{n\times n}$, is defined as
+\begin{equation}\label{condn}
+\mathrm{cond}(A)=\sigma_{\mathrm{max}}(A)/\sigma_{\mathrm{min}}(A))
+\end{equation}
+
+Let $A=U\Sigma V^T\in \mathbb{R}^{m\times n}$ with $\mathrm{rank}(A)=r$. Then the pseudo-inverse of $A$ is defined as
+\begin{equation}\label{pseudoinv}
+A^{\dagger}=V\Sigma^{-1}U^T
+\end{equation}
+We have $AA^{\dagger}=UU^T$ and $A^{\dagger}A=VV^T$. What's more, we have $A^TAA^{\dagger}=A^T$. Actually, we have four different matrix: $A=U\Sigma V^T$, $A^T=V\Sigma U^T$, $A^{\dagger}=V\Sigma^{-1}U^T$, and $A^{\dagger T}=U\Sigma^{-1}V^T$. $A$ and $A^{\dagger T}$ ($A^T$ and $A^{\dagger}$) have identical null space and range. By enumerating all possibilities, we can get in total 12 identities.
+
+Now let's consider the linear equation $A\mathbf{x}=\mathbf{b}$. This equation has a solution if and only if $\mathbf{b}\in\mathcal{R}(A)$, or $AA^{\dagger}\mathbf{b}=\mathbf{b}$. In such a situation, one solution is given by $A^{\dagger}\mathbf{b}$. What's more, this solution lies in $\mathcal{R}(A^T)$, and thus is the solution of minimum Euclidean norm.
+
+Another application is in least-square problems, where we need to minimize $\Vert A\mathbf{x}-\mathbf{b}\Vert_2$. Take derivatives on both sides, then we want to solve $A^TA\mathbf{x}=A^T\mathbf{b}$, which has a solution $\mathbf{x}=A^{\dagger}\mathbf{b}$. Note that $\mathcal{N}(A)=\mathcal{N}(A^TA)$, thus $A^{\dagger}\mathbf{b}$ is also the solution with minimum Euclidean norm.
+
+\end{itemize}
+
+\section{Graph Theory}
+
+\begin{itemize}
+
+\item (System of Difference Constraints)
+
+A system of difference constraints consists of $n$ variables and $m$ inequalities. Each inequality looks like $x_j-x_i\le b_k$. To solve this system, we build a graph with $n$ vertices. For constraint $k$, we add a directed edge from $i$ to $j$ with weight $b_k$. Then an additional vertex is added and linked to every other vertex with a zero-weighted edge. Next we just solve the shortest path from the new vertex to every other vertex.
+
+\end{itemize}
+
+\section{Probability Theory}
+
+\begin{itemize}
+
+\item (Expectation)
+
+Let $F$ be a cumulative density function on $\mathbb{R}$, then we can write the expectation as following:
+
+\begin{equation}
+\int_{-\infty}^{+\infty}x\mathrm{d}F(x)=\int_0^1F^{-1}(t)\mathrm{d}t
+\end{equation}
+Then we can use the concentration inequalities and the above formula to estimate the expectation.
+
+\end{itemize}
+
+\end{document}

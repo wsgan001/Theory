@@ -1,0 +1,653 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+\usepackage[margin=1.25in]{geometry}
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{example}{Example}[section]
+\newtheorem{assumption}{Assumption}[section]
+% Global consistency is subject to local consistency.
+
+% When giving labels for above environments or algorithm environments, use the initials.
+% For equations, do use the initial "e".
+% When labeling the same object more than once, include the chapter name.
+% Using camel case.
+
+% Do not using $\frac$ in a super- or subscript with inline style. Otherwise do use it.
+% Use $\dfrac$ in arrays. Use $\frac$ inline.
+% Use $\left\right$ only with fractions. However, if fractions are far away from delimiters
+% , it is also possible to use normal delimiters, based on subjective choice.
+
+\author{}
+\title{Social Welfare and Profit Maximization from Revealed Preferences}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\subsection{Our Contributions}
+Our model includes $n$ kinds of \emph{divisible} goods, one producer with the ability to set the price, and $m$ consumers whose valuations are unknown to us. Given a price, one consumer will select the bundle which maximizes the quasi-linear utility from some consumption set $\mathcal{C}$. The purchases of all consumers will induce a cost for the producer. Algorithms are designed to help the producer set prices in order to maximize a certain objective, which can be social welfare or profit in this paper.
+
+Social welfare refers to the difference between consumers' valuations and the producer's cost. We further consider an online model and an offline model in social welfare maximization, and give time efficient and query efficient algorithms for both of them. Profit is the difference between the producer's revenue and cost, which is a more reasonable objective for the producer to look at. However, it turns out that profit maximization is much harder. We give an algorithm and a matching query lower bound when all the valuations and the cost is separable, together with a hardness result on the running time when consumers are assumed to buy as much as possible.
+
+\paragraph{Online social welfare maximization.}
+In the online model, the consumers come one by one, and the producer is allowed to change the price vector between the arrival of two consumers. Note that there are two difficulties: First, we have no information of one consumer before he or she comes. Second, even after one consumer's arrival, the only information we have is his or her purchase.
+
+The benchmark we use is the offline optimum social welfare where all valuations are \emph{known}, \emph{in advance}. It is of course a very strong benchmark, and to approach this benchmark we have to consider the social welfare maximization problem in the \emph{random arrival} model. In this model, all the valuations are selected by an adversary in advance, and then permuted uniformly randomly before shown to us.
+
+\begin{theorem}[Informal]
+    Under the random arrival model, with known $m$, convex compact consumption set $\mathcal{C}$, and Lipschitz continuous non-decreasing convex cost, there exists an online algorithm whose social welfare on expectation is within $O(\sqrt{m})$ from the offline optimum social welfare. Furthermore, the only assumption needed on valuations is continuity.
+\end{theorem}
+In other words, as the number of consumers $m$ approaches infinity, the per-consumer regret of our algorithm approaches $0$.
+
+The algorithm was first introduced in \cite{AD15} to solve an online stochastic programming problem. This algorithm has many nice properties when applied to the online social welfare maximization problem, which might not be meaningful in the original setting. For example, it does not require knowledge of valuations other than revealed preferences, it only needs continuity of valuations, and it still works if at each step the consumer only maximizes the quasi-linear utility approximately.
+
+\paragraph{Offline social welfare maximization.}
+In the offline model, all the consumers are present in the market. If all the valuations are concave, then the optimum social welfare can be achieved by a single price vector. Our goal is thus to learn this price vector, or more precisely a price vector which can induce an approximately optimum social welfare.
+
+\begin{theorem}[Informal]
+    With known $m$, convex compact consumption set $\mathcal{C}$, strongly concave continuous valuations and Lipschitz continuous non-decreasing convex cost, there exists an algorithm such that after $T$ queries of consumers' aggregate demand, it can output a price vector whose social welfare is within $O(\frac{m}{\sqrt{T}})$ from the optimum social welfare.
+\end{theorem}
+In other words, to get a price which approximates the optimum social welfare within an $\epsilon$ error, we need $O(\frac{m^2}{\epsilon^2})$ queries.
+
+In \cite{RSUW17}, a similar model is introduced. At each step one valuation is drawn from some unknown distribution independently and identically, and the goal is to maximize the expected social welfare per step. In \cite{RSUW17}, only linear cost is considered, and in this case their model is equivalent to our offline model. However, if the cost is indeed linear, then optimum social welfare can be achieved by posting the cost vector directly. On the other hand, if the cost can be non-linear convex, then the two models are no longer equivalent, and the stochastic model will become harder.
+
+\paragraph{Profit maximization.}
+Although it is more reasonable for the producer to maximize the profit, the related optimization problem is usually non-convex and thus hard to deal with.
+
+First, we provide an algorithm and a matching lower bound for the case where the valuations are strongly concave and both the valuations and the cost are separable.
+\begin{theorem}[Informal]
+    If the valuations are strongly concave, the cost is convex and non-decreasing, and both the valuations and the cost are Lipshcitz continuous and separable, then there exists an algorithm achieving an additive $\epsilon$ error from the optimum profit with $O(\frac{mn}{\epsilon})$ queries and $O(\frac{mn^2}{\epsilon})$ time. On the other hand, any such algorithm requires $\Omega(\frac{1}{\epsilon})$ queries to compute an approximate solution with an $\epsilon$ additive or multiplicative error.
+\end{theorem}
+
+Next we present a hardness result for general, non-strongly-convex valuation. Recall that in this case, the consumer's choice might not be unique given a certain price. Therefore, our hardness result relies on an additional assumption on the consumer's behavior.
+\begin{theorem}[Informal]
+    If the consumer buys as much as possible when there is uncertainty, then for a fixed $\epsilon$, there is no algorithm which runs in $poly(n)$ time and approximates the optimum profit within an additive or multiplicative $\epsilon$ factor.
+\end{theorem}
+
+\subsection{Related Work}
+
+\subsection{Outline of the Paper}
+
+\section{Problem and Preliminaries}
+\subsection{Problem Description}
+The market we consider consists of two kinds of agents, the producer and the consumers, and $n$ kinds of \emph{divisible} goods. \\
+
+Let us first discuss consumers. In our model, in total $m$ consumers participate in the market. We assume that $m$ is \emph{known} to us in advance. The $i$-th consumer has a valuation function $v_i:\mathcal{C}\to \mathbb{R}_+$, and tries to maximize the quasi-linear utility $u_i(\mathbf{x},\mathbf{p})=v_i(\mathbf{x})-\langle \mathbf{x},\mathbf{p}\rangle$ over $\mathcal{C}$ given a price vector $\mathbf{p}\in \mathbb{R}_+^n$. Here $\mathcal{C}\subset \mathbb{R}_+^n$ is consumers' consumption set, from which each consumer can select a bundle to purchase. The following assumptions are made on the consumption set:
+\begin{assumption}\label{consSet}
+    $\mathcal{C}\subset \mathbb{R}_+^n$ is convex and compact, and has non-empty interior.
+\end{assumption}
+Furthermore, let $D=\max_{\mathbf{x},\mathbf{y}\in \mathcal{C}}\|\mathbf{x}-\mathbf{y}\|_2$, and $D_{\infty}=\max_{\mathbf{x},\mathbf{y}\in \mathcal{C}}\|\mathbf{x}-\mathbf{y}\|_{\infty}$. \\
+
+Usually some properties such as concavity are assumed on the valuation functions. However, at this stage we only make the following mild assumption to ensure the existence of a bundle maximizing the quasi-linear utility:
+\begin{assumption}\label{valMild}
+    The valuation functions $v_i$'s are continuous over $\mathcal{C}$, and unknown to us.
+\end{assumption}
+Consumer $i$'s choice given price $\mathbf{p}$ is denoted by $\mathbf{x}_i(\mathbf{p})$, which is called the \emph{revealed preference} of consumer $i$. Every consumer is considered as a \emph{demand oracle} in our model. In addition, the \emph{aggregate demand oracle} will give us $\mathbf{x}(\mathbf{p})=\sum_{i=1}^{m}\mathbf{x}_i(\mathbf{p})$ when price $\mathbf{p}$ is given. Note that if valuations are only assumed to be continuous, the search for a quasi-linear-utility-maximizing bundle can be a non-convex optimization problem, and thus it is necessary to consider consumers as oracles. It should also be pointed out that Assumption \ref{valMild} does not guarantee the uniqueness of $\mathbf{x}_i(\mathbf{p})$. In the most general case, $\mathbf{x}_i(\mathbf{p})$ can be thought of as an arbitrary quasi-linear-utility-maximizing bundle of consumer $i$ given price $\mathbf{p}$. In some cases, we will make further assumptions on $v_i$'s or consumers' behaviors to eliminate uncertainty.
+
+Another very important point which can be seen in Assumption \ref{valMild} is that in our algorithm design, we do not assume direct knowledge of the valuation functions. All information our algorithms get is consumers' revealed preferences given a price. This feature makes our model more realistic since revealed preferences are what exactly a real-world producer can observe. \\
+
+As to the producer, we assume that there is only one producer in the market. The producer can produce a bundle of goods $\mathbf{x}$ at a cost $c(\mathbf{x})$, where $c:\mathcal{C}_m\to\mathbb{R}_+$ is the cost function and $\mathcal{C}_m=\{\sum_{i=1}^{m}\mathbf{x}_i|\mathbf{x}_1,\ldots,\mathbf{x}_m\!\in\!\mathcal{C}\}$. The domain of $c$ is taken to be $\mathcal{C}_m$ since we assume that each consumer can only choose in the consumption set $\mathcal{C}$. The following assumptions are further made:
+\begin{assumption}\label{cost}
+    The cost function $c$ is convex, monotonically non-decreasing, $\lambda$-Lipschitz continuous w.r.t. the $\ell_2$-norm, and known to us.
+\end{assumption}
+
+The producer is allowed to \emph{post prices dynamically}, in order to optimize a certain objective. In our paper, two objectives are considered: \emph{Social welfare} and \emph{profit}.
+
+\subsubsection{Social Welfare Maximization}
+The social welfare induced by $\mathbf{x}_1,\ldots,\mathbf{x}_m\in \mathcal{C}$ is defined as the sum of consumers' valuations minus producer's cost, or formally,
+\begin{equation}\label{socWelf}
+    \mathrm{SW}(\mathbf{x}_1,\ldots,\mathbf{x}_m)=\sum_{i=1}^{m}v_i(\mathbf{x}_i)-c\left(\sum_{i=1}^{m}\mathbf{x}_i\right).
+\end{equation}
+The maximum social welfare
+\begin{equation}\label{socWelfMax}
+    \mathrm{SW}^*=\max_{\mathbf{x}_1,\ldots,\mathbf{x}_m\in \mathcal{C}}\mathrm{SW}(\mathbf{x}_1,\ldots,\mathbf{x}_m)
+\end{equation}
+is used as the benchmark in our algorithm design, and the social-welfare-maximizing allocation
+\begin{equation}\label{socWelfMaxAlloc}
+    (\mathbf{x}_1^*,\ldots,\mathbf{x}_m^*)\in\arg\max_{\mathbf{x}_1,\ldots,\mathbf{x}_m\in \mathcal{C}}\sum_{i=1}^{m}v_i(\mathbf{x}_i)-c\left(\sum_{i=1}^{m}\mathbf{x}_i\right)
+\end{equation}
+is also often referred to in our analysis.
+
+Of course we want to solve \eqref{socWelfMax} and \eqref{socWelfMaxAlloc}, but even if we can compute them, it is still unclear how to implement them. Forcing consumers to accept a so-called social-welfare-maximizing allocation does not sound good. Fortunately, in Lemma \ref{dualOpt} we show that for concave valuations, the maximum social welfare can be induced by a single price. This point can be verified in some simple case. For example, if the cost $c=\langle \mathbf{c},\mathbf{x}\rangle$ is linear, then posting price $\mathbf{c}$ will maximize the social welfare. However, the same result still holds for general convex costs, and thus our goal is to find a good way to post prices, using only \emph{revealed preferences}, so that as much social welfare as possible can be achieved.
+
+Two different setting are further considered, which we refer to as the offline setting and the online setting.
+
+\paragraph{Offline setting.}
+In the offline setting, $m$ consumers with valuation $v_1,\ldots,v_m$ are present in the market. Each time a price is posted, each consumer will choose the quasi-linear-utility-maximizing bundle. Intuitively, we want to learn the optimum price $\mathbf{p}^*$ which can induce the maximum social welfare \eqref{socWelfMax} associated with $v_1,\ldots,v_m$. More exactly we want to learn a price $\mathbf{p}$ such that $\mathrm{SW}(\mathbf{x}_1(\mathbf{p}),\ldots,\mathbf{x}_m(\mathbf{p}))$ is as close to $\mathrm{SW}(\mathbf{x}_1(\mathbf{p}^*),\ldots,\mathbf{x}_m(\mathbf{p}^*))$ as possible.
+
+Of course, the existence of such an optimum price $\mathbf{p}^*$ needs concavity of valuations. Thus in the offline setting, we strengthen Assumption \ref{valMild} as follows:
+\begin{assumption}\label{valStrong}
+    The valuation function $v_i$'s are continuous and $\alpha$-strongly concave over $\mathcal{C}$, and are unknown to us.
+\end{assumption}
+Assumption \ref{consSet}, \ref{valStrong} and \ref{cost} will be made in the offline case of social welfare maximization. Note that under the assumption of strong concavity, given a price $\mathbf{p}$, for any $1\le i\le m$, $\mathbf{x}_i(\mathbf{p})$ will be unique.
+
+\paragraph{Online setting.}
+In the online setting, the consumers come to make purchases one by one. The producer is allowed to change prices between the arrival of two consumers, and the goal is to maximize the overall social welfare. The only knowledge of consumers the producer has is $m$, the number of consumers. Surprisingly, no assumption on valuations other than continuity is requried! In this online setting, we only make Assumption \ref{consSet}, \ref{valMild} and \ref{cost}.
+
+The random arrival model is considered in this paper. In this model, a sequence $v_1,\ldots,v_m$ is chosen by an adversary, a permutation $\gamma_1,\ldots,\gamma_m$ of $1,\ldots,m$ is chosen uniformly at random, and then $\tilde{v}_1,\ldots,\tilde{v}_m$ is given to our algorithm where $\tilde{v}_i=v_{\gamma_i}$. Correspondingly, the choice of the $i$-th consumer after random permutation, given a price $\mathbf{p}$, is denoted by $\tilde{\mathbf{x}}_i(\mathbf{p})$. As mentioned above, given $\tilde{v}_i$ and a price $\mathbf{p}$, $\tilde{\mathbf{x}}_i(\mathbf{p})$ is not unique. However, our algorithm only requires that the revealed preference maximizes the quasi-linear utility.
+
+At the beginning the producer posts an initial price $\mathbf{p}_1$, and after the purchase $\tilde{\mathbf{x}}_i$ of consumer $i$, the producer can adjust the price from $\mathbf{p}_i$ to $\mathbf{p}_{i+1}$. Only with the information of consumers' purchases, we want to achieve as much social welfare as possible w.r.t. all permutations. Equivalently, for a specific permutation $\gamma_1,\ldots,\gamma_m$ of $1,\ldots,m$, let
+\begin{equation}
+    \mathcal{E}(\gamma_1,\ldots,\gamma_m)=\mathrm{SW}^*-\left(\sum_{i=1}^{m}\tilde{v}_i(\tilde{\mathbf{x}}_i(\mathbf{p}_i))-c\left(\sum_{i=1}^{m}\tilde{\mathbf{x}}_i(\mathbf{p}_i)\right)\right)
+\end{equation}
+denote the additive error between the social welfare of our online algorithm when $v_{\gamma_1},\ldots,v_{\gamma_m}$ are revealed sequentially and the maximum social welfare where all valuations are known in advance. We want to make $\mathbb{E}_{\gamma_1,\ldots,\gamma_m}\mathcal{E}(\gamma_1,\ldots,\gamma_m)$ as small as possible. We can observe that an upper bound for the random arrival model also implies the same upper bound for the i.i.d. model where at each step a valuation is sampled independently and identically from some unknown distribution.
+
+\subsubsection{Profit Maximization}\label{profitMaxSection}
+The profit induced by a price $\mathbf{p}$ is denoted by
+\begin{equation}
+    \mathrm{Profit}(\mathbf{p})=\langle \mathbf{p},\mathbf{x}(\mathbf{p})\rangle-c(\mathbf{x}(\mathbf{p})).
+\end{equation}
+In profit maximization, we try to find a price $\mathbf{p}^*\in\arg\max_{\mathbf{p}\ge \mathbf{0}}\mathrm{Profit}(\mathbf{p})$. \\
+
+We give an algorithm and a matching lower bound under Assumption \ref{consSet}, \ref{valStrong}, \ref{cost} and an additional assumption that $v_i$'s and $c$ are separable. In other words, for every $\mathbf{x}\in \mathcal{C}$ and every $1\le i\le m$, $v_i(\mathbf{x})=\sum_{j=1}^{n}v_{ij}(x_j)$, and for every $\mathbf{y}\in \mathcal{C}_m$, $c(\mathbf{y})=\sum_{j=1}^{n}c_j(y_j)$.\\
+
+We achieve a hardness result for general valuation. Recall that for a general valuation, consumer's choice might not be unique given a certain price. Since we have no knowledge of what the consumer will choose under uncertainty, we make the following behavioral assumption:
+\begin{assumption}\label{behavior}
+    Given a price $\mathbf{p}$, suppose $\mathbf{x}_1$ and $\mathbf{x}_2$ are both quasi-linear-utility-maximizing bundles for a consumer, and $\mathbf{x}_1\ge \mathbf{x}_2$, then the consumer will choose $\mathbf{x}_1$.
+\end{assumption}
+
+\subsection{Preliminaries}
+Here we give some properties of convex functions. Note that corresponding properties hold for concave functions.
+\subsubsection{Basic Definitions}
+\begin{definition}[Subgradient and Supergradient]\label{subgrad}
+    Given a function $f:\mathcal{D}\to \mathbb{R}$ where $\mathcal{D}\subset \mathbb{R}^n$, for any $\mathbf{x}\in \mathbf{dom}\,f$, the set of subgradients of $f$ at $\mathbf{x}$ is defined as
+    \begin{equation}
+        \partial f(\mathbf{x})=\{\mathbf{g}\in \mathbb{R}^n|\forall \mathbf{y}\in \mathcal{D},f(\mathbf{y})-f(\mathbf{x})\ge \langle \mathbf{g},\mathbf{y}-\mathbf{x}\rangle\}.
+    \end{equation}
+    Similarly, the set of supergradients\footnote{Here the same notation is used for subgradients and supergradients, which is a little confusing. However, in the following we will only query subgradients of convex functions and supergradients of concave functions, and thus it is fine to use identical notation.} of $f$ at $\mathbf{x}$ is defined as
+    \begin{equation}
+        \partial f(\mathbf{x})=\{\mathbf{g}\in \mathbb{R}^n|\forall \mathbf{y}\in \mathcal{D},f(\mathbf{y})-f(\mathbf{x})\le \langle \mathbf{g},\mathbf{y}-\mathbf{x}\rangle\}.
+    \end{equation}
+\end{definition}
+
+Now suppose we are given a convex function $f:\mathcal{D}\to \mathbb{R}$, where $\mathcal{D}\subset \mathbb{R}^n$ is convex. It is \emph{closed} if its epigraph $\mathbf{epi}\,f=\{(\mathbf{x},t)\in \mathbb{R}^{n+1}|\mathbf{x}\in \mathcal{D},f(\mathbf{x})\le t\}$ is closed, and \emph{proper} if $\mathcal{D}\ne\emptyset$. In our case, $c$ is closed convex and proper.
+
+Regarding convex functions, we have the following lemmas:
+\begin{lemma}[\cite{N13} Theorem 3.1.8]\label{continuity}
+    Suppose $f$ is convex and $\mathbf{x}\in \mathbf{int}\,\mathbf{dom}\,f$. Then $f$ is continuous at $\mathbf{x}$.
+\end{lemma}
+\begin{lemma}[\cite{N13} Theorem 3.1.13]\label{subgradExist}
+    Suppose $f$ is convex and $\mathbf{x}\in \mathbf{int}\,\mathbf{dom}\,f$. Then $\partial f(\mathbf{x})\ne\emptyset$.
+\end{lemma}
+\begin{lemma}[\cite{N13} Theorem 3.1.15]\label{subgradOpt}
+    $\mathbf{x}^*\in\arg\min f(\mathbf{x})$ if and only if $\mathbf{0}\in\partial f(\mathbf{x}^*)$.
+\end{lemma}
+
+\subsubsection{Convex Conjugate and Concave Conjugate}
+\begin{definition}[Convex Conjugate and Concave Conjugate]\label{convConjgt}
+    Given a function $f:\mathcal{D}\to \mathbb{R}$ where $\mathcal{D}\subset \mathbb{R}^n$, its convex conjugate $f^*$ is defined as:
+    \begin{equation}
+        f^*(\mathbf{y})=\sup_{\mathbf{x}\in \mathcal{D}}\langle \mathbf{y},\mathbf{x}\rangle-f(\mathbf{x}),
+    \end{equation}
+    where the domain of $f^*$ is given by $\mathbf{dom}\,f^*=\{\mathbf{y}\in \mathbb{R}^n|f^*(\mathbf{y})<\infty\}$. Similarly, its concave conjugate is defined as
+    \begin{equation}
+        f_*(\mathbf{y})=\inf_{\mathbf{x}\in \mathcal{D}}\langle \mathbf{y},\mathbf{x}\rangle-f(\mathbf{x}),
+    \end{equation}
+    where the domain of $f_*$ is given by $\mathbf{dom}\,f_*=\{\mathbf{y}\in \mathbb{R}^n|f_*(\mathbf{y})>-\infty\}$.
+\end{definition}
+Note that in our case, since $\mathbf{dom}\,c=\mathcal{C}_m$ is non-empty and compact and $c$ is continuous, $\mathbf{dom}\,c^*=\mathbb{R}^n$. Similarly, for every $i$, $\mathbf{dom}\,v_{i*}=\mathbb{R}^n$.
+
+Below are some properties of convex conjugates. Note that corresponding properties can be proved for concave conjugates.
+\begin{lemma}
+    Given a function $f$, $f^*$ is closed convex.
+\end{lemma}
+\begin{proof}
+    Note that $\mathbf{epi}\,f^*=\bigcap_{\mathbf{x}\in \mathcal{D}}\{(\mathbf{y},t)|\langle \mathbf{y},\mathbf{x}\rangle-f(\mathbf{x})\le t\}$ is an intersection of halfspaces, which is convex and closed.
+\end{proof}
+\begin{lemma}[Fenchel-Moreau Theorem]\label{dualDual}
+    Given a function $f$, if $f$ is closed convex and proper, then $f^*$ is also closed convex and proper, and $f^{**}=f$.
+\end{lemma}
+By Lemma \ref{dualDual}, we know that in our case $c^{**}=c$.
+\begin{lemma}[Fenchel-Young Inequality]\label{fenchelIneq}
+    Given a function $f$, for every pair $(\mathbf{x},\mathbf{y}) \in \mathbf{dom}\,f\times \mathbf{dom}\,f^*$, $f(\mathbf{x})+f^*(\mathbf{y})\ge \langle \mathbf{x},\mathbf{y}\rangle$.
+\end{lemma}
+\begin{lemma}\label{conjgtSubgrad}
+    Suppose $f$ is closed convex and proper. For every pair $(\mathbf{x},\mathbf{y}) \in \mathbf{dom}\,f\times \mathbf{dom}\,f^*$,
+    \begin{equation}
+        \begin{array}{cl}
+             & \mathbf{y} \in \partial f(\mathbf{x}) \\
+            \iff & \mathbf{x} \in \partial f^*(\mathbf{y}) \\
+            \iff & \mathbf{x} \in \arg\max_{\mathbf{x}'\in \mathbf{dom}\,f} ( \langle \mathbf{y},\mathbf{x}'\rangle - f(\mathbf{x}') ) \\
+            \iff & \mathbf{y} \in \arg\max_{\mathbf{y}'\in \mathbf{dom}\,f^*} ( \langle \mathbf{x},\mathbf{y}'\rangle - f^*(\mathbf{y}') ) \\
+            \iff & f(\mathbf{x})+f^*(\mathbf{y})=\langle \mathbf{x},\mathbf{y}\rangle.
+        \end{array}
+    \end{equation}
+\end{lemma}
+\begin{proof}
+    By Lemma \ref{subgradOpt} and Definition \ref{convConjgt}, we have
+    \begin{equation}
+        \mathbf{y}\in\partial f(\mathbf{x})\iff \mathbf{0}\in\partial(\langle \mathbf{y},\mathbf{x}\rangle-f(\mathbf{x}))\iff \mathbf{x} \in \arg\max_{\mathbf{x}'\in \mathbf{dom}\,f} ( \langle \mathbf{y},\mathbf{x}'\rangle - f(\mathbf{x}') )\iff f(\mathbf{x})+f^*(\mathbf{y})=\langle \mathbf{x},\mathbf{y}\rangle.
+    \end{equation}
+
+    By Lemma \ref{subgradOpt}, Definition \ref{convConjgt} and Lemma \ref{dualDual}, we can prove the other part of Lemma \ref{conjgtSubgrad}.
+\end{proof}
+
+\subsubsection{Strong Convexity and Strong Smoothness}
+\begin{definition}
+    $f:\mathcal{D}\to \mathbb{R}$ is said to be $\alpha$-\textbf{strongly convex} w.r.t. $\|\cdot\|_2$ if for any $\mathbf{x},\mathbf{y}\in \mathcal{D}$, $\lambda\in[0,1]$, we have
+    \begin{equation}
+        \lambda f(\mathbf{x})+(1-\lambda)f(\mathbf{y})\ge f(\lambda \mathbf{x}+(1-\lambda)\mathbf{y})+\frac{\alpha}{2}\lambda(1-\lambda)\|\mathbf{y}-\mathbf{x}\|_2^2.
+    \end{equation}
+    $f$ is called $\alpha$-strongly concave if $-f$ is $\alpha$-strongly convex.
+\end{definition}
+\begin{lemma}[\cite{N13} Theorem 2.1.8]
+    Suppose $f:\mathcal{D}\to \mathbb{R}$ is differentiable. Then $f$ is $\alpha$-strongly convex if and only if for any $\mathbf{x},\mathbf{y}\in \mathcal{D}$,
+    \begin{equation}
+        f(\mathbf{y})\ge f(\mathbf{x})+\langle\nabla f(\mathbf{x}),\mathbf{y}-\mathbf{x}\rangle+\frac{\alpha}{2}\|\mathbf{y}-\mathbf{x}\|_2^2.
+    \end{equation}
+\end{lemma}
+\begin{definition}\label{strongSmooth}
+    $f:\mathbb{R}^n\to \mathbb{R}$ is said to be $\beta$-\textbf{strongly smooth and convex} w.r.t. $\|\cdot\|_2$ if $f$ is differentiable and for any $\mathbf{x},\mathbf{y}\in \mathcal{D}$, we have
+    \begin{equation}
+        \|\nabla f(\mathbf{y})-\nabla f(\mathbf{x})\|_2\le\beta\|\mathbf{y}-\mathbf{x}\|_2.
+    \end{equation}
+    $f$ is $\beta$-strongly smooth and concave if $-f$ is $\beta$-strongly smooth and convex.
+\end{definition}
+\begin{lemma}[\cite{N13} Theorem 2.1.5]\label{strongSmoothEquiv}
+    $f:\mathbb{R}^n\to \mathbb{R}$ is $\beta$-strongly smooth and convex if and only if for any $\mathbf{x},\mathbf{y}\in \mathbb{R}^n$, we have
+    \begin{equation}
+        f(\mathbf{y})-f(\mathbf{x})\ge \langle\nabla f(\mathbf{x}),\mathbf{y}-\mathbf{x}\rangle+\frac{1}{2\beta}\|\nabla f(\mathbf{y})-\nabla f(\mathbf{x})\|_2^2.
+    \end{equation}
+\end{lemma}
+\begin{lemma}[\cite{KST09} Theorem 6]\label{strongConvSmoothDual}
+    Suppose $f$ is closed convex and proper. Then $f$ is $\beta$-strongly convex w.r.t. $\|\cdot\|_2$ if and only if $f^*$ is $\frac{1}{\beta}$-strongly smooth and convex w.r.t. $\|\cdot\|_2$ over $\mathbb{R}^n$.
+\end{lemma}
+
+\subsubsection{Online Convex Optimization}
+In an online convex optimization problem, there are in total $T$ steps. A domain $\mathcal{D}$ is known in advance. At step $t$, the online convex optimization algorithm determines $\mathbf{x}_t\in \mathcal{D}$, and then $f_t:\mathcal{D}\to \mathbb{R}$ is revealed and a loss of $f_t(\mathbf{x}_t)$ is induced. Based on the previous information (formally, $\mathbf{x}_1,\ldots,\mathbf{x}_t$ and $f_1,\ldots,f_t$), the algorithm updates $\mathbf{x}_t$ to $\mathbf{x}_{t+1}$. The algorithm tries to minimize the \emph{regret}
+\begin{equation}
+    R(T)=\sum_{t=1}^{T}f_t(\mathbf{x}_t)-\min_{\mathbf{x}\in \mathcal{D}}\sum_{t=1}^{T}f_t(\mathbf{x}).
+\end{equation}
+The regret of an OCO algorithm $\mathcal{A}$ is denoted by $R_{\mathcal{A}}(T)$.
+
+There are many OCO algorithms. One natural algorithm is the \emph{online (sub)gradient descent} algorithm, where at step $t$ we perform the following update:
+\begin{equation}
+    \mathbf{x}_{t+1}=\Pi_{\mathcal{D}}[\mathbf{x}_t-\eta_tg_t(\mathbf{x}_t)],
+\end{equation}
+where $\eta_t$ is a step size to be determined and $g_t(\mathbf{x}_t)\in\partial f_t(\mathbf{x}_t)$.
+
+The performance guarantee of online gradient descent is as follows:
+\begin{lemma}[\cite{H16} Theorem 3.1]
+    Let $D=\max\{\|\mathbf{x}_1-\mathbf{x}_2\|_2|\mathbf{x}_1,\mathbf{x}_2\in \mathcal{D}\}$ and $G=\max\{\|\partial f_t(\mathbf{x})\|_2|1\le t\le T,\mathbf{x}\in \mathcal{D}\}$, and $\eta_t=\frac{D}{G\sqrt{T}}$. Then
+    \begin{equation}
+        R_{\mathrm{OGD}}(T)=\sum_{t=1}^{T}f_t(\mathbf{x}_t)-\min_{\mathbf{x}\in \mathcal{D}}\sum_{t=1}^{T}f_t(\mathbf{x})\le DG\sqrt{T}.
+    \end{equation}
+\end{lemma}
+
+\section{Social Welfare Maximization}
+In Section \ref{SWMaxCommonSec}, we prove the existence of an optimum price which induces maximum social welfare. Then in Section \ref{offlineSec} and \ref{onlineSec}, the offline and online social welfare maximization are considered respectively.
+
+\subsection{Looking at the Dual}\label{SWMaxCommonSec}
+Here we provide some technical lemmas. In Lemma \ref{conjgtSubgradInterp}, we formalize the idea that for concave valuation, the revealed preference is the (sub)gradient of the conjugate. From another aspect, Lemma \ref{conjgtSubgradInterp} says that at price $\mathbf{p}$, $\partial v_*(\mathbf{p})$ gives the demand while $\partial c^*(\mathbf{p})$ gives the supply.
+\begin{lemma}\label{conjgtSubgradInterp}
+    Given a concave continuous valuation $v:\mathcal{C}\to \mathbb{R}$, a convex continuous cost $c:\mathcal{C}_m\to \mathbb{R}$, and a price $\mathbf{p}\in \mathbb{R}_+^n$.
+    \begin{itemize}
+        \item For any $\mathbf{x}\in \mathcal{C}$, $\mathbf{x}\in\partial v_*(\mathbf{p})$ if and only if $\mathbf{x}$ maximizes the quasi-linear utility at price $\mathbf{p}$.
+        \item For any $\mathbf{y}\in \mathcal{C}_m$, $\mathbf{y}\in\partial c^*(\mathbf{p})$ if and only if $\mathbf{y}$ maximizes the producer's profit at price $\mathbf{p}$, assuming everything produced can be sold.
+    \end{itemize}
+\end{lemma}
+\begin{proof}
+    Note that Lemma \ref{conjgtSubgrad}, stated for convex functions and convex conjugates, can also be adapted to concave functions and concave conjugates. It gives us
+    \begin{equation*}
+        \mathbf{x}\in\partial v_*(\mathbf{p})\iff \mathbf{x}\in\arg\min_{\mathbf{x}'\in \mathcal{C}}\langle \mathbf{x}',\mathbf{p}\rangle-v(\mathbf{x}')\iff\mathbf{x}\in\arg\max_{\mathbf{x}'\in \mathcal{C}}v(\mathbf{x}')-\langle \mathbf{x}',\mathbf{p}\rangle.
+    \end{equation*}
+
+    Still by Lemma \ref{conjgtSubgrad}, we know that $\mathbf{y}\in\partial c^*(\mathbf{p})\iff \mathbf{y}\in\arg\max_{\mathbf{y}'\in \mathcal{C}_m}\langle \mathbf{y}',\mathbf{p}\rangle-c(\mathbf{y})$.
+\end{proof}
+
+Recall that the definition of social welfare \eqref{socWelf} and maximum social welfare \eqref{socWelfMax} has nothing to do with price. Lemma \ref{dualOpt} shows that maximum social welfare \eqref{socWelfMax} can in fact be induced by some price $\mathbf{p}^*$, and $\mathbf{p}^*$ is the solution of a dual optimization problem.
+\begin{lemma}\label{dualOpt}
+    Given a concave continuous valuation $v:\mathcal{C}\to \mathbb{R}$ and a convex continuous cost $c:\mathcal{C}_m\to \mathbb{R}$, there exists a price $\mathbf{p}^*\in \mathbb{R}^n$ such that $(\mathbf{x}_1(\mathbf{p}^*),\ldots,\mathbf{x}_m(\mathbf{p}^*))$ maximizes social welfare.
+\end{lemma}
+\begin{proof}
+    Maximizing social welfare is equivalent to solving the following problem
+    \begin{equation}\label{socWelfMaxUnboundedProg}
+        \begin{array}{rl}
+            \displaystyle\max_{\substack{\mathbf{x}_1,\ldots,\mathbf{x}_m\in \mathcal{C}\\\mathbf{y}\in \mathcal{C}_m}} & \sum_{i=1}^{m}v_i(\mathbf{x}_i)-c(\mathbf{y}) \\
+            \mathrm{s.t.} & \sum_{i=1}^{m}\mathbf{x}_i=\mathbf{y}.
+        \end{array}
+    \end{equation}
+    The Lagrangian of the above problem is $L(\mathbf{x}_1,\ldots,\mathbf{x}_m,\mathbf{y},\mathbf{p})=\sum_{i=1}^{m}v_i(\mathbf{x}_i)-c(\mathbf{y})+\langle \mathbf{p},\mathbf{y}-\sum_{i=1}^{m}\mathbf{x}_i\rangle$. We further have that \eqref{socWelfMaxUnboundedProg} equals
+    \begin{equation}
+        \begin{array}{cl}
+             & \max_{\mathbf{x}_1,\ldots,\mathbf{x}_m\in \mathcal{C},\mathbf{y}\in \mathcal{C}_m}\min_{\mathbf{p}\in \mathbb{R}^n}L(\mathbf{x}_1,\ldots,\mathbf{x}_m,\mathbf{y},\mathbf{p}) \\
+            = & \min_{\mathbf{p}\in \mathbb{R}^n}\max_{\mathbf{x}_1,\ldots,\mathbf{x}_m\in \mathcal{C},\mathbf{y}\in \mathcal{C}_m}L(\mathbf{x}_1,\ldots,\mathbf{x}_m,\mathbf{y},\mathbf{p}) \\
+            = & \min_{\mathbf{p}\in \mathbb{R}^n}(c^*(\mathbf{p})-\sum_{i=1}^{m}v_{i*}(\mathbf{p})).
+        \end{array}
+    \end{equation}
+    Here the second line is due to Slater's condition, and the third line is due to the definition of convex conjugate and concave conjugate.
+
+    Due to the continuity of $v_i$'s and $c$ and the compactness of $\mathcal{C}$, the optimum primal solution $(\mathbf{x}_1^*,\ldots,\mathbf{x}_m^*,\mathbf{y}^*)$ exists. By Slater's condition, the dual optimum solution $\mathbf{p}^*$ also exists. By the minimax property, we know that $\mathbf{y}^*=\sum_{i=1}^{m}\mathbf{x}_i^*$, and $\mathbf{x}_i^*$ maximizes $v_i(\mathbf{x})-\langle \mathbf{x},\mathbf{p}^*\rangle$ for all $1\le i\le m$.
+\end{proof}
+\paragraph{Remark.}
+Here we present the result in a general form, where a possibly negative price is allowed. In following sections, we will make use of the monotonicity and Lipschitz continuity assumption on the cost function to show that it is enough to only consider non-negative bounded prices.
+
+Lemma \ref{dualOpt} tells us that to find a price which induces maximum social welfare, we only need to solve a dual optimization problem. Lemma \ref{conjgtSubgradInterp} tells us that revealed preferences can be seen as a (sub)gradient oracle of conjugates of the valuations, and $c^*$ is already known to us. Therefore instead of solving the primal problem directly, it is natural to look at the dual problem. This idea is stated formally in the following sections.
+
+\subsection{Offline setting}\label{offlineSec}
+Here we consider the offline setting of the social welfare maximization problem, where we try to learn a price which induces good enough social welfare compared to the maximum social welfare \eqref{socWelfMax}. We view the consumers as an aggregate demand oracle, in other words, each time a price $\mathbf{p}$ is posted, the aggregate demand $\mathbf{x}(\mathbf{p})$ will be revealed to us. Throughout the offline setting, we make Assumption \ref{consSet}, \ref{valStrong} and \ref{cost}.
+
+As shown by Lemma \ref{dualOpt}, we only need to solve a dual optimization problem to find the optimum price. Here we first show that for monotonically non-decreasing and Lipschitz continuous cost function, only non-negative bounded prices need to be considered.
+\begin{lemma}\label{offlineOptPrice}
+    Under Assumption \ref{consSet}, \ref{valStrong} and \ref{cost}, there exists a price $\mathbf{p}^*\in \mathbb{R}^n$ such that $\mathbf{p}^*\ge \mathbf{0}$, $\|\mathbf{p}^*\|_2\le\lambda$, and $(\mathbf{x}_1(\mathbf{p}^*),\ldots,\mathbf{x}_m(\mathbf{p}^*))$ maximizes social welfare.
+\end{lemma}
+\begin{proof}
+    Due to the monotonicity of $c$, maximizing social welfare is equivalent to
+    \begin{equation}\label{socWelfMaxProg}
+        \begin{array}{rl}
+            \displaystyle\max_{\substack{\mathbf{x}_1,\ldots,\mathbf{x}_m\in \mathcal{C}\\\mathbf{y}\in \mathcal{C}_m}} & \sum_{i=1}^{m}v_i(\mathbf{x}_i)-c(\mathbf{y}) \\
+            \mathrm{s.t.} & \sum_{i=1}^{m}\mathbf{x}_i\le \mathbf{y}.
+        \end{array}
+    \end{equation}
+    The Lagrangian is still $L(\mathbf{x}_1,\ldots,\mathbf{x}_m,\mathbf{y},\mathbf{p})=\sum_{i=1}^{m}v_i(\mathbf{x}_i)-c(\mathbf{y})+\langle \mathbf{p},\mathbf{y}-\sum_{i=1}^{m}\mathbf{x}_i\rangle$. Furthermore, \eqref{socWelfMaxProg} equals
+    \begin{equation}
+        \begin{array}{cl}
+             & \max_{\mathbf{x}_1,\ldots,\mathbf{x}_m\in \mathcal{C},\mathbf{y}\in \mathcal{C}_m}\min_{\mathbf{p}\ge \mathbf{0},\|\mathbf{p}\|_2\le\lambda}L(\mathbf{x}_1,\ldots,\mathbf{x}_m,\mathbf{y},\mathbf{p}) \\
+            = & \min_{\mathbf{p}\ge \mathbf{0},\|\mathbf{p}\|_2\le\lambda}\max_{\mathbf{x}_1,\ldots,\mathbf{x}_m\in \mathcal{C},\mathbf{y}\in \mathcal{C}_m}L(\mathbf{x}_1,\ldots,\mathbf{x}_m,\mathbf{y},\mathbf{p}) \\
+            = & \min_{\mathbf{p}\ge \mathbf{0},\|\mathbf{p}\|_2\le\lambda}(c^*(\mathbf{p})-\sum_{i=1}^{m}v_{i*}(\mathbf{p})).
+        \end{array}
+    \end{equation}
+    Here the first line is due to the Lipschitz continuity of $c$, the second line is due to Sion's theorem.
+
+    Compared with the proof of Lemma \ref{dualOpt}, we know that for monotonically non-decreasing and $\lambda$-Lipschitz continuous cost,
+    \begin{equation}\label{boundedPrice}
+        \min_{\mathbf{p}\in \mathbb{R}^n}\left(c^*(\mathbf{p})-\sum_{i=1}^{m}v_{i*}(\mathbf{p})\right)=\min_{\mathbf{p}\ge \mathbf{0},\|\mathbf{p}\|_2\le\lambda}\left(c^*(\mathbf{p})-\sum_{i=1}^{m}v_{i*}(\mathbf{p})\right).
+    \end{equation}
+    In other words, we can find an optimum price $\mathbf{p}^*$ such that $\mathbf{p}^*\ge \mathbf{0}$ and $\|\mathbf{p}^*\|_2\le\lambda$.
+\end{proof}
+
+From the proof of Lemma \ref{offlineOptPrice}, to find the optimum price which induces a social-welfare-maximizing allocation, we only need to solve
+\begin{equation}\label{offlineSWMaxProg}
+    \begin{array}{rl}
+        \min_{\mathbf{p}\in \mathcal{P}}f(\mathbf{p})=c^*(\mathbf{p})-\sum_{i=1}^{m}v_{i*}(\mathbf{p}),
+    \end{array}
+\end{equation}
+where $\mathcal{P}=\{\mathbf{p}\in \mathbb{R}^n|\mathbf{p}\ge \mathbf{0},\|\mathbf{p}\|_2\le\lambda\}$. This is basically a convex optimization problem.
+
+Our idea is to apply some gradient-based algorithm to \eqref{offlineSWMaxProg}. One direct idea is to apply the (sub)gradient descent method. In fact, the application of the (sub)gradient descent method is very intuitive, since by Lemma \ref{conjgtSubgradInterp}, the (sub)gradient of $f$ is just the difference between the supply and the demand at a given price. In other words, if demand exceeds supply, we increase the price, otherwise we decrease the price, which coincides with the principle that the price is determined by demand and supply. However, the (sub)gradient descent method is not very efficient, and instead we make use of the accelerated gradient descent method. It was first introduced by Nesterov in \cite{N83}, followed by many extensions. Here we use one variant call the AGM algorithm given in \cite{AO14}.
+\begin{lemma}[\cite{AO14} Theorem 4.1]\label{AGM}
+    Suppose $f:\mathcal{D}\to \mathbb{R}$ is $\beta$-strongly smooth and convex over $\mathcal{D}$ and $\mathbf{x}^*\in\arg\min_{\mathbf{x}\in \mathcal{D}}f(\mathbf{x})$. Given $\mathbf{x}_1\in \mathcal{D}$, for any $t\ge2$, The AGM algorithm outputs $\mathbf{x}_t\in \mathcal{D}$ such that
+    \begin{equation}
+        f(\mathbf{x}_t)-f(\mathbf{x}^*)\le \frac{2\beta\|\mathbf{x}_1-\mathbf{x}^*\|_2^2}{t^2}.
+    \end{equation}
+\end{lemma}
+
+Since $v_i$ is $\alpha$-strongly concave, by Lemma \ref{strongConvSmoothDual} we know that $v_{i*}$ is $\frac{1}{\alpha}$-strongly smooth and concave, and then by Lemma \ref{conjgtSubgradInterp}, given a price $\mathbf{p}$, $\mathbf{x}_i(\mathbf{p})=\nabla v_{i*}(\mathbf{p})$. By contrast, as we do not assume any second-order condition on $c$, $c^*$ may not be strongly smooth. However, for our algorithm to work, we do want $c^*$ to be strongly smooth. In the following, we first assume that $c$ is $\mu$-strongly convex in order to illustrate the main idea, and then make use of the smoothing technique to deal with the general case.
+
+First suppose $c$ is $\mu$-strongly convex. Then $c^*$ is $\frac{1}{\mu}$-strongly smooth and convex, and thus $f$ is $(\frac{1}{\mu}+\frac{m}{\alpha})$-strongly smooth and convex. We further have $\nabla f(\mathbf{p})$ equals $\nabla c^*(\mathbf{p})-\mathbf{x}(\mathbf{p})$, which can be computed assuming access to the aggregate demand oracle. Then we can just invoke the AGM algorithm introduced in Lemma \ref{AGM}. Let $\mathbf{p}^{(T)}$ denote the output of the AGM algorithm, and $\mathbf{p}^*\in\arg\min_{\mathbf{p}\in \mathcal{P}}f(\mathbf{p})$.
+\begin{theorem}\label{offlineGuaranteeStrongConv}
+    For $T\ge2$, after $T-1$ queries to the aggregate demand oracle, the social welfare induced by $\mathbf{p}^{(T)}$ outputted by the AGM algorithm is within $O(\frac{m}{T})$ from the optimum offline social welfare, where $\lambda$, $\mu$ and $\alpha$ are hidden as constants in the big $O$ notation.
+\end{theorem}
+\begin{proof}
+    Let $\mathbf{y}^{(T)}=\nabla c^*(\mathbf{p}^{(T)})$, $\mathbf{x}_{i}^{(T)}=\nabla v_{i*}(\mathbf{p}^{(T)})$, and $\mathbf{x}_i^*=\nabla v_{i*}(\mathbf{p}^*)$. From \eqref{boundedPrice}, we know that $\nabla f(\mathbf{p}^*)=\mathbf{0}$. Then by Lemma \ref{AGM} and \ref{strongSmoothEquiv}, we know that
+    \begin{equation}
+        \left\|\mathbf{y}^{(T)}-\sum_{i=1}^{m}\mathbf{x}_{i}^{(T)}\right\|_2=\|\nabla f(\mathbf{p}^{(T)})\|_2\le \frac{2\lambda(\frac{1}{\mu}+\frac{m}{\alpha})}{T}.
+    \end{equation}
+    Then we have
+    \begin{equation}
+        \begin{array}{cl}
+             & \sum_{i=1}^{m}v_i(\mathbf{x}_{i}^{(T)})-c(\sum_{i=1}^{m}\mathbf{x}_{i}^{(T)}) \\
+            \ge & \sum_{i=1}^{m}v_i(\mathbf{x}_{i}^{(T)})-c(\mathbf{y}^{(T)})-\lambda\|\mathbf{y}^{(T)}-\sum_{i=1}^{m}\mathbf{x}_{i}^{(T)}\|_2 \\
+            = & \sum_{i=1}^{m}(\langle \mathbf{x}_{i}^{(T)},\mathbf{p}^{(T)}\rangle-v_{i*}(\mathbf{p}^{(T)}))-\langle \mathbf{y}^{(T)},\mathbf{p}^{(T)}\rangle+c^*(\mathbf{p}^{(T)})-\lambda\|\mathbf{y}^{(T)}-\sum_{i=1}^{m}\mathbf{x}_{i}^{(T)}\|_2 \\
+            \ge & c^*(\mathbf{p}^*)-\sum_{i=1}^{m}v_{i*}(\mathbf{p}^*)-2\lambda\|\mathbf{y}^{(T)}-\sum_{i=1}^{m}\mathbf{x}_{i}^{(T)}\|_2. \\
+        \end{array}
+    \end{equation}
+    Here the first inequality comes from the Lipschitz inequality of $c$. As can be seen from the proof of Lemma \ref{offlineOptPrice}, for $\mathbf{p}^*$, $c^*(\mathbf{p}^*)-\sum_{i=1}^{m}v_{i*}(\mathbf{p}^*)=\sum_{i=1}^{m}v_i(\mathbf{x}_i^*)-c(\sum_{i=1}^{m}\mathbf{x}_i^*)$. Thus the additive error between the social welfare achieved by $\mathbf{p}^{(T)}$ and the optimum social welfare is at most
+    \begin{equation}
+        2\lambda\left\|\mathbf{y}^{(T)}-\sum_{i=1}^{m}\mathbf{x}_{i}^{(T)}\right\|_2\le \frac{4\lambda^2(\frac{1}{\mu}+\frac{m}{\alpha})}{T}.
+    \end{equation}
+\end{proof}
+
+For the general case, we can make use of the \emph{smoothing technique}: Let $c_{\mu}(\mathbf{y})=c(\mathbf{y})+\frac{\mu}{2}\|\mathbf{y}\|_2^2$. Now $c_{\mu}$ is $\mu$-strongly convex, $(\lambda+\mu mD)$-Lipschitz continuous, and $c\le c_{\mu}\le c+\frac{\mu}{2}m^2D^2$. We can then just use $c_{\mu}$ as the cost function, and try to balance different terms of error by selecting a good value for $\mu$.
+
+\begin{algorithm}
+    \caption{Offline SW Maximization}
+    \begin{algorithmic}
+        \STATE{$\mu\leftarrow\frac{2\sqrt{2}\lambda}{mD\sqrt{T}}$, $c_{\mu}(\mathbf{y})=c(\mathbf{y})+\frac{\mu}{2}\|\mathbf{y}\|_2^2$, $f_{\mu}=c_{\mu}^*(\mathbf{p})-\sum_{i=1}^{m}v_{i*}(\mathbf{p})$.}
+        \STATE{For $T\ge2$, run the AGM algorithm on $f_{\mu}$ with $\mathbf{p}_{\mu}^{(1)}\in \mathcal{P}$ for $T-1$ steps, and output $\mathbf{p}_{\mu}^{(T)}$.}
+    \end{algorithmic}
+    \label{offlineSWMaxAlg}
+\end{algorithm}
+
+Let $\mathbf{p}_{\mu}^{(T)}$ denote the output of Algorithm \ref{offlineSWMaxAlg}, $\mathbf{p}^*\in\arg\min_{\mathbf{p}\in \mathcal{P}}f(\mathbf{p})$, and furthermore $\mathbf{p}_{\mu}^*\in\arg\min_{\mathbf{p}\in \mathcal{P}}f_{\mu}(\mathbf{p})$.
+\begin{theorem}\label{offlineGuarantee}
+    The social welfare induced by $\mathbf{p}_{\mu}^{(T)}$ is within $O(\frac{m}{\sqrt{T}})$ from the optimum offline social welfare, where $D$, $\lambda$ and $\alpha$ are hidden as constants in the big $O$ notation.
+\end{theorem}
+\begin{proof}
+    Let $\mathbf{x}_{\mu i}^{(T)}=\nabla v_{i*}(\mathbf{p}_{\mu}^{(T)})$, $\mathbf{x}_{\mu i}^*=\nabla v_{i*}(\mathbf{p}_{\mu}^*)$, and $\mathbf{x}_i^*=\nabla v_{i*}(\mathbf{p}^*)$. We have
+    \begin{equation}\label{offlineGuaranteeHelper1}
+        \sum_{i=1}^{m}v_i(\mathbf{x}_{\mu i}^{(T)})-c\left(\sum_{i=1}^{m}\mathbf{x}_{\mu i}^{(T)}\right)\ge \sum_{i=1}^{m}v_i(\mathbf{x}_{\mu i}^{(T)})-c_{\mu}\left(\sum_{i=1}^{m}\mathbf{x}_{\mu i}^{(T)}\right),
+    \end{equation}
+    and
+    \begin{equation}\label{offlineGuaranteeHelper2}
+        \sum_{i=1}^{m}v_i(\mathbf{x}_{\mu i}^*)-c_{\mu}\left(\sum_{i=1}^{m}\mathbf{x}_{\mu i}^*\right)\ge \sum_{i=1}^{m}v_i(\mathbf{x}_i^*)-c_{\mu}\left(\sum_{i=1}^{m}\mathbf{x}_i^*\right)\ge \sum_{i=1}^{m}v_i(\mathbf{x}_i^*)-c\left(\sum_{i=1}^{m}\mathbf{x}_i^*\right)-\frac{\mu}{2}m^2D^2.
+    \end{equation}
+    Combine \eqref{offlineGuaranteeHelper1}, \eqref{offlineGuaranteeHelper2}, and the proof of Theorem \ref{offlineGuaranteeStrongConv}, we know that
+    \begin{equation}
+        \left(\sum_{i=1}^{m}v_i(\mathbf{x}_{\mu i}^{(T)})-c\left(\sum_{i=1}^{m}\mathbf{x}_{\mu i}^{(T)}\right)\right)-\left(\sum_{i=1}^{m}v_i(\mathbf{x}_i^*)-c\left(\sum_{i=1}^{m}\mathbf{x}_i^*\right)\right)\le \frac{\mu}{2}m^2D^2+ \frac{4(\lambda+\mu mD)^2(\frac{1}{\mu}+\frac{m}{\alpha})}{T}
+    \end{equation}
+    The theorem is proved by setting $\mu=\frac{2\sqrt{2}\lambda}{mD\sqrt{T}}$.
+\end{proof}
+
+
+\subsection{Online Case}\label{onlineSec}
+Here we consider the online case of social welfare maximization. Recall that a sequence of valuations $v_1,\ldots,v_m$ is chosen by an adversary, which are then random permuted and given to our algorithm one by one. Since the offline problem will not change after valuations are permuted, we still denote the maximum offline social welfare by $\mathrm{SW}^*$ and the optimum offline solution by $(\mathbf{x}_1^*,\ldots,\mathbf{x}_m^*)$.
+
+The following Algorithm \ref{onlineSWMaxAlg}, which is first given in \cite{AD15} to solve an online stochastic convex programming problem, has some very nice properties when applied to online social welfare maximization. Specifically, the only information of consumers it requires is their \emph{revealed preferences}, and it makes no more assumption on valuations other than continuity. Algorithm \ref{onlineSWMaxAlg} calls an online convex optimization algorithm $\mathcal{A}$ as a subroutine, where the domain of $\mathcal{A}$ is $\mathcal{P}=\{\mathbf{p}\ge \mathbf{0}|\|\mathbf{p}\|_2\le\lambda\}$.
+\begin{algorithm}
+    \caption{Online SW Maximization}
+    \begin{algorithmic}
+        \STATE $\mathcal{P}\leftarrow\{\mathbf{p}\ge \mathbf{0}|\|\mathbf{p}\|_2\le\lambda\}$.
+        \STATE $\mathbf{p}_1\in \mathcal{P}$ is the initial price chosen by $\mathcal{A}$.
+        \FOR {$i=1$ \TO $m$}
+        \STATE Post price $\mathbf{p}_i$.
+        \STATE Observe the $i$-th buyer's choice, $\tilde{\mathbf{x}}_i$.
+        \STATE Give $f_i(\mathbf{p})=\frac{1}{m}c^*(\mathbf{p})-\langle\tilde{\mathbf{x}}_i,\mathbf{p}\rangle$ with domain $\mathcal{P}$ to $\mathcal{A}$, and observe an updated $\mathbf{p}_{i+1}$ from $\mathcal{A}$.
+        \ENDFOR
+    \end{algorithmic}
+    \label{onlineSWMaxAlg}
+\end{algorithm}
+
+\paragraph{Remark.}
+In Algorithm \ref{onlineSWMaxAlg}, different online convex optimization algorithm can be used as the subroutine $\mathcal{A}$. For example, if online gradient descent is used, then each update can still be viewed as supply minus demand. Furthermore, if we can compute subgradients of $c^*$ efficiently, then the per-step update of Algorithm \ref{onlineSWMaxAlg} is very simple.
+
+\paragraph{Analysis}
+Let $(\gamma_1,\ldots,\gamma_m)$ denote a random permutation of $1,\ldots,m$, and $\Gamma_i$ denote $(\gamma_1,\ldots,\gamma_i)$. Note that $\mathbf{p}_i$ is determined given $\Gamma_{i-1}$ ($\Gamma_0=\emptyset$), and $\tilde{\mathbf{x}}_i$ depends on $\mathbf{p}_i$ and $\gamma_i$.
+
+By the regret bound of OCO, we know that for any permutation $(\gamma_1,\ldots,\gamma_m)$,
+\begin{equation}\label{onlineSWMaxRegret}
+    \begin{array}{rl}
+         & \sum_{i=1}^{m}f_i(\mathbf{p}_i)-\min_{\mathbf{p}\ge \mathbf{0},\|\mathbf{p}\|_2\le\lambda}\sum_{i=1}^{m}f_i(\mathbf{p}) \\
+        = & \sum_{i=1}^{m}(f_i(\mathbf{p}_i)+\tilde{v}_i(\tilde{\mathbf{x}}_i))-\min_{\mathbf{p}\ge \mathbf{0},\|\mathbf{p}\|_2\le\lambda}\sum_{i=1}^{m}(f_i(\mathbf{p})+\tilde{v}_i(\tilde{\mathbf{x}}_i)) \\
+        \le & R_{\mathcal{A}}(m),
+    \end{array}
+\end{equation}
+We will give a precise value for $R_{\mathcal{A}}(m)$ later.
+
+First, we examine the second term:
+\begin{equation}
+    \begin{array}{rl}
+         & \min_{\mathbf{p}\ge \mathbf{0},\|\mathbf{p}\|_2\le\lambda}\sum_{i=1}^{m}(f_i(\mathbf{p})+\tilde{v}_i(\tilde{\mathbf{x}}_i)) \\
+        = & \min_{\mathbf{p}\ge \mathbf{0},\|\mathbf{p}\|_2\le\lambda}(c^*(\mathbf{p})-\langle \sum_{i=1}^{m}\tilde{\mathbf{x}}_i,\mathbf{p}\rangle)+\sum_{i=1}^{m}\tilde{v}_i(\tilde{\mathbf{x}}_i) \\
+        = & \sum_{i=1}^{m}\tilde{v}_i(\tilde{\mathbf{x}}_i)-c(\sum_{i=1}^{m}\tilde{\mathbf{x}}_i).
+    \end{array}
+\end{equation}
+The second inequality is due to the monotonicity and Lipschitz continuity of $c$. Thus the second term of \eqref{onlineSWMaxRegret} always equals the social welfare achieved by Algorithm \ref{onlineSWMaxAlg}, for every random permutation $(\gamma_1,\ldots,\gamma_m)$.
+
+To analyze the first term of \eqref{onlineSWMaxRegret}, we need to take expectation w.r.t. the random permutations. First, fix $1\le i\le m$ and $\Gamma_{i-1}$, and then $\mathbf{p}_i$ will be determined.
+\begin{equation}\label{onlineSWMaxRegretTerm1}
+    \begin{array}{rl}
+         & \mathbb{E}_{\gamma_i}[f_i(\mathbf{p}_i)+\tilde{v}_i(\tilde{\mathbf{x}}_i)|\Gamma_{i-1}] \\
+        = & \mathbb{E}_{\gamma_i}\left[\frac{1}{m}c^*(\mathbf{p}_i)-\langle \tilde{\mathbf{x}}_i,\mathbf{p}_i\rangle+\tilde{v}_i(\tilde{\mathbf{x}}_i)\middle|\Gamma_{i-1}\right] \\
+        = & \frac{1}{m}c^*(\mathbf{p}_i)+\mathbb{E}_{\gamma_i}[v_{\gamma_i}(\tilde{\mathbf{x}}_i)-\langle \tilde{\mathbf{x}}_i,\mathbf{p}_i\rangle|\Gamma_{i-1}] \\
+        \ge & \frac{1}{m}c^*(\mathbf{p}_i)+\mathbb{E}_{\gamma_i}[v_{\gamma_i}(\mathbf{x}_{\gamma_i}^*)-\langle \mathbf{x}_{\gamma_i}^*,\mathbf{p}_i\rangle|\Gamma_{i-1}] \\
+        = & \frac{1}{m}c^*(\mathbf{p}_i)+\mathbb{E}_{\gamma_i}[v_{\gamma_i}(\mathbf{x}_{\gamma_i}^*)|\Gamma_{i-1}]-\langle \mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*|\Gamma_{i-1}],\mathbf{p}_i\rangle \\
+        = & \frac{1}{m}c^*(\mathbf{p}_i)+\mathbb{E}_{\gamma_i}[v_{\gamma_i}(\mathbf{x}_{\gamma_i}^*)|\Gamma_{i-1}]-\langle \mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*],\mathbf{p}_i\rangle+\langle \mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*]-\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*|\Gamma_{i-1}],\mathbf{p}_i\rangle \\
+        = & \frac{1}{m}c^*(\mathbf{p}_i)-\frac{1}{m}\langle \sum_{i=1}^{m}\mathbf{x}_i^*,\mathbf{p}_i\rangle+\mathbb{E}_{\gamma_i}[v_{\gamma_i}(\mathbf{x}_{\gamma_i}^*)|\Gamma_{i-1}]+\langle \mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*]-\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*|\Gamma_{i-1}],\mathbf{p}_i\rangle \\
+        \ge &  -\frac{1}{m}c(\sum_{i=1}^{m}\mathbf{x}_i^*)+\mathbb{E}_{\gamma_i}[v_{\gamma_i}(\mathbf{x}_{\gamma_i}^*)|\Gamma_{i-1}]-\lambda\|\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*]-\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*|\Gamma_{i-1}]\|_2.
+    \end{array}
+\end{equation}
+Here the first inequality holds because Algorithm \ref{onlineSWMaxAlg} maximizes the quasi-linear utility at step $i$ facing price $\mathbf{p}_i$, and the second inequality is due to Fenchel-Young inequality (Lemma \ref{fenchelIneq}) and Cauchy-Schwarz inequality.
+
+Then taking the expectation w.r.t. $\Gamma_{i-1}$ and summing from $1$ to $m$, we have
+\begin{equation}\label{onlineSWMaxRegretExpectedTerm1}
+    \begin{array}{rl}
+         & \mathbb{E}_{\Gamma_m}[\sum_{i=1}^{m}f_i(\mathbf{p}_i)+\tilde{v}_i(\tilde{\mathbf{x}}_i)] \\
+        \ge & \sum_{i=1}^{m}v_i(\mathbf{x}_i^*)-c(\sum_{i=1}^{m}\mathbf{x}_i^*)-\lambda \sum_{i=1}^{m}\mathbb{E}_{\Gamma_{i-1}}\left[\|\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*]-\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*|\Gamma_{i-1}]\|_2\right].
+    \end{array}
+\end{equation}
+The remaining work is to show that the last term of \eqref{onlineSWMaxRegretExpectedTerm1} is not large. The following lemma helps us bound this term:
+\begin{lemma}\label{offlineOptError}
+    For any $1\le i\le m$, we have
+    \begin{equation}
+        \mathbb{E}_{\Gamma_{i-1}}\left[\|\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*]-\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*|\Gamma_{i-1}]\|_2\right]\le D_{\infty}\sqrt{\frac{n}{m-i+1}}.
+    \end{equation}
+\end{lemma}
+The proof of Lemma \ref{offlineOptError} is given in the appendix.
+Putting everything together, we get the following result:
+\begin{theorem}\label{onlineSWMaxMain}
+    The expected social welfare of Algorithm \ref{onlineSWMaxAlg}, with respect to a uniformly random permutation, is within $R_{\mathcal{A}}(m)+2\lambda D_{\infty}\sqrt{nm}$ from the offline optimum social welfare.
+\end{theorem}
+
+\paragraph{Remark.}
+Algorithm \ref{onlineSWMaxAlg} has many nice features, and we point out some of them here.
+\begin{itemize}
+    \item Algorithm \ref{onlineSWMaxAlg} does not require any information of $v_i$'s other than consumers' revealed preferences. It also requires no assumption on $v_i$'s other than continuity.
+    \item Algorithm still works if consumers only maximize their quasi-linear utilities approximately. Formally, if consumer $i$ finds a bundle $\mathbf{x}_i$ such that $v_i(\mathbf{x}_i)-\langle \mathbf{p}_i,\mathbf{x}_i\rangle\ge\max_{\mathbf{x}\in \mathcal{C}}v_i(\mathbf{x})-\langle \mathbf{p}_i,\mathbf{x}\rangle-\epsilon_i$, then an additive error of $\epsilon_i$ will be introduced in the first inequality of \eqref{onlineSWMaxRegretTerm1}. However, as long as $\sum_{i=1}^{m}\epsilon_i$ is not large, the expected social welfare of Algorithm \ref{onlineSWMaxAlg} will still be close to the offline optimum.
+\end{itemize}
+
+Now we use the online gradient descent algorithm as the subroutine $\mathcal{A}$ in Algorithm \ref{onlineSWMaxAlg}. Use step size $\eta_i=\frac{2\lambda}{D\sqrt{m}}$, we can get an error guarantee $2\lambda D\sqrt{m}+2\lambda D_{\infty}\sqrt{nm}$, or $4\lambda D_{\infty}\sqrt{nm}$ since $D\le\sqrt{n}D_{\infty}$.
+
+
+\section{Profit Maximization}
+\subsection{An Algorithm for Separable Functions}
+Here we present an algorithm of profit maximization and a matching lower bound when all $v_i$'s and $c$ are separable. Formally, for every $\mathbf{x}\in \mathcal{C}$ and every $1\le i\le m$, $v_i(\mathbf{x})=\sum_{j=1}^{n}v_{ij}(x_j)$, and for every $\mathbf{y}\in \mathcal{C}_m$, $c(\mathbf{y})=\sum_{j=1}^{n}c_j(y_j)$. Due to the separability assumption, we restate the assumptions on the consumption set, valuation functions and cost function:
+\begin{itemize}
+    \item $\mathcal{C}=[0,1]^n$.
+    \item For every $1\le i\le m$, $1\le j\le n$, $v_{ij}$ is $\alpha$-strongly concave and $\lambda$-Lipschitz continuous.
+    \item For every $1\le j\le n$, $c_j$ is convex, monotonically non-decreasing, and $\lambda$-Lipschitz continuous.
+\end{itemize}
+
+The $i$-th consumer's consumption of good $j$ is completely determined by $p_j$ and is denoted by $x_{ij}(p_j)$. Furthermore, $x_j(p_j)=\sum_{i=1}^{m}x_{ij}(p_j)$. Our goal is thus to maximize $\mathrm{Profit}_j(p_j)=\sum_{j=1}^{n}x_j(p_j)p_j-c_j(x_j(p_j))$. Although we can set prices for different goods independently now, to keep consistency, we still consider setting up a new price for every good as one query.
+\begin{algorithm}
+    \caption{Profit Maximization Algorithm for Separable Functions}
+    \begin{algorithmic}
+        \STATE $r\leftarrow\lceil \frac{mn\lambda(\lambda+\alpha)}{\alpha\epsilon}\rceil$.
+        \STATE $\tilde{\mathbf{p}}=(0,0,\ldots,0)$.
+        \FOR {$t=1$ \TO $r$}
+            \STATE Post price $\mathbf{p}_t=(\frac{t\alpha\epsilon}{mn(\lambda+\alpha)},\ldots,\frac{t\alpha\epsilon}{mn(\lambda+\alpha)})$.
+            \FOR {$j=1$ \TO $n$}
+                \IF {$\mathrm{Profit}_j(p_{t,j})>\mathrm{Profit}_j(\tilde{p}_j)$}
+                    \STATE {$\tilde{p}_j=p_{t,j}$}
+                \ENDIF
+            \ENDFOR
+        \ENDFOR
+        \STATE Output $\tilde{\mathbf{p}}$.
+    \end{algorithmic}
+    \label{profitMaxAlg}
+\end{algorithm}
+\begin{theorem}
+    The profit given by Algorithm \ref{profitMaxAlg} is no less than the optimum profit minus $\epsilon$. The number of queries is $\frac{mn}{\epsilon}$.
+\end{theorem}
+\begin{proof}
+    Fix $1\le j\le n$. Let $p_j^*$ denote the profit-maximizing price for good $j$. Suppose $\hat{p}_j=\frac{z\alpha\epsilon}{mn(\lambda+\alpha)}\le p_j^*\le \frac{(z+1)\alpha\epsilon}{mn(\lambda+\alpha)}$. By Definition \ref{strongSmooth} and Lemma \ref{strongConvSmoothDual}, we have
+    \begin{equation}
+        \begin{array}{rl}
+             & x_j(p_j^*)p_j^*-c_j(x_j(p_j^*)) \\
+             \le & x_j(\hat{p}_j)(\hat{p}_j+\frac{\alpha\epsilon}{mn(\lambda+\alpha)})-c_j(x_j(\hat{p}_j))+\lambda |x_j(p_j^*)-x_j(\hat{p}_j)| \\
+             \le & x_j(\hat{p}_j)(\hat{p}_j+\frac{\alpha\epsilon}{mn(\lambda+\alpha)})-c_j(x_j(\hat{p}_j))+\lambda |\sum_{i=1}^{m}(v_{ij*}'(p_j^*)-v_{ij*}'(\hat{p}_j))| \\
+            \le & x_j(\hat{p}_j)(\hat{p}_j+\frac{\alpha\epsilon}{mn(\lambda+\alpha)})-c_j(x_j(\hat{p}_j))+\lambda \frac{m}{\alpha}\frac{\alpha\epsilon}{mn(\lambda+\alpha)} \\
+            \le & x_j(\hat{p}_j)\hat{p}_j-c_j(x_j(\hat{p}_j))+x_j(\hat{p}_j)\frac{\alpha\epsilon}{mn(\lambda+\alpha)}+ \frac{\lambda\epsilon}{n(\lambda+\alpha)} \\
+            \le & x_j(\hat{p}_j)\hat{p}_j-c_j(x_j(\hat{p}_j))+\frac{\alpha\epsilon}{n(\lambda+\alpha)}+ \frac{\lambda\epsilon}{n(\lambda+\alpha)} \\
+            \le & x_j(\hat{p}_j)\hat{p}_j-c_j(x_j(\hat{p}_j))+\frac{\epsilon}{n}.
+        \end{array}
+    \end{equation}
+\end{proof}
+\paragraph{Remark.}
+Note that if the cost is zero, in other words revenue maximization is considered, then we do not need to assume strong concavity of $v_{ij}$.
+
+Next we show that the above running time is essentially tight.
+\begin{theorem}
+    The profit maximization problem needs $\Omega(\frac{1}{\epsilon})$ queries to get an additive or multiplicative error $\epsilon$, even if the valuations are separable, concave, non-decreasing and Lipschitz continuous and the cost is zero.
+\end{theorem}
+\begin{proof}
+    Let us first consider the case where there is only one consumer and one good. Given $\lambda>1$, consider $\epsilon$ such that there exists an integer $q$ satisfying $(1+\epsilon)^q=\lambda$, and thus $q=\frac{\ln\lambda}{\ln(1+\epsilon)}\ge \frac{\ln\lambda}{\epsilon}$.
+
+    Now we are going to define concave functions of the amount of good on $[0,1]$. It is enough to give a non-decreasing and integrable derivative. Let $v'(x)=\lambda$ on $[0,\frac{1}{\lambda}]$, and $\frac{1}{x}$ on $[\frac{1}{\lambda},1]$. One can verify that $v'$ is non-decreasing and integrable, and thus we can integrate it into a concave function $v$ (by shifting, we can ensure $v(0)=0$). The maximum of $v'(x)x$ on $[0,1]$ is $1$.
+
+    Now if the number of queries of the algorithm is not in $\Omega(\frac{1}{\epsilon})$, there must exist some integer $z\ge0$ such that no $x\in \mathcal{I}=[\frac{1}{(1+\epsilon)^{z+1}},\frac{1}{(1+\epsilon)^z}]$ is considered. We can then set $\tilde{v}'(x)=v'(x)$ outside $\mathcal{I}$, $\tilde{v}'(x)=\frac{(1+\epsilon)^{z+1}}{s}$ on $[\frac{1}{(1+\epsilon)^{z+1}},\frac{1}{(1+\epsilon)^z})$, and $\tilde{v}'(\frac{1}{(1+\epsilon)^z})$ does not exist. $\tilde{v}'$ is still non-decreasing and integrable, but the optimum revenue is $1+\epsilon$ now, which is not detected by the algorithm.
+\end{proof}
+
+\subsection{A Lower Bound for General Valuation}
+Recall that if the valuation is only assumed to be continuous or concave continuous, then given a certain price the consumer may have more than one choice. Here we make a somewhat strong but reasonable assumption on the consumer's behavior, under which we show that the profit maximization has no PTAS (more precisely, no algorithm whose running time is polynomial in $n$ for a fixed multiplicative error $\epsilon$.)
+
+If the consumer has multiple choices and we are interested in the worst case, it is reasonable to assume that the consumer is adversarial, not in the sense to minimize the producer's profit, but in the sense to make the profit maximization problem harder. We restate the assumption we make in Section \ref{profitMaxSection} here:
+\begingroup
+    \def\theassumption{\ref{behavior}}
+    \begin{assumption}
+        Given a price $\mathbf{p}$, suppose $\mathbf{x}_1$ and $\mathbf{x}_2$ are both quasi-linear-utility-maximizing bundles for a consumer, and $\mathbf{x}_1\ge \mathbf{x}_2$, then the consumer will choose $\mathbf{x}_1$.
+    \end{assumption}
+    \addtocounter{assumption}{-1}
+\endgroup
+
+We reduce the \textsc{MaxIndependentSet} problem to the profit maximization problem. The \textsc{MaxIndependentSet} problem is known to be hard to approximate:
+\begin{lemma}[\cite{AB09} Theorem 11.15]
+    For every $\rho<1$, computing a $\rho$-approximation to \textsc{MaxIndependetSet} is NP-hard.
+\end{lemma}
+
+\begin{theorem}
+    Under Assumption \ref{behavior}, for a fixed $\epsilon$ ($0<\epsilon<1$), there is no algorithm for profit maximization that can output a price generating no less than $(1-\epsilon)$ of the maximum profit in polynomial time of $n$, even if the valuation is Lipschitz continuous, non-decreasing and concave and the cost is Lipschitz continuous, non-decreasing and convex.
+\end{theorem}
+\begin{proof}
+    Suppose we are given a graph $G=(V,E)$. In our market, there are $n=|V|$ kinds of divisible goods, each of which has one unit of supply. In other words, $\mathcal{C}=[0,1]^{|V|}$.
+
+    There is only one consumer, whose valuation $v(\mathbf{x})=\sum_{i=1}^{|V|}x_i$. As a result, given a price $\mathbf{p}$, if $p_i<1$, then $(\mathbf{x}(\mathbf{p}))_i=1$, while if $p_i>1$, then $(\mathbf{x}(\mathbf{p}))_i=0$. If $p_i=1$, then by Assumption \ref{behavior}, $(\mathbf{x}(\mathbf{p}))_i=1$. The maximum revenue we can acquire is thus $|V|$. Note that $v$ is concave, monotonically increasing and Lipschitz continuous.
+
+    The producer's cost function is given by
+    \begin{equation}
+        c(\mathbf{x})=(|V|+1)\max\left\{\max_{(i,j)\in E}\{x_i+x_j-1\},0\right\}.
+    \end{equation}
+    Note that if for any $(i,j)\in E$, both $x_i=1$ and $x_j=1$, then $c(\mathbf{x})\ge|V|+1$. Since $c$ is the pointwise maximum of linear functions, it is convex, and monotonically non-decreasing and Lipschitz continuous.
+
+    Now the maximum profit $\mathrm{Profit}^*$ equals the size of the maximum independent set. Furthermore, if price $\mathbf{p}$ satisfies $\mathrm{Profit}(\mathbf{p})\ge(1-\epsilon)\mathrm{Profit}^*$, then $\{i\in V|\mathbf{p}_i\le1\}$ gives a $(1-\epsilon)$ approximation of the maximum independent set.
+\end{proof}
+
+\bibliography{paper}
+\bibliographystyle{plain}
+
+\appendix
+\section{Proof of Lemma \ref{offlineOptError}}
+Let $\mathcal{S}=\{s_1,\ldots,s_N\}$ denote a finite population of real numbers, $X_1,\ldots,X_n$ ($1\le n\le N$) denote $n$ samples from $\mathcal{S}$ without replacement, and $Y_1,\ldots,Y_n$ denote $n$ samples from $\mathcal{S}$ with replacement. Let
+\begin{equation}
+    \mu=\frac{1}{N}\sum_{i=1}^{N}s_i,
+\end{equation}
+and
+\begin{equation}
+    \sigma^2=\frac{1}{N}\sum_{i=1}^{N}(s_i-\mu)^2.
+\end{equation}
+Then $\overline{Y}=\frac{1}{n}\sum_{i=1}^{n}Y_i$ has mean $\mu$ and variance $\frac{\sigma^2}{n}$, while $\overline{X}=\frac{1}{n}\sum_{i=1}^{n}X_i$ has mean $\mu$ and variance $\frac{N-n}{N-1}\frac{\sigma^2}{n}$.
+\begin{proof}[Proof of Lemma \ref{offlineOptError}]
+    By Cauchy-Schwarz inequality, we have
+    \begin{equation}
+        \mathbb{E}_{\Gamma_{i-1}}\left[\|\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*]-\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*|\Gamma_{i-1}]\|_2\right]\le\sqrt{\mathbb{E}_{\Gamma_{i-1}}\left[\|\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*]-\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*|\Gamma_{i-1}]\|_2^2\right]}.
+    \end{equation}
+    Note that each coordinate of $\mathbb{E}_{\Gamma_{i-1}}\left[\|\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*]-\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*|\Gamma_{i-1}]\|_2^2\right]$ equals the variance of the average of $m-i+1$ without-replacement samples. Thus we further have
+    \begin{equation}
+        \sqrt{\mathbb{E}_{\Gamma_{i-1}}\left[\|\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*]-\mathbb{E}_{\gamma_i}[\mathbf{x}_{\gamma_i}^*|\Gamma_{i-1}]\|_2^2\right]}\le\sqrt{n \frac{i-1}{m-1}\frac{D_{\infty}^2}{m-i+1}}\le D_{\infty}\sqrt{\frac{n}{m-i+1}}.
+    \end{equation}
+\end{proof}
+
+\end{document}

@@ -1,0 +1,1149 @@
+\documentclass[openany]{book}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{commath}
+\usepackage{dsfont}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+\usepackage{natbib}
+
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}{Lemma}[chapter]
+\newtheorem{corollary}{Corollary}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{example}{Example}[chapter]
+\newtheorem{assumption}{Assumption}[chapter]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+% Global consistency is subject to local consistency.
+
+% When giving labels for above environments or the algorithm environment,
+% use def:, thm:, lemma:, cor:, prop:, e.g.:, asm:, alg:, etc., as the prefix.
+% When labeling the same object more than once, use \tag{}.
+% Use camel case.
+
+% Try to avoid sizes that are smaller than normal by at least two levels.
+% Use $\left\right$ only with fractions. However, if fractions are far away from
+% delimiters, it is also possible to use normal delimiters.
+
+\author{Ziwei Ji}
+\title{Notes on Computational Economics}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter*{Notations}
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+$\mathbb{R}_+$ & the set of nonnegative real numbers \\
+\hline
+$\mathbb{R}_{++}$ & the set of positive real numbers \\
+\hline
+$\mathbb{Z}_+$ & the set of nonnegative integers \\
+\hline
+$\mathbb{Z}_{++}$ & the set of positive integers \\
+\hline
+$\boldsymbol{x}\succsim \boldsymbol{y}$ & $\boldsymbol{x}$ is weakly preferred to $\boldsymbol{y}$ \\
+\hline
+$\boldsymbol{x}\succ \boldsymbol{y}$ & $\boldsymbol{x}$ is strictly preferred to $\boldsymbol{y}$ \\
+\hline
+$\sim$ & indifference \\
+\hline
+$\succsim\!(\boldsymbol{x})$ & the set of bundles which are weakly preferred to $\boldsymbol{x}$ \\
+\hline
+$\boldsymbol{x}\ge \boldsymbol{y}$ & $\boldsymbol{x}$ is pointwisely larger than or equal to $\boldsymbol{y}$ \\
+\hline
+$\boldsymbol{x}>\boldsymbol{y}$ & $\boldsymbol{x}$ is pointwisely larger than or equal to $\boldsymbol{y}$ and $\boldsymbol{x}\ne \boldsymbol{y}$ \\
+\hline
+$\boldsymbol{x}\gg \boldsymbol{y}$ & $\boldsymbol{x}$ is pointwisely strictly larger than $\boldsymbol{y}$ \\
+\hline
+$\boldsymbol{x}\ge \boldsymbol{y}\implies f(\boldsymbol{x})\ge f(\boldsymbol{y})$ & increasing or non-decreasing \\
+\hline
+$\boldsymbol{x}\gg \boldsymbol{y}\implies f(\boldsymbol{x})>f(\boldsymbol{y})$ & strictly increasing \\
+\hline
+$\boldsymbol{x}>\boldsymbol{y}\implies f(\boldsymbol{x})>f(\boldsymbol{y})$ & strongly increasing \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Notations}
+\end{table}
+
+\part{Economic Agents}
+\chapter{Consumer Theory}
+\section{Basic Definitions}
+The \textbf{consumption set}, or \textbf{choice set} $C$, describes all possible bundles the consumer can think of. Generally, $C$ is assumed to be closed convex, and $\{\mathbf{0}\}\subset C\subset \mathbb{R}_+^n$. In fact we usually just take $C=\mathbb{R}_+^n$.
+
+By contrast, the \textbf{feasible set} $F\subset C$ denotes the set of bundles which are achievable under certain constraints.
+
+Finally, the \textbf{preference relation} and \textbf{behavioral assumption} are also important in consumer theory.
+
+The consumer's preference is described by the \textbf{preference relation} or \textbf{utility function}. Some axioms are assumed:
+\begin{itemize}
+    \item \textbf{Completeness}: For any $\boldsymbol{x}_1,\boldsymbol{x}_2\in C$, either $\boldsymbol{x}_1\succsim \boldsymbol{x}_2$ or $\boldsymbol{x}_1\precsim \boldsymbol{x}_2$.
+
+    \item \textbf{Transitivity}.
+
+    \item \textbf{Continuity}: Let $C=\mathbb{R}_+^n$. For any $\boldsymbol{x}\in \mathbb{R}_+^n$, $\succsim\!(\boldsymbol{x})$ and $\precsim\!(\boldsymbol{x})$ are both closed.
+
+    \item \textbf{Local non-satiation}: For any $\boldsymbol{x}\in \mathbb{R}_+^n$ and any $\epsilon>0$, there exists $\boldsymbol{y}\in B_{\epsilon}(\boldsymbol{x})\cap \mathbb{R}_+^n$ such that $\boldsymbol{y}\succ \boldsymbol{x}$. And the stronger and more widely-used \textbf{strict monotonicity}: For $\boldsymbol{x},\boldsymbol{y}\in \mathbb{R}_+^n$, if $\boldsymbol{x}\ge \boldsymbol{y}$, then $\boldsymbol{x}\succsim \boldsymbol{y}$, and if $\boldsymbol{x}\gg \boldsymbol{y}$, then $\boldsymbol{x}\succ \boldsymbol{y}$. And the even stronger \textbf{strong monotonicity}: For $\boldsymbol{x},\boldsymbol{y}\in \mathbb{R}_+^n$, if $\boldsymbol{x}\ge \boldsymbol{y}$, then $\boldsymbol{x}\succsim \boldsymbol{y}$, and if $\boldsymbol{x}\ge \boldsymbol{y}$ but $\boldsymbol{x}\ne \boldsymbol{y}$, then $\boldsymbol{x}\succ \boldsymbol{y}$.
+
+    \item \textbf{Quasi-concavity}: For $\boldsymbol{x},\boldsymbol{y}\in \mathbb{R}_+^n$, if $\boldsymbol{x}\succsim \boldsymbol{y}$, then for any $\lambda\in[0,1]$, $\lambda \boldsymbol{x}+(1-\lambda)\boldsymbol{y}\succsim \boldsymbol{y}$. And the stronger \textbf{strict quasi-concavity}, that for $\boldsymbol{x},\boldsymbol{y}\in \mathbb{R}_+^n$, if $\boldsymbol{x}\ne \boldsymbol{y}$ and $\boldsymbol{x}\succsim \boldsymbol{y}$, then for any $\lambda\in(0,1)$, $\lambda \boldsymbol{x}+(1-\lambda)\boldsymbol{y}\succ \boldsymbol{y}$.
+\end{itemize}
+If $C=\mathbb{R}_+^2$, the $x$-axis represents good $1$ and the $y$-axis represents good $2$, then the slope of the indifference curve represents the \textbf{marginal rate of substitution} of good $2$ for good $1$. In other words, how much of good $2$ one needs to lose in exchange for a unit of good $1$.
+
+In practice, utility functions are often used. Below is an important result:
+\begin{theorem}
+    Given a preference $\succsim$ which is complete, transitive and continuous, there exists a continuous real-valued function $u: \mathbb{R}_+^n\to \mathbb{R}$ which represent $\succsim$.
+\end{theorem}
+Furthermore, there is some relation between a preference relation and its corresponding utility function.
+\begin{itemize}
+    \item $\succsim$ is strictly (strongly) increasing if and only if $u$ is strictly (strongly) increasing.
+    \item $\succsim$ is (strictly) quasi-concave if and only if $u$ is (strictly) quasi-concave.
+\end{itemize}
+The value $\frac{\partial u(\boldsymbol{x})}{\partial x_i}$ is called the $i$-th marginal utility of good $i$. The marginal rate of substitution can be expressed using the marginal utility:
+\begin{equation}
+    \mathrm{MRS}_{ij}(\boldsymbol{x})=\frac{\partial u(\boldsymbol{x})/\partial x_i}{\partial u(\boldsymbol{x})\partial x_j}
+\end{equation}
+Here $\mathrm{MRS}_{ij}(\boldsymbol{x})$ is the marginal rate of substituion of good $j$ for good $i$ at $\boldsymbol{x}$.
+
+\section{Relationship Between Variables}
+\subsection{Marshallian Demand Function and Indirect Utility Function}
+Given the consumption set $C=\mathbb{R}_+^n$, the feasible set $F\subset C$, and a preference relation over $C$, the consumer tries to find $\boldsymbol{x}^*\in F$ such that $\boldsymbol{x}^*\succsim \boldsymbol{x}$ for any $\boldsymbol{x}\in F$. From now on, in general the following assumptions will be made:
+\begin{assumption}\label{goodPreference}
+    The preference relation is complete, transitive, continuous, strongly monotonic and strictly quasi-concave. Equivalently, the preference relation can be described by a continuous, strongly increasing and strictly quasi-concave function $u:\mathbb{R}_+^n\to \mathbb{R}$.
+\end{assumption}
+\begin{remark}
+    One can show that monotonicity and strictly quasi-concavity imply strong monotonicity.
+\end{remark}
+
+Then we consider the structure of $F$. In general, we assume that the consumer participates in a market economy, and is a \textsl{price-taker}, in the sense that a price $\boldsymbol{p}\gg \mathbf{0}$ is viewed by the consumer as given. Now if the consumer is endowed with some income or budget $b\ge0$ at the beginning, $F$ can be expressed as a \textbf{budget set}:
+\begin{equation}
+    F=\{x\in \mathbb{R}_+^n|\langle \boldsymbol{p},\boldsymbol{x}\rangle\le b\}.
+\end{equation}
+
+By our behavioral assumption on the buyer, he will try to maximize $u(\boldsymbol{x})$ in $F$. Formally,
+\begin{definition}\label{demand}
+    Given $(\boldsymbol{p},b)\in \mathbb{R}_{++}^n\times \mathbb{R}_+$, the \textbf{Marshallian demand function} $\boldsymbol{x}(\boldsymbol{p},b)$ is defined as the solution of the following problem:
+    \begin{equation}\label{maxUtility}
+        \begin{array}{rl}
+            \displaystyle\max_{\boldsymbol{x}\in \mathbb{R}_+^n} & u(\boldsymbol{x}) \\
+            \mathrm{s.t.} & \langle \boldsymbol{p},\boldsymbol{x}\rangle\le b.
+        \end{array}
+    \end{equation}
+\end{definition}
+Under Assumption \ref{goodPreference}, given a price $\boldsymbol{p}$ and and a budget $b$, the demand is unique and lies on the budget boundary, and thus Marshallian demand function is well-defined. When $p_j$, $j\ne i$ and $b$ are held fixed, we can then plot the relationship between quantity demand $x_i$ and price $p_i$. (By convention, the price is plotted on the vertical axis while the quantity demand is plotted on the horizontal axis.)
+
+In practice, to compute $\boldsymbol{x}(\boldsymbol{p},b)$, the Langrange multiplier method is often used. However, This method requires $\boldsymbol{x}(\boldsymbol{p},b)\gg0$, which is not necessarily true.
+
+One can prove that under Assumption \ref{goodPreference}, $\boldsymbol{x}(\boldsymbol{p},b)$ is continuous on $\mathbb{R}_{++}^n\times \mathbb{R}_+$. (Please refer to \cite{J01} Theorem A2.21.) Usually we further make the following assumption:
+\begin{assumption}
+    $\boldsymbol{x}(\boldsymbol{p},b)$ is differentiable on $\mathbb{R}_{++}^n\times \mathbb{R}_+$.
+\end{assumption}
+
+A related notion is the indirect utility function:
+\begin{definition}\label{indirectUtility}
+    Given $(\boldsymbol{p},b)\in \mathbb{R}_{++}^n\times \mathbb{R}_+$, the \textbf{indirect utility function} $v(\boldsymbol{p},b)$ is defined as the following value:
+    \begin{equation}
+        \begin{array}{rl}
+            \displaystyle\max_{\boldsymbol{x}\in \mathbb{R}_+^n} & u(\boldsymbol{x}) \\
+            \mathrm{s.t.} & \langle \boldsymbol{p},\boldsymbol{x}\rangle\le b.
+        \end{array}
+    \end{equation}
+\end{definition}
+\begin{theorem}[\cite{J01} Theorem 1.6]
+    Under Assumption \ref{goodPreference}, the $v(\boldsymbol{p},b)$ is
+    \begin{itemize}
+        \item continuous on $\mathbb{R}_{++}^n\times \mathbb{R}_+$;
+        \item strictly increasing in $b$;
+        \item decreasing in $\boldsymbol{p}$;
+        \item quasi-convex in $(\boldsymbol{p},b)$.
+    \end{itemize}
+\end{theorem}
+
+\subsection{Hicksian Demand Function and Expenditure Function}
+Let $U=\{u(\boldsymbol{x})|\boldsymbol{x}\in \mathbb{R}_+^n\}$.
+\begin{definition}
+    Given $(\boldsymbol{p},u)\in \mathbb{R}_{++}^n\times U$, the \textbf{expenditure function} $e(\boldsymbol{p},u)$ is defined as
+    \begin{equation}\label{minExpdt}
+        \begin{array}{rl}
+            \displaystyle\min_{\boldsymbol{x}\in \mathbb{R}_+^n} & \langle \boldsymbol{p},\boldsymbol{x}\rangle \\
+            \mathrm{s.t.} & u(\boldsymbol{x})\ge u.
+        \end{array}
+    \end{equation}
+\end{definition}
+Under Assumption \ref{goodPreference}, the solution to \eqref{minExpdt} is unique, which is denoted by $\boldsymbol{x}^h(\boldsymbol{p},u)$, and is known as the \textbf{Hicksian demand function}.
+\begin{theorem}[\cite{J01} Theorem 1.7]
+    Under Assumption \ref{goodPreference}, $e(\boldsymbol{p},u)$ is
+    \begin{itemize}
+        \item continuous on $\mathbb{R}_{++}^n\times U$;
+        \item strictly increasing in $u$;
+        \item increasing in $\boldsymbol{p}$;
+        \item concave in $\boldsymbol{p}$;
+        \item (Shephard's lemma) differentiable on $\mathbb{R}_{++}^n\times U$, with
+        \begin{equation}
+            \nabla_{\boldsymbol{p}}e(\boldsymbol{p},u)=\boldsymbol{x}^h(\boldsymbol{p},u).
+        \end{equation}
+    \end{itemize}
+\end{theorem}
+\begin{proof}
+    We prove the last property. Notice that under Assumption \ref{goodPreference}, we have $e(\boldsymbol{p},u)=\langle \boldsymbol{p},\boldsymbol{x}^h(\boldsymbol{p},u)\rangle$. Let $\boldsymbol{p}_{\Delta}=\boldsymbol{p}+\Delta \boldsymbol{p}$, we have
+    \begin{equation*}
+        \begin{array}{rl}
+             & \Delta e(\boldsymbol{p},u) \\
+            = & \langle \boldsymbol{p}_{\Delta},\boldsymbol{x}^h(\boldsymbol{p}_{\Delta},u)-\boldsymbol{x}^h(\boldsymbol{p},u)\rangle+\langle\Delta \boldsymbol{p},\boldsymbol{x}^h(\boldsymbol{p},u)\rangle.
+        \end{array}
+    \end{equation*}
+    Since $u$ is quasi-concave, we know that the feasible set $X=\{\boldsymbol{x}|u(\boldsymbol{x})\ge u\}$ is convex. For simplicity, further denote $\boldsymbol{x}^h(\boldsymbol{p}_{\Delta},u)$ by $\boldsymbol{x}_{\Delta}$ and $\boldsymbol{x}^h(\boldsymbol{p},u)$ by $\boldsymbol{x}$. Then by the optimality criterion,
+    \begin{equation*}
+        \begin{array}{c}
+            \langle \boldsymbol{p},\boldsymbol{x}_{\Delta}-\boldsymbol{x}\rangle\ge0, \\
+            \langle \boldsymbol{p}_{\Delta},\boldsymbol{x}-\boldsymbol{x}_{\Delta}\rangle\ge0.
+        \end{array}
+    \end{equation*}
+    In other words,
+    \begin{equation*}
+        |\langle \boldsymbol{p}_{\Delta},\boldsymbol{x}_{\Delta}-\boldsymbol{x}\rangle|\le|\langle \boldsymbol{p}_{\Delta}-\boldsymbol{p},\boldsymbol{x}_{\Delta}-\boldsymbol{x}\rangle|\le\|\Delta \boldsymbol{p}\|_2\|\Delta \boldsymbol{x}\|_2.
+    \end{equation*}
+    Finally, by the continuity of $\boldsymbol{x}^h(\boldsymbol{p},u)$ in $\boldsymbol{p}$, the Shephard's lemma is proved by invoking \cite{J01} Theorem A2.21. (Note that using the notation there, to prove $S$ is compact we need to take a neighborhood of $\boldsymbol{p}$ and for each $\boldsymbol{p}'$ in this neighborhood considering $\langle \boldsymbol{p}',\boldsymbol{x}\rangle\le \langle \boldsymbol{p}',\boldsymbol{x}^h(\boldsymbol{p},u)\rangle$.)
+\end{proof}
+\begin{theorem}[\cite{J01} Theorem 1.8 and 1.9]
+    For $\boldsymbol{p}\in \mathbb{R}_{++}^n$, $b\in \mathbb{R}_+$, $u\in U$, we have $e(\boldsymbol{p},v(\boldsymbol{p},b))=b$, $v(\boldsymbol{p},e(\boldsymbol{p},u))=u$, $\boldsymbol{x}^h(\boldsymbol{p},v(\boldsymbol{p},b))=\boldsymbol{x}(\boldsymbol{p},b)$ and $\boldsymbol{x}(\boldsymbol{p},e(\boldsymbol{p},u))=\boldsymbol{x}^h(\boldsymbol{p},u)$.
+\end{theorem}
+
+\section{Properties of Consumer Demand}
+\subsection{Relative Prices and Real Income}
+The \textbf{relative price} of good $i$ in terms of goods $j$ is the amount of good $j$ one has to lose to get one additional unit of good $i$, which equals $\frac{p_i}{p_j}$.
+
+The \textbf{real income} of a consumer $i$ with income $b$ in terms of good $i$ is the amount of good $i$ which this consumer can afford, which equals $\frac{b}{p_i}$.
+
+When studying the demand function of a consumer, one can make the price of some good to $1$, and use relative prices and real income in terms of this good.
+
+\part{Solution Concepts}
+\chapter{Strategic Games}
+Here we consider strategic games, or static games. Nash equilibrium is an important solution concept in such games, which also has many extensions. We consider both the complete information and the incomplete information model.
+
+\section{Stratefic Games with Complete Information}
+\begin{definition}
+    A \textbf{strategic game} (\textbf{static game}, \textbf{normal-form game}) $\langle N,(A_i),(\succsim_i)\rangle$ consists of
+    \begin{itemize}
+        \item a finite set $N$ of players;
+        \item for each player $i$ a set $A_i$ of actions;
+        \item for each player $i$ a preference $\succsim_i$ on $A=\times_{j\in N}A_j$.
+    \end{itemize}
+    If $A_i$'s are all finite, we call the game a finite game.
+\end{definition}
+Usually the preference is given by a payoff function $u_i:A\rightarrow\mathbb{R}$, where we denote the game by $\langle N,(A_i),(u_i)\rangle$.
+
+Let $\Delta(A_i)$ denote the set of probability distributions over $A_i$. We refer to a member of $\Delta(A_i)$ as a mixed strategy of $i$ and a member of $A_i$ as a pure strategy of $i$.
+
+\subsection{Pure Strategy Nash Equilibrium}
+\begin{definition}
+Given a strategic game $\langle N,(A_i),(\succsim_i)\rangle$, a (pure strategy) \textbf{Nash equilibrium} is an action profile $a^*\in A$ such that for any $i\in N$ and any $a_i\in A_i$,
+\begin{equation}
+    (a_i^*,a_{-i}^*)\succsim_i(a_i,a_{-i}^*).
+\end{equation}
+\end{definition}
+
+\begin{theorem}[\cite{OR94} Proposition 20.3]
+The strategic game $\langle N,(A_i),(\succsim_i)\rangle$ has a Nash equilibrium if for all $i\in N$
+\begin{itemize}
+\item $A_i$ is a nonempty compact convex set of a Euclidean space;
+\item $\succsim_i$ is continuous, and quasi-concave on $A_i$.
+\end{itemize}
+\end{theorem}
+
+\subsection{Mixed Strategy Nash Equilibrium}
+\begin{theorem}[\cite{OR94} Proposition 33.1]
+Every finite strategic game has a mixed strategy Nash equilibrium.
+\end{theorem}
+
+\subsection{Correlated Equilibrium}
+
+\subsection{Coarse Correlated Equilibrium}
+
+\section{Strategic Games with Incomplete Information}
+\begin{definition}\label{BayesGame}
+A \textbf{Bayesian game} $\langle N,\Omega,(A_i),(T_i),(\tau_i),(p_i),(\succsim_i)\rangle$ consists of
+\begin{itemize}
+\item a finite set $N$ of players;
+\item a finite set $\Omega$ of states of nature;
+\end{itemize}
+and for each player $i\in N$
+\begin{itemize}
+\item a set $A_i$ of actions;
+\item a finite set $T_i$ of signals that may be observed by player $i$ and a signal function $\tau_i:\Omega\rightarrow T_i$;
+\item a probability measure $p_i$ on $\Omega$ (the prior belief) such that $p_i(\tau_i^{-1}(t_i))>0$ for all $t_i\in T_i$ (which enables us to define the posterior belief);
+\item a preference $\succsim_i$ on the set of probability measures over $A\times\Omega$.
+\end{itemize}
+\end{definition}
+The preference can be specified by giving a payoff function $u_i:A\times\Omega\rightarrow\mathbb{R}$.
+\begin{remark}
+    Note that here $\tau_i$ is in fact a random variable.
+\end{remark}
+
+\begin{definition}\label{BayesNE}
+The (pure strategy) Nash equilibrium of the Bayesian game $\langle N,\Omega,(A_i),(T_i),(\tau_i),(p_i),(\succsim_i)\rangle$ is defined as the (pure strategy) Nash equilibrium of the following strategic game:
+\begin{itemize}
+\item The set of players is $\{(i,t_i)|i\in N,t_i\in T_i\}$.
+\item The set of actions of player $(i,t_i)$ is $A_i$.
+\item The preference $\succsim_{(i,t_i)}^*$ is defined as following:
+\begin{equation}
+    a^*\succsim_{(i,t_i)}^*b^*\textrm{ if and only if }L_i(a^*,t_i)\succsim_iL_i(b^*,t_i),
+\end{equation}
+where $L_i(a^*,t_i)$ is a probability measure on $A\times\Omega$ which assigns probability $p_i(\omega)/p_i(\tau_i^{-1}(t_i))$ to $((a^*(j,\tau_j(\omega)))_{j\in N},\omega)$ for any $\omega\in\tau_i^{-1}(t_i)$.
+\end{itemize}
+\end{definition}
+\begin{remark}
+    In a Nash equilibrium of a Bayesian game, for each player and each possible signal he or she receives, the player chooses the best response to others' actions, taking into account his or her posterior belief of the state of nature.
+\end{remark}
+
+\chapter{Coalitional Games}\label{chp:coalGame}
+\section{Coalitional Games with Transferable Payoff}
+\begin{definition}
+    A \textbf{coalitional game with transferable payoff} consists of
+    \begin{itemize}
+        \item A finite set $N$ of $n$ players;
+        \item A valuation function $v:2^N\to \mathbb{R}$.
+    \end{itemize}
+\end{definition}
+Usually, the valuation function is assumed to be \textbf{cohesive}, which means that for any partition $\{S_1,\ldots,S_k\}$ os $N$, $v(N)\ge \sum_{i=1}^{k}v(S_k)$.
+\begin{remark}
+    $v(S)$ indicates the maximum valuation or payoff that can be achieved if a group $S$ is formed. However, it says nothing about how the payoff is going to be distributed.
+
+    The definition of $v$ in fact indicates that $v(S)$ does not depend on actions of players not in $S$, or one can interpret $v(S)$ as the maximum payoff $S$ can guarantee regardless of $N-S$.
+\end{remark}
+\begin{remark}
+    Cohesion is weaker than \textbf{super-additivity}, that for any $S,T\subset N$ with $S\cap T=\emptyset$, $v(S\cup T)\ge v(S)+v(T)$.
+\end{remark}
+
+Now given a payoff vector $x\in \mathbb{R}^n$, for any $S\subset N$ define $x(S)=\sum_{i\in S}^{}x_i$. Furthermore, $x$ is called an $S$\textbf{-feasible payoff vector} if $x(S)=v(S)$. An $N$-feasible payoff vector is called a \textbf{feasible payoff vector} for convenience.
+
+\begin{definition}\label{coreTU}
+    The \textbf{core} of a coalitional game $\langle N,v\rangle$ with transferable payoff is the set of feasible payoff vector $x$'s such that for any $S\subset N$, $x(S)\ge v(S)$.
+\end{definition}
+\begin{remark}
+    By the definition of the core, we know that for each $x$ in the core and $i$ in $N$, $v(N)-v(N-\{i\})\ge x_i\ge v(\{i\})$. Sometimes this sandwich can give a good characterization of the payment to $i$. This sandwich can also be extended to a subset of $N$.
+\end{remark}
+
+\begin{example}[A production economy]
+    Suppose $N=\{c\}\cup W$, where $c$ represents a capitalist and $W$ is the set of $w$ workers. Workers alone can produce nothing, and any set of $k$ workers together with the capitalist can produce $f(k)$ units of production, where $f:\mathbb{R}_+\to \mathbb{R}_+$ is a concave non-decreasing function with $f(0)=0$.
+
+    The core of this game is given by $\{x\in \mathbb{R}^N|\forall i\in W,0\le x_i\le f(w)-f(w-1),x(N)=v(N)\}$. In other words, each worker gets no more than the marginal production created by the last worker.
+\end{example}
+
+A collection $\{\lambda_S\}_{S\subset N}$ of numbers in $[0,1]$ is a \textbf{balanced collection of weights} if $\sum_{S\subset N}^{}\lambda_S\mathbbm{1}_S=\mathbbm{1}_N$. A game $\langle N,v\rangle$ is \textbf{balanced} if for every balanced collection of weights $\sum_{S\subset N}^{}\lambda_Sv(S)\le v(N)$.
+\begin{theorem}[\cite{OR94} Theorem Proposition 262.1]
+    A coalitional game $\langle N,v\rangle$ with transferable payoff has a non-empty core if and only if it is balanced.
+\end{theorem}
+
+\subsection{Markets with Transferable Payoff}
+\begin{definition}
+    A \textbf{market with transferable payoff} $\langle N,\ell,(\boldsymbol{\omega}_i)_{i\in N},(f_i)_{i\in N}\rangle$ consists of
+    \begin{itemize}
+        \item A set $N$ of $n$ players;
+        \item A positive integer $\ell$, the number of types of goods;
+        \item For each player $i$, $\boldsymbol{\omega}_i$ the endowment of player $i$, and $f_i:\mathbb{R}_+^{\ell}\to \mathbb{R}_+$ a continuous, non-decreasing and concave production function.
+    \end{itemize}
+\end{definition}
+We can derive a coalitional game with transferable payoff from such a market, where
+\begin{equation}
+    v(S)=\max\left\{\sum_{i\in S}^{}f_i(\boldsymbol{z}_i)|\boldsymbol{z}_i\in \mathbb{R}_+^{\ell},\sum_{i\in S}^{}\boldsymbol{z}_i=\sum_{i\in S}^{}\boldsymbol{\omega}_i\right\}.
+\end{equation}
+The \textbf{core of the market} is defined as the core of the associated coalitional game.
+\begin{proposition}[\cite{OR94} Proposition 264.2]
+    Every market with transferable payoff has a nonempty core.
+\end{proposition}
+\begin{definition}\label{CENoBudget}
+    A \textbf{competitive equilibrium} of a market with transferable payoff is denoted by $(\boldsymbol{p}^*,(\boldsymbol{z}_i^*)_{i\in N})$, where $\boldsymbol{p}^*\in \mathbb{R}_+^{\ell}$, $(\boldsymbol{z}_i^*)_{i\in N}$ is an allocation ($\sum_{i\in N}^{}\boldsymbol{z}_i^*=\sum_{i\in N}^{}\boldsymbol{\omega}_i$), and for each player $i$,
+    \begin{equation}
+        \boldsymbol{z}_i^*\in\arg\max_{\boldsymbol{z}_i\in \mathbb{R}_+^{\ell}}(f_i(\boldsymbol{z}_i)-\langle \boldsymbol{p}^*,\boldsymbol{z}_i-\boldsymbol{\omega}_i\rangle).
+    \end{equation}
+    $f_i(\boldsymbol{z}_i^*)-\langle \boldsymbol{p}^*,\boldsymbol{z}_i^*-\boldsymbol{\omega}_i\rangle$ is called the \textbf{competitive payoff} of player $i$.
+\end{definition}
+\begin{remark}
+    This definition is different from the commonly-used definition, but in fact they are equivalent. One just need to add another player who only has products and is only interested in money, while letting the others have only and enough money but are only interested in products.
+\end{remark}
+
+\begin{proposition}[\cite{OR94} Proposition 267.1]
+    Every competitive payoff profile is in the core of the market with transferable payoff.
+\end{proposition}
+\begin{proposition}[\cite{OR94} Exercise 267.2]
+    Suppose $\sum_{i=1}^{n}\boldsymbol{\omega}_i\gg \mathbf{0}$, then competitive equilibrium always exists.
+\end{proposition}
+\begin{proof}
+    Consider the following program:
+    \begin{equation}
+        \begin{array}{rl}
+            \mathrm{max} & \sum_{i=1}^{n}f_i(\boldsymbol{z}_i) \\
+            \mathrm{s.t.} & \sum_{i=1}^{n}\boldsymbol{z}_i\le \sum_{i=1}^{N}\boldsymbol{\omega}_i.
+        \end{array}
+    \end{equation}
+    By continuity of $f_i$'s, primal optimal solution exists. By our assumption, the Slater's condition holds, and thus strong duality holds and dual optimal solution exists. One can then show that the primal and dual optimal solutions do form a competitive equilibrium.
+\end{proof}
+
+\section{Coalitional Games with Non-Transferable Payoff}
+\begin{definition}
+    A \textbf{coalitional game} (with non-transferable payoff) consists of
+    \begin{itemize}
+        \item A finite set $N$ of $n$ players;
+        \item A set $X$ of consequences;
+        \item A function $V:2^N\to 2^X$;
+        \item For every player $i\in N$, a preference $\succsim_i$ over $X$.
+    \end{itemize}
+\end{definition}
+A coalitional game $\langle N,v\rangle$ with transferable payoff can be modeled as follows: $X=\mathbb{R}^N$, for $S\subset N$, $V(S)=\{x\in \mathbb{R}^N|\sum_{i\in S}^{}x_i=v(S),\textrm{ and }x_i=0\textrm{ for all }i\in N-S\}$, and $x\succsim_iy$ if and only if $x_i\ge y_i$.
+\begin{definition}\label{coreNTU}
+    The \textbf{core} of a coalitional game $\langle N,X,V,\{\succsim_i\}_{i\in N}\rangle$ consists of all $x\in V(N)$ such that there is no $S\subset N$ and $y\in V(S)$ such that $y\succsim_ix$ for all $i\in S$ and $y\succ_jx$ for at least one $j\in S$.
+\end{definition}
+\begin{remark}
+    Intuitively, in the transferable payoff case, if some players can form a group and benefit as a whole, then there must be a distribution where everyone is better off. However, it is not true in the non-transferable payoff case.
+
+    Also notice that in Definition \ref{coreNTU}, the existence of a better consequence is enough for a subgroup to depart, even though it is not guaranteed that such a consequence can be achieved.
+\end{remark}
+
+\subsection{Exchange Economies}\label{exchEcon}
+\begin{definition}
+    An \textbf{exchange economy} $\langle N,\ell,(\boldsymbol{\omega}_i)_{i\in N},(u_i)_{i\in N}\rangle$ consists of
+    \begin{itemize}
+        \item A set $N$ of $n$ players;
+        \item A positive integer $\ell$, the number of types of goods;
+        \item For each player $i\in N$, $\boldsymbol{\omega}_i\in \mathbb{R}_+^{\ell}$ the endowment of player $i$ such that $\sum_{i\in N}^{}\boldsymbol{\omega}_i\in \mathbb{R}_{++}^{\ell}$, and $u_i:\mathbb{R}_+^{\ell}\to \mathbb{R}_+$ a continuous, non-decreasing and quasi-concave utility function.
+    \end{itemize}
+\end{definition}
+
+We can model such an economy as a coalitional game with non-transferable payoff: $X=\{(\boldsymbol{x}_i)_{i\in N}|\boldsymbol{x}_i\in \mathbb{R}_+^{\ell}\textrm{ for all }i\in N\}$, $V(S)=\{(\boldsymbol{x}_i)_{i\in N}|\sum_{i\in S}^{}\boldsymbol{x}_i=\sum_{i\in S}^{}\boldsymbol{\omega}_i\textrm{ and for all }j\not\in S,\boldsymbol{x}_j=\boldsymbol{\omega}_j\}$. Finally, for player $i$, $(\boldsymbol{x}_j)_{j\in N}\succsim_i(\boldsymbol{y}_j)_{j\in N}$ if and only if $u_i(\boldsymbol{x}_i)\ge u_i(\boldsymbol{y}_i)$.
+
+To ensure the non-emptiness of the core, we first introduce the following definition of competitive equilibrium:
+\begin{definition}\label{CEBudget}
+    A \textbf{competitive equilibrium} of an exchange economy is a pair $(\boldsymbol{p}^*,(\boldsymbol{z}_i^*)_{i\in N})$, where $\boldsymbol{p}^*$ is the price vector and $(\boldsymbol{z}_i^*)_{i\in N}$ is the competitive allocation, such that for any $i$,
+    \begin{equation}
+        \boldsymbol{z}_i^*\in\arg\max_{\langle \boldsymbol{p}^*,\boldsymbol{z}_i\rangle\le \langle \boldsymbol{p}^*,\boldsymbol{\omega}_i\rangle}u_i(\boldsymbol{z}_i).
+    \end{equation}
+\end{definition}
+Under the assumptions we make, competitive equilibrium does exist (Theorem \ref{WEExistence}), and thus the core is non-empty due to the following theorem:
+\begin{proposition}[\cite{OR94} Proposition 272.1]\label{CEBudgetCore}
+    Suppose $u_i$'s are continuous and strictly increasing. Then every competitive equilibrium is in the core.
+\end{proposition}
+\begin{proof}
+    Suppose $(\boldsymbol{p}^*,(\boldsymbol{z}_i^*)_{i\in N})$ is a competitive equilibrium. Given $S\subset N$ and $(\boldsymbol{x}_i)_{i\in N}\in V(S)$, if there is a $j\in S$, such that $u_j(\boldsymbol{x}_j)>u_j(\boldsymbol{z}_j)$, then $\langle \boldsymbol{p}^*,\boldsymbol{x}_j\rangle>\langle \boldsymbol{p}^*,\boldsymbol{\omega}_j\rangle$, and thus there exists another $k\in N$, such that $\langle \boldsymbol{p}^*,\boldsymbol{x}_k\rangle<\langle \boldsymbol{p}^*,\boldsymbol{\omega}_k\rangle$. However, we must have $u_k(\boldsymbol{x}_k)<u_k(\boldsymbol{z}_k)$.
+\end{proof}
+
+\section{Alternative Solution Concepts}
+\subsection{Stable Sets}
+Assume $\langle N,v\rangle$ is a coalitional game with transferable payoff. An \textbf{imputation} of $\langle N,v\rangle$ is a feasible payoff vector $x$ such that for all $i\in N$, $x_i\ge v(\{i\})$. Let $X$ denote the set of all imputations.
+
+For an imputation $x\in X$, it is called an \textbf{objection of the coalition} $S$ \textbf{to the imputation} $y$ if for all $i\in S$, $x_i>y_i$, and $x(S)\le v(S)$. Sometimes we also say $x$ dominates $y$ via $S$. We denote it by $x>_Sy$.
+\begin{definition}\label{stableSets}
+    A subset $Y$ of the set $X$ of imputations of the coalitional game with transferable payoff $\langle N,v\rangle$ is a \textbf{stable set} if it satisfies the following two conditions:
+    \begin{itemize}
+        \item Internal stability: If $y\in Y$, then there is no $z\in Y$ such that $z>_Sy$ for some coalition $S$.
+        \item External stability: If $z\in X-Y$, then there exists an $y\in Y$ such that $y>_Sz$ for some coaltion $S$.
+    \end{itemize}
+\end{definition}
+In general, stable set may or may not exist, and if it exists, it may or may not be unique.
+\begin{proposition}[\cite{OR94} Proposition 279.2]
+    Given coalitional game with transferable payoff,
+    \begin{itemize}
+        \item The core is a subset of every stable sets.
+        \item No stable set is a proper subset of another stable set.
+        \item If the core is stable, it is the only stable set.
+    \end{itemize}
+\end{proposition}
+
+\subsection{Shapley Value}
+For a coalitional game with transferable payoff $\langle N,v\rangle$, the \textbf{marginal contribution} of a player $i$ to a coalition $S$ with $i\not\in S$ is defined as $\Delta_i(S)=v(S\cup\{i\})-v(S)$.
+\begin{definition}\label{def:ShapleyValue}
+    The \textbf{Shapley value} is defined for each $i\in N$ as
+    \begin{equation}
+        \varphi_i(N,v)=\frac{1}{n!}\sum_{R\in \mathcal{R}}^{}\Delta_i(S_i(R)),
+    \end{equation}
+    where $\mathcal{R}$ is the set of all $n!$ orderings over $N$, and $S_i(R)$ consists of players preceding $i$ in ordering $R$.
+\end{definition}
+Below we are going to show that the Shapley value is the only solution satisfying a certain set of axioms.
+
+Player $i$ is called \textbf{dummy} if $\Delta_i(S)=v(\{i\})$ for every $S$ excluding $i$. Player $i$ and $j$ are called \textbf{interchangeable} if $\Delta_i(S)=\Delta_j(S)$ for every $S$ excluding both $i$ and $j$. Below are some axioms we may pursue in a payoff vector $\psi$:
+\begin{itemize}
+    \item Efficiency: $\sum_{i\in N}^{}\psi_i(v)=v(N)$.
+    \item Symmetry: If $i$ and $j$ are interchangeable, then $\psi_i(v)=\psi_j(v)$.
+    \item Dummy player: If $i$ is dummy, then $\psi_i(v)=v(\{i\})$.
+    \item Additivity: For every two games $v$ and $w$, we have $\psi(v+w)=\psi(v)+\psi(w)$, where $v+w$ is the game defined by $(v+w)(S)=v(S)+w(S)$ for every coaltion $S$.
+\end{itemize}
+\begin{theorem}[\cite{OR94} Proposition 293.1]
+    The Shapley value is the only solution satisfying Efficiency, Symmetry, Dummy player and Additivity.
+\end{theorem}
+
+\chapter{General Equilibrium}
+Questions concerning general equilibrium include the existence, uniqueness, and stability of it, and how its performance is on achieving and distributing welfare.
+
+\section{Equilibrium without Production}
+Here the model is similar to the model introduced in Subsection \ref{exchEcon}, with slightly different notations. There are $m$ consumers and $n$ goods, where the $i$-th consumer is endowed with $\boldsymbol{\omega}_i$ goods at the beginning and $\sum_{i=1}^{m}\boldsymbol{\omega}_i\gg \mathbf{0}$. Consumer $i$ has a utility function $u_i:\mathbb{R}_+^n\to \mathbb{R}_+$, on which the following assumptions are made:
+\begin{assumption}\label{strictUtility}
+    $u_i$'s are assumed to be continuous, non-decreasing and strictly quasi-concave. As a result, they are also strongly increasing.
+\end{assumption}
+
+Under Assumption \ref{strictUtility}, given a price $\boldsymbol{p}\gg \mathbf{0}$, $\boldsymbol{x}_i(\boldsymbol{p},\langle \boldsymbol{p},\boldsymbol{\omega}_i\rangle)$ is unique and all income is used up. Moreover, $\boldsymbol{x}_i(\boldsymbol{p},\langle \boldsymbol{p},\boldsymbol{\omega}_i\rangle)$ is continuous in $\boldsymbol{p}$ on $\mathbb{R}_{++}^n$.
+
+Given price $\boldsymbol{p}\gg \mathbf{0}$, the \textbf{excess demand function} is defined as
+\begin{equation}
+    \boldsymbol{z}(\boldsymbol{p})=\sum_{i=1}^{m}\boldsymbol{x}_i(\boldsymbol{p},\langle \boldsymbol{p},\boldsymbol{\omega}_i\rangle)-\sum_{i=1}^{m}\boldsymbol{\omega}_i.
+\end{equation}
+Properties of the excess demand function include:
+\begin{lemma}
+    Under Assumption \ref{strictUtility}, $\boldsymbol{z}(\cdot)$ satisfies
+    \begin{itemize}
+        \item continuity in $\boldsymbol{p}$ on $\mathbb{R}_{++}^n$;
+        \item Walras' law, that $\langle \boldsymbol{p},\boldsymbol{z}(\boldsymbol{p})\rangle=0$ for all $\boldsymbol{p}\gg \mathbf{0}$.
+    \end{itemize}
+\end{lemma}
+\begin{proof}
+    Continuity of $\boldsymbol{z}(\cdot)$ comes from continuity of $\boldsymbol{x}_i$'s. Walras' law comes from strong monotonicity of $\boldsymbol{x}_i$'s.
+\end{proof}
+\begin{definition}
+    A price $\boldsymbol{p}\gg \mathbf{0}$ is a \textbf{Walrasian equilibrium} if $\boldsymbol{z}(\boldsymbol{p})=\mathbf{0}$.
+\end{definition}
+
+Below is the key theorem:
+\begin{theorem}[\cite{J01} Theorem 5.5]\label{WEExistence}
+    Under Assumption \ref{strictUtility} and assume that $\sum_{i=1}^{m}\boldsymbol{\omega}_i\gg \mathbf{0}$, there exists one price $\boldsymbol{p}^*\gg \mathbf{0}$ such that $\boldsymbol{z}(\boldsymbol{p}^*)=\mathbf{0}$.
+\end{theorem}
+
+Below are two important theorems regarding welfare.
+\begin{theorem}[First Welfare Theorem]
+    Suppose $u_i$'s are continuous and strictly increasing. Then every Walrasian equilibrium is Pareto efficient.
+\end{theorem}
+\begin{proof}
+    It follows if we apply Theorem \ref{CEBudgetCore} to $S=N$.
+\end{proof}
+
+Although we have the first welfare theorem, it is still unsure whether the Pareto efficient outcome chosen by the Walrasian equilibrium is desirable. However, at least we can be sure that all Pareto efficient outcome is achievable, if we can also choose the initial endowment:
+\begin{theorem}[Second Welfare Theorem]
+    Suppose Assumption \ref{strictUtility} is made and $\sum_{i=1}^{m}\boldsymbol{\omega}_i\gg \mathbf{0}$. If $(\boldsymbol{x}_i)_{i}$ is a Pareto efficient allocation, then it is the only Walrasian equilibrium allocation if the initial endowment is redistributed to be $(\boldsymbol{x}_i)_{i}$.
+\end{theorem}
+\begin{proof}
+    Suppose the initial endowment is $(\boldsymbol{x}_i)_{i}$. Since $\sum_{i=1}^{m}\boldsymbol{x}_i=\sum_{i=1}^{m}\boldsymbol{\omega}_i\gg \mathbf{0}$, by Theorem \ref{WEExistence} we know that there exsits a Walrasian equilibrium allocation $(\boldsymbol{\tilde{x}}_i)_{i}$. By definition of Walrasian equilibrium, we know that for all $i$, $u_i(\boldsymbol{\tilde{x}}_i)\ge u_i(\boldsymbol{x}_i)$. By Pareto efficiency of $(\boldsymbol{x}_i)_i$ when the endowment is $(\boldsymbol{\omega}_i)_i$, we know that in fact for all $i$, $u_i(\boldsymbol{\tilde{x}}_i)=u_i(\boldsymbol{x}_i)$.
+
+    If there is some $i$ such that $\boldsymbol{\tilde{x}}_i\ne \boldsymbol{x}_i$, then we can switch to the average of $\boldsymbol{\tilde{x}}_i$ and $\boldsymbol{x}_i$ which is affordable and more beneficial due to strict quasi-concavity.
+\end{proof}
+
+\subsection{Linear Utility}
+Note that the above analysis does not apply to linear utility functions, since they are not strictly quasi-concave. However, in fact similar results still hold for the linear utility case, under slightly different assumptions.
+
+Here we consider a somewhat different model. There are $n$ kinds of goods in the market, described by $\boldsymbol{\omega}\gg \mathbf{0}$, and $m$ consumers, the $i$-th of whom has an initial budget $b_i>0$ and a linear utility $u_i$ over the $n$ goods. We assume that $u_i$'s are strictly increasing; in other words, for each $i$, there exists a $j$ such that $u_{ij}>0$. We also assume that each good is desired by some consumer; in other words, for each $j$, there exists an $i$ such that $u_{ij}>0$.
+
+The solution is given by the following convex program and its dual:
+\begin{equation}
+    \begin{array}{rll}
+        \max & \sum_{i=1}^{m}b_i\ln u_i & \\
+        \mathrm{s.t.} & u_i=\sum_{j=1}^{n}u_{ij}x_{ij} & \forall1\le i\le m, \\
+         & \sum_{i=1}^{m}x_{ij}\le \omega_j & \forall1\le j\le n, \\
+         & x_{ij}\ge0 & \forall i,j.
+    \end{array}
+\end{equation}
+Under the above assumptions, Slater's condition holds and thus strong duality holds and dual optimum solution exists. Also it can also be shown that primal optimum soluion $(\boldsymbol{u}^*,\boldsymbol{x}^*)$ exists, where $\boldsymbol{u}^*\gg \mathbf{0}$ is unique due to the strict concavity of the objective. By KKT conditions, in addtion to the program constraints, we have
+\begin{itemize}
+    \item For any $1\le j\le n$, $p_j^*\ge0$, and $p_j^*>0\implies\omega_j=\sum_{i=1}^{m}x_{ij}$.
+    \item For any $1\le i\le m$, $1\le j\le n$, $p_j^*\ge \frac{b_i}{u_i}u_{ij}$, and $p_j^*>\frac{b_i}{u_i}u_{ij}\implies x_{ij}=0$.
+\end{itemize}
+
+Now since every good is desired by some consumer, we must have $\boldsymbol{p}^*\gg \mathbf{0}$. As a result, the market clears, and each consumer uses up his budget. Since $\boldsymbol{\omega}\gg \mathbf{0}$, this means that $\boldsymbol{p}^*$ is unique.
+
+\section{A Market of Indivisible Goods}
+Here we consider indivisible goods and consumers with a large endowment. In fact, we first present a matching model, and then show that the market with indivisible goods is a special case of this matching model.
+
+\subsection{A Matching Market}
+We consider a matching market, with $m$ firms and $n$ workers. Each firm can hire multiple workers, while a worker can join at most one firm. Firm $i$ has a production function $f_i:2^{[n]}\to \mathbb{R}_+$ (measured using the unit of money), and is assumed to satisfy the gross subsitute condition and $f_i(\emptyset)=0$. Worker $j$ has a utility function for firm $i$, $u_{ji}:\mathbb{R}_+\to \mathbb{R}$, which represents the utility at a given salary and is assumed to be continuous and strictly increasing. Let $\sigma_{ji}=u_{ji}^{-1}(0)$ denote the minimum salary for worker $i$ to work at firm $j$.
+
+There is an additional assumption, called (MP) in \cite{KC82}, that for any worker $j$, any firm $i$, and any $C\subset[n]-\{j\}$, $f(C\cup\{j\})-f(C)\ge\sigma_{ji}$. This assumption might be a little hard to justify economically; however, we will see that it is natural in the special case where a market of indivisible goods is considered.
+
+An allocation consists of a function $r:[n]\to[m]$ and a salary schedule $s_{jr(j)}$ for each worker $j$. An individual rational allocation satisfies
+\begin{equation}
+    \begin{array}{ll}
+        s_{jr(j)}\ge\sigma_{jr(j)} & \forall j\in[n], \\
+        f_i(W_i)-\sum_{j\in W_i}^{}s_{ji}\ge0 & \forall i\in[m],W_i=\{j\in[n]|r(j)=i\}.
+    \end{array}
+\end{equation}
+A (discrete) core allocation is an individual rational allocation such that there does not exist a combination of firm and set of workers $(i,W)$ and (integer) salaries $\{r_{ji}|j\in W\}$ such that\footnote{Note that the definition of core here is different from the definition given in chapter \ref{chp:coalGame}.}
+\begin{equation}\label{matchingCore}
+    \begin{array}{ll}
+        u_{ji}(r_{ji})>u_{jr(j)}(s_{jr(j)}) & \forall j\in W, \\
+        f_i(W)-\sum_{j\in W}^{}r_{ji}>f_i(W_i)-\sum_{j\in W_i}^{}s_{ji}.
+    \end{array}
+\end{equation}
+
+In \cite{KC82}, the following salary-adjustment process is proposed. At first only integer prices are considered. To be more precise, let $s_{ji}(t)$ denote the potential salary firm $i$ has for worker $j$ at step $t$, then $s_{ji}(t)-\sigma_{ji}$ is an integer.
+
+At step $0$, firm $i$ make an offer of $s_{ji}(0)=\sigma_{ji}$ to worker $j$. This is one of the optimal choice for firm $i$ by our assumption. Worker $j$ accepts the current highest offer (breaking ties arbitrarily) and rejects the others. For each worker $j$ rejecting firm $i$, let $s_{ji}(1)=s_{ji}(0)+1$, otherwise $s_{ji}(1)=s_{ji}(0)$. Firm $i$ then choose the set of workers which gives the maximum profit. If there are ties, firm $i$ can break them arbitrarily, as long as it still gives offers to workers who did not reject it in the previous step. It is fine to have this restriction due to the gross substitute condition. The process is run until at some step each worker receives exactly one offer.
+
+We can check the following points:
+\begin{itemize}
+    \item At each step, each worker receives at least one offer.
+    \item In a finite number of steps, each worker receives exactly one offer.
+    \item The process converges to an individual rational allocation.
+    \item The process converges to a discrete core allocation.
+\end{itemize}
+
+In \cite{KC82}, the market with continuous salaries is considered. The following theorem is proved.
+\begin{theorem}[\cite{KC82} Theorem 2]\label{thm:contMatchingCore}
+    A market with continuous salaries has a core allocation.
+\end{theorem}
+The idea is to prove by contradiction: Suppose there is a market with continuous salary which does not have a core allocation, then there is a corresponding discrete market which does not have a core allocation.
+
+\begin{remark}
+    In the discrete case, the salary adjustment process not only proves the existence of core allocation, but also gives an algorithm to compute it. However, the running time depends on the size of salary. Also, the existence of core allocation is proved by making a reduction to discrete case, which is indirect. An interesting problem is to find an algorithm for the continuous case, which is faster and able to establish the existence of core directly.
+\end{remark}
+
+\subsection{A One-Sided Matching Market}
+Here the market is described by a finite set of objects $\Omega$ and $m$ consumers, the $i$-th of which has a set valuation function $v_i:2^{\Omega}\to \mathbb{R}_+$ and quasi-linear (net) utility.
+\begin{definition}
+    $\mathbf{X}=(X_0,\ldots,X_m)$ is a \textbf{partition} of $\Omega$ if for any $0\le i<j\le m$, $X_i\cap X_j=\emptyset$, and $\cup_{i=0}^m X_i=\Omega$.
+\end{definition}
+\begin{definition}
+    A \textbf{Walrasian equilibrium} for the economy $(\Omega,v_1,\ldots,v_m)$ is a tuple $(p,\mathbf{X})$ where $\langle p,X_0\rangle=0$ and for any $1\le i\le m$, $X_i\in D_i(p)$. ($D_i(p)$ is the demand correspondence of consumer $i$ at price $p$.)
+\end{definition}
+
+\begin{proposition}
+    Given a Walrasian price $p$, a partition $\mathbf{X}$ is a corresponding Walrasian partition if and only if it maximizes total valuation (social welfare).
+\end{proposition}
+
+\begin{theorem}
+    If for any $1\le i\le m$, $v_i$ is monotone and satisfies the gross substitute condition, then a Walrasian equilibrium exists.
+\end{theorem}
+\begin{proof}
+    The idea is to use Theorem \ref{thm:contMatchingCore}. For simplicity, suppose $\Omega=[n]$. For each $j\in[n]$, let $u_{ji}(s)=s$. As a result, $\sigma_{ji}=0$. One can check that in this case, the condition (MP) in the matching market means monotonicity here.
+
+    Now by Theorem \ref{thm:contMatchingCore}, there is a core allocation $(r;s_{1r(1)},\ldots,s_{nr(n)})$. We claim that the salary schedule $(s_{1r(1)},\ldots,s_{nr(n)})$ gives a Walrasian equilibrium price and the allocation $r$ gives a Walrasian equilibrium allocation, which can be seen from \eqref{matchingCore}.
+\end{proof}
+
+On the set of Walrasian equilibrium prices, we have that it is a closed polyhedron. In fact, given a social-welfare-maximizing allocation $\mathbf{X}$, the constraints on Walrasian equilibrium prices are some linear constraints in terms of $\mathbf{X}$. The following theorem reveals another nice structure of Walrasian equilibrium prices.
+\begin{theorem}[\cite{GS99} Corollary 1]
+    If for any $1\le i\le m$, $v_i$ is monotone and satisfies the gross substitute condition, then the set of Walrasian equilibrium prices is a complete lattice.
+\end{theorem}
+As a result, we can let $\underline{p}$ denote the minimum Walrasian equilibrium price while let $\overline{p}$ denote the maximum Walrasian equilibrium price.
+
+\part{Mechanism Design}
+\chapter{Mechanism Design without Money}
+Materials in this chapter come from \cite{NRTV07} Chapter 9 and 10.
+
+\section{Voting Systems}
+\subsection{Impossibility Results}
+Suppose there are $m$ voters, the $i$-th of whom has a total preference over a set of alternatives $A$, denoted by $\succ_i$. Let $L$ denote the set of all total ordering over $A$. A \textbf{social welfare function} is a function $F:L^m\to L$, while a \textbf{social choice function} is a function $f:L^m\to A$.
+
+Below are some desirable properties of a social welfare function:
+\begin{itemize}
+    \item Independence of irrelevant alternatives (IIA): If each voter's preference between two alternatives $x$ and $y$ does not change from profile $\succ$ to profile $\succ'$, then both $F(\succ)$ and $F(\succ')$ should prefer $x$ to $y$ or $y$ to $x$.
+    \item Unanimity: If in a profile $\succ$ everyone prefers $x$ to $y$, then in $F(\succ)$ $x$ is preferred to $y$.
+    \item Non-dictatorship: There should not exist a voter $i$ such that for any profile $\succ$, $F(\succ)=\succ_i$.
+\end{itemize}
+
+However, it turns out that there does not exist a social welfare function satisfying all above three properties.
+\begin{theorem}[Arrow's Impossibility Theorem]
+    If $|A|\ge3$, any social welfare function $F$ satisfying IIA and Unanimity is a dictatorship.
+\end{theorem}
+
+For social choice functions, we have a similar result
+\begin{theorem}[Gibbard-Satterthwaite Theorem]
+    If $|A|\ge3$, any incentive compatible and onto social choice function is a dictatorship.
+\end{theorem}
+\begin{proof}
+    One can reduce Gibbard-Satterthwaite Theorem to Arrow's Theorem. Given a social choice function $f$, we can construct a social welfare function $F$, by at each step moving two alternatives to the head of the preference list and deciding their relative order from the output of the social choice function. Then one can prove that if $|A|\ge3$ and $f$ is incentive compatible ,onto, and not a dictatorship, then $F$ satisfies IIA and Unanimity and is not a dictatorship.
+\end{proof}
+
+The Gibbard-Satterthwaite Theorem seems to mean that we have no way to design incentive-compatible voting mechanisms. However, some of its assumptions might be too strong: The voters might not be able to choose an arbitrary preference, and it might be good enough if incentive compatibility only holds in expectation. We will see many examples below.
+
+\subsection{Single-Peaked Preferences}
+Assume the alternative space $A=[0,1]$. There are $m$ voters, whose preferences are \textbf{single-peaked preferences}, where there is a single most preferred point $p\in A$, and for any other $x,y\in A$, if $x<y<p$ or $p<y<x$, then $p$ is strictly preferred to $y$, which is strictly preferred to $x$. Let $p_i$ denote the peak of a single-peaked preference $\succ_i$, and $R$ denote the set of single-peak preferences. Our goal is to design a meachanism $f:R^m\to A$.
+
+Below are three properties of a mechanism:
+\begin{itemize}
+    \item Onto: $f$ is onto if for any $x\in A$, there exists $\succ\,\in R^m$ such that $f(\succ)=x$.
+    \item Unanimity: $f$ is unanimous if when every voter has $p$ as the peak, $f(\succ)=p$.
+    \item Pareto-optimality: $f$ is Pareto-optimal if for all $\succ\,\in R^m$, there does not exist $x\in A$ such that $x\succ_if(\succ)$ for all $i$.
+\end{itemize}
+It turns out that for incentive compatible mechanisms, the above three properties are equivalent:
+\begin{lemma}[\cite{NRTV07} Lemma 10.1]
+    Suppose $f$ is incentive compatible. Then $f$ is onto if and only if $f$ is unanimous, if and only if $f$ is Pareto-optimal.
+\end{lemma}
+
+There are many incentive compatible and onto mechanisms. Examples include choosing the median (if $m$ is even one should choose consistently one of the two alternatives), and choosing the $k$-th highest peak for $k\le m$. Weighted averages are not incentive compatible in general, unless all weights are put on one voter or in other words the machanism is a dictatorship.
+
+One may further require that a mechanism is anonymous, in the sense that if $\succ'$ is a permutaion of $\succ$, then $f(\succ')=f(\succ)$. A dictatorial mechanism is not anonymous, while median and $k$-th highest peak are. Moreover, the following theorem completely characterize incentive compatible, onto and anonymous mechanisms:
+\begin{theorem}[\cite{NRTV07} Theorem 10.2]
+    $f$ is incentive compatible, onto and anonymous if and only if there exist $y_1,\ldots,y_{m-1}\in[0,1]$, such that for any $\succ\,\in R$,
+    \begin{equation}
+        f(\succ)=\mathrm{median}\{p_1,\ldots,p_m,y_1,\ldots,y_{m-1}\}.
+    \end{equation}
+\end{theorem}
+One corollary is that for such mechanisms, to decide the outcome knowing all peaks is enough. Those $y_i$'s can be seen as compromises when voters all have extreme peaks.
+
+Sometimes one may want to relax the anonymity criterion. A rule $f$ is a \textbf{generalized median voter scheme} if there exist $2^m$ points in $[0,1]$, $\{\alpha_S\}_{S\subset[m]}$, such that
+\begin{itemize}
+    \item $S\subset T\implies \alpha_S\le\alpha_T$;
+    \item $\alpha_{\emptyset}=0$, $\alpha_{[m]}=1$;
+    \item For any $\succ\,\in R$, $f(\succ)=\max_{S\subset[m]}\min\{\alpha_S,p_i:i\in S\}$.
+\end{itemize}
+The second criterion is used to ensure onto property. Similar to those $y_i$'s in anonymous mechanisms, $\alpha_S$'s represents the compromise between extreme preferences here, in the sense that if voter in $S$ have peak $1$ while voters in $[m]-S$ have peak $0$, then $f(\succ)=\alpha_S$. We further have
+\begin{theorem}
+    $f$ is incentive compatible and onto if and only if $f$ is a generalized median voter scheme.
+\end{theorem}
+
+In certain applications, one may also care about \textbf{individual rationality}. One formuation is that for any $\succ\,\in R$ and for any voter $i$, $f(\succ)\succ_i0$. We have
+\begin{theorem}
+    $f$ is incentive compatible, onto and individual rational if and only if $f$ picks the minimum peak.
+\end{theorem}
+
+\section{House allocation}
+Assume there are $n$ residents, each of who has a house and a strict preference list over all $n$ houses.\footnote{The model can be further extended to allow at the beginning empty houses and new resident without house. Please see \cite{AS99}.} Each resident only cares where he or she lives.
+
+We want to re-allocate the houses among the residents. Such a mechanism should satisfy certain properties:
+\begin{itemize}
+    \item Weakly improved allocation, or individual rationality\footnote{This condition is in fact a special case of the core allocation condition.}: The new house for each resident should not be worse than his or her original one.
+    \item Core allocation, or no blocking coalition: Any subset of the residents cannot quit the mechanism, re-allocate their houses for themselves, so that no one is worse off and at least one is better off.
+    \item Incentive Compatibility, or strategy-proofness: The residents should be motivated to tell their true preferences.
+\end{itemize}
+
+We propose the following simple but effective algorithm, Top Trading Cycles Algorithm (TTCA):
+\begin{enumerate}
+    \item Each person proposes one house for him- or herself from the unallocated houses.
+    \item Find all the cycles in the resulting graph, and allocate according to those cycles.
+    \item If there are remaining residents and houses, return to the first step.
+\end{enumerate}
+
+TTCA satisfies the following properties, even stronger than what we want:
+\begin{itemize}
+    \item Termination.
+    \item Weakly improved allocation.
+    \item Dominant Strategy Incentive Compatibility: In other words, for each resident $i$, no matter what the others propose, he or she cannot be better off by lying. To prove this, fix an arbitrary preference list of the other residents. Let $i_1,i_2,\ldots,i_n$ be the preference list of resident $i$. Suppose if resident $i$ tells the truth, he or she will get $i_r$ in the $t$-th round of TTCA. This means that the cycles allocated in the first $t-1$ rounds, which include $i_1,\ldots,i_{r-1}$, never points to $i$ in the first $t-1$ rounds. Even if resident $i$ lies, he or she cannot get any house in $i_1,\ldots,i_{r-1}$. Thus resident $i$ has no incentive to lie.
+    \item Unique Core allocation: To show the uniqueness, let $R_i$ denote the set of residents get allocated in the $i$-th round. Since residents in $R_1$ gets their top houses, they must also be assigned the same houses in any other core allocation. Then we can argue by induction for any $R_i$.
+\end{itemize}
+
+\section{Stable Marriage}
+In this model, consider two equal-size sets, which can be interpreted as men and women. Each element has a strict preference over elements of the other set.
+
+We propose the deferred acceptance algorithm (DAA):
+\begin{itemize}
+    \item Each unmatched element on one side, say each unmatched man, makes a proposal to his most preferred woman who hasn't rejected him.
+    \item Each woman accepts the proposal of her most preferred man who has proposed to her, and rejects the others.
+    \item If there are still unmatched men and women, return to the first step.
+\end{itemize}
+
+DAA satisfies the following properties:
+\begin{itemize}
+    \item Termination with a stable matching.
+    \item If men make proposals, then DAA gives men the best matching among all stable matchings, and women the worst matching among all stable matchings. To prove this, let $S=\{(m,w)|m\textrm{ is once rejected by }w\textrm{ in DAA}\}$. One can then prove by induction on the rounds to show that no stable matching contains a matching in $S$.
+    \item If men make proposals, then DAA is incentive compatible for men, not for women. (For proof, please see \cite{NRTV07} Theorem 10.13.)
+\end{itemize}
+
+The model can be extended so that the number of men and women can be different, and an agent can prefer staying single to staying with someone (see \cite{R08}). DAA can be extended naturally to this case. One property is that the set of matched agents are the same in all stable matching.
+
+\chapter{Mechanism Design with Money}
+\section{A Gentle Start and Vickery-Clarke-Groves Mechanisms}
+As in the previous chapter, we still have $n$ players and a set $A$ of alternatives. Now player $i$'s preference over $A$ is represented by a \textbf{valuation} function $v_i:A\to \mathbb{R}$, chosen from $V_i\subset \mathbb{R}^A$. What player $i$ wants to maximize is the \textbf{utility}, which takes into consideration both the valuation and money. By default, player $i$ utility (or net utility) equals the value plus the money given to player $i$.
+\begin{remark}
+    Compared with the space $L$ of all total orderings used in mechanisms without money, our valuation space $V_i$ might be both more powerful, in the sense we can quantify our preference (and as a result the objective is different), and more restrictive, since we may not allow all possible orderings.
+\end{remark}
+
+A \textbf{(direct revelation) mechanism} contains a social choice function $f:V_1\times\cdots\times V_n\to A$, and a vector of payment functions $p_1,\ldots,p_n$ where $p_i:V_1\times\cdots\times V_n\to \mathbb{R}$ is the money paid by player $i$.
+
+One important notion is \textbf{incentive compatibility}. There are many different variants of this notion:
+\begin{itemize}
+    \item Dominant strategy incentive compatibility (DSIC): For every player $i$, every $v_1\in V_1,\ldots,v_n\in V_n$ and $v_i'\in V_i$, if we let $a=f(v)$ and $a'=f(v_i',v_{-i})$, then $v_i(a)-p(v)\ge v_i(a')-p(v_i',v_{-i})$.
+\end{itemize}
+
+Other properties of the mechanism include:
+\begin{itemize}
+    \item \textbf{(Ex-post) Individualy rationality}: For every $v_1\in V_1,\ldots,v_n\in V_n$, we have $v_i(f(v))\ge p_i(v)$.
+    \item \textbf{No positive transfer}: For every $v_1\in V_1,\ldots,v_n\in V_n$ and every player $i$, $p_i(v)\ge0$.
+\end{itemize}
+
+One may also set different objectives for mechanism design, such as \textbf{social welfare maximization} or \textbf{revenue maximization}.
+
+Now we describe Vickery-Clarke-Croves mechanisms, which satisfy many of the above properties.
+\begin{definition}[VCG Mechanisms]
+    A mechanism $(f,p)$ is called a Vickery-Clarke-Groves (VCG) mechanism if
+    \begin{itemize}
+        \item $f(v)\in\arg\max_{a\in A}\sum_{i=1}^{n}v_i(a)$;
+        \item There exist $h_1,\ldots,h_n$, where $h_i:V_{-i}\to \mathbb{R}$, such that for all $v_1\in V_1,\ldots,v_n\in V_n$, $p_i(v)=h_i(v_{-i})-\sum_{j\ne i}^{}v_j(f(v))$.
+    \end{itemize}
+\end{definition}
+\begin{theorem}
+    Every VCG mechanism is social-welfare maximizing and DSIC.
+\end{theorem}
+\begin{definition}[Clarke Pivot Rule]
+    $h_i(v_{-i})=\max_{a\in A}\sum_{j\ne i}^{}v_j(a)$.
+\end{definition}
+Intuitively, what player $i$ pays is the damage he or she does to the other players. In other words, Clarke pivot rule makes each player internalize their externalities.
+\begin{theorem}
+    A VCG mechanism with Clarke pivot rule makes no positive transfer, and is individual rational if $v_i(a)\ge0$ for every $i$, every $v_i\in V_i$ and every $a\in A$.
+\end{theorem}
+
+\section{Dominant Strategies Implementation}
+\subsection{Non-direct Revelation Mechanisms}
+Now we give another, more general model including dominant strategy incentive compatibility.
+\begin{definition}
+    A game with \textbf{independent private values} and \textbf{strict incomplete information} on a set of $n$ players consists of:
+    \begin{itemize}
+        \item For player $i$, a set of actions $X_i$;
+        \item For player $i$, a set of types $T_i$, and the true type $t_i\in T_i$ is a private information of player $i$;
+        \item For player $i$, a utility function $u_i:T_i\times X_1\times\cdots\times X_n\to \mathbb{R}$.
+    \end{itemize}
+\end{definition}
+\begin{definition}$\ $
+    \begin{itemize}
+        \item A strategy of player $i$ is a function $s_i:T_i\to X_i$.
+        \item A strategy profile $s=(s_1,\ldots,s_n)$ is an \textbf{ex-post Nash equilibrium} if for any $t_1\in T_1,\ldots,t_n\in T_n$, $(s_1(t_1),\ldots,s_n(t_n))$ is a Nash equilibrium in the full information game. Formally, for any $t_1\in T_1,\ldots,t_n\in T_n$, any $i$ and any $x_i'\in X_i$, $u_i(t_i,s(t))\ge u_i(t_i,x_i',s_{-i}(t_{-i}))$.
+        \item A strategy $s_i$ is a weakly dominant strategy for player $i$ if for any $t_i\in T_i$, we have $s_i(t_i)$ is a dominant strategy in the full information game.
+    \end{itemize}
+\end{definition}
+It turns out that an ex-post Nash equilibrium is also a dominant strategy equilibrium if only used actions are considered.
+\begin{proposition}
+    Let $s_1,\ldots,s_n$ be an ex-post Nash equilibrium of a game $(X_1,\ldots,X_n,T_1,\ldots,T_n,u_1,\ldots,u_n)$, and define $X_i'=\{x_i\in X_i|\exists t_i\in T_i,s_i(t_i)=x_i\}$ for any $i$. Then $(s_1,\ldots,s_n)$ is a dominant strategy equilibrium in the game $(X_1',\ldots,X_n',T_1,\ldots,T_n,u_1,\ldots,u_n)$.
+\end{proposition}
+Based on the above definitions, a mechanism is defined as
+\begin{definition}$\ $
+    \begin{itemize}
+        \item A (non-direct revelation) mechanism for $n$ players consists of
+        \begin{itemize}
+            \item A set $A$ of alternatives;
+            \item For player $i$, a set of types $T_i$;
+            \item For player $i$, a valuation function $v_i:T_i\times A\to \mathbb{R}$;
+            \item For player $i$, a set of actions $X_i$;
+            \item An outcome function $a:X_1\times\cdots\times X_n\to A$;
+            \item For player $i$, a payment function $p_i:X_1\times\cdots\times X_n\to \mathbb{R}$.
+        \end{itemize}
+        The game with strict incomplete information induced by the mechanism is given by $T_i$'s, $X_i$'s, and for player $i$ the utility function $u_i(t_i,x)=v_i(t_i,a(x))-p_i(x)$.
+        \item We say the mechanism implements a social choice function $f:T_1\times\cdots\times T_n\to A$ in dominant strategies (ex-post equilibrium) if there exists some dominant strategy equilibrium (ex-post equilibrium) $s$ of the induced game such that for any $t_1\in T_1,\ldots,t_n\in T_n$, $f(t)=a(s(t))$.
+    \end{itemize}
+\end{definition}
+\paragraph{Remark}
+In the definition of mechanisms, $A$ is a common knowledge, the type spaces and valuation functions may only be partially known by the mechanism, and the action spaces, outcome function and payment functions are decided by the mechanism.
+
+\paragraph{Remark}
+In the definition of implementation, we only require the condition holds for \textbf{some} equilibrium. We may make stronger requirements, such as the same condition holds for \textbf{all} equilibria, or there exists a \textbf{unique} equilibrium. \\
+
+It seems that non-direct revelation mechanisms are powerful than direct revelation mechanisms. However, it is not true.
+\begin{proposition}[The Revelation Principle]
+    If there exists a mechanism implementing $f$ in dominant strategies (ex-post equilibrium), then there exists an direct revelation incentive compatible mechanism implementing $f$, with the same payments as the original mechanism.
+\end{proposition}
+
+Thus in some sense we can restrict our attention to the direct revelation mechanisms (though there are still cases where non-direct revelation mechanisms are useful). Below we are going to give some characterizations of incentive compatible mechanisms.
+
+\subsection{Characterizations of Dominant Strategy Incentive Compatible Mechanisms}
+\begin{proposition}
+    A mechanism $(f,p)$ is incentive compatible if and only if for any $i$ and any $v_{-i}\in V_{-i}$, the following conditions are satisfied:
+    \begin{itemize}
+        \item The payment does not depend on $v_i$, but only on the social choice. Formally, for any $i$, any $v_{-i}\in V_{-i}$ and $a\in\{f(v_i,v_{-i})|v_i\in V_i\}$, there exists a price $p_a$, such that for any $v_i\in V_i$ satisfying $f(v_i,v_{-i})=a$, $p_i(v_i,v_{-i})=p_a$.
+        \item For any $i$, any $v_i\in V_i$ and any $v_{-i}\in V_{-i}$, it is true that $f(v_i,v_{-i})\in\arg\max_{a\in f(\cdot,v_{-i})}(v_i(a)-p_a)$.
+    \end{itemize}
+\end{proposition}
+\begin{definition}
+    A social choice function $f$ satisfies \textbf{Weak Monotonicity} if for any $i$, any $v$ and any $v_i'$ we have $f(v)=a\ne b=f(v_i',v_{-i})\implies v_i(a)-v_i(b)\ge v_i'(a)-v_i'(b)$.
+\end{definition}
+\begin{theorem}\label{DSICWeakMonotonicty}
+    If a meachanis $(f,p)$ is incentive compatible, then $f$ satisfies Weak Monotonicity. If all $V_i$'s are convex then for every social choice function $f$ satisfying Weak Monotonicity there exist payment functions $p_1,\ldots,p_n$ such that $(f,p_1,\ldots,p_n)$ is incentive compatible.
+\end{theorem}
+
+Below we are going to look at two special cases, in some sense the most unrestricted case and the most restricted case.
+
+\subsubsection{Unrestricted Domain}
+A social choice function is called an \textbf{affine maximizer} if for some $A'\subset A$, for some $c_a\in \mathbb{R}$ for every $a\in A'$, and for some player weights $w_1,\ldots,w_n\in \mathbb{R}_+$, $f(v)\in\arg\max_{a\in A'}(c_a+\sum_{i=1}^{n}w_iv_i(a))$.
+
+The VCG mechanisms can be extended to the \textbf{weighted VCG mechanisms} for affine maximizers. Given $f$, the payment for player $i$ is $p_i(v)=h_i(v_{-i})-\sum_{j\ne i}^{}\frac{w_jv_j(a)}{w_i}-\frac{c_a}{w_i}$, where $a=f(v)$ and $h_i$ does not depend on $v_i$. It is easy to prove that the weighted VCG mechanisms are still dominant strategy incentive compatible. Conversely, they are the only dominant strategy incentive compatible mechanisms, if we put no restriction on the possible valuations.
+\begin{theorem}
+    If $|A|\ge3$, $f$ is onto $A$, $V_i=\mathbb{R}^A$ for all $i$, and $(f,p)$ is dominant strategy incentive compatible then $f$ is an affine maximizer.
+\end{theorem}
+
+\subsubsection{Single Parameter Domain}
+The unrestricted case $V_i=\mathbb{R}^A$ means that the valuation space is basically full-dimensional. The opposite extreme case will be that the space is one-dimensional, or single-parameter mechanism design.
+\begin{definition}
+    In a \textbf{single parameter domain} $V_i$, each $v_i$ is determined by a real number in $[a_i,b_i]$ ($a_i\ge0$), which is also denoted by $v_i$ for convenience, and can be interpreted as the value \textbf{per unit}. We also assume that there is a prior distribution $D_i$ over $[a_i,b_i]$ with corresponding probability density function $d_i$, which will be used in Bayesian analysis in this section.
+
+    $A$ is a subset of $\mathbb{R}_+^n$, whose elements can be interpreted as distributions of some good among players. In other words, if the social choice is $a$, then $v_i(a)=v_ia_i$.
+\end{definition}
+We would like our mechanism to satisfy DSIC, IR (individual rationality) and make no positive transfer.
+
+Let $f_i(v)$ denote $(f(v))_i$, and $U_i(f,p,v_i,v_{-i})$ denote $v_if_i(v)-p_i(v)$, which is simplified to $U_i(v)$ usually. Since $(f,p)$ is DSIC, we know that for any $i$, any $v_{-i}$, and any $v_i,v_i'$,
+\begin{equation*}
+    \begin{array}{rcl}
+        U_i(v_i,v_{-i}) & \ge & v_if_i(v_i',v_{-i})-p_i(v_i',v_{-i}) \\
+         & = & U_i(v_i',v_{-i})+(v_i-v_i')f_i(v_i',v_{-i}).
+    \end{array}
+\end{equation*}
+Applying the above inequality twice, we get
+\begin{equation}\label{MyersonSandwich}
+    (v_i-v_i')f_i(v_i',v_{-i})\le U_i(v_i,v_{-i})-U_i(v_i',v_{-i})\le(v_i-v_i')f_i(v_i,v_{-i}).
+\end{equation}
+Thus for any $i$, any $v_{-i}$, and any $v_i'\le v_i$,
+\begin{equation}\label{MyersonAllocMonotonicity}
+    f_i(v_i',v_{-i})\le f_i(v_i,v_{-i}).
+\end{equation}
+Furthermore, in inequality \eqref{MyersonSandwich}, let $v_i$ tend to $v_i'$ from the above, we get for any small positive $\epsilon$,
+\begin{equation*}
+    f_i(v_i',v_{-i})\epsilon\le U_i(v_i'+\epsilon,v_{-i})-U_i(v_i',v_{-i})\le f_i(v_i'+\epsilon,v_{-i})\epsilon.
+\end{equation*}
+Since $f_i$ is monotone, it is Riemann integrable, and thus
+\begin{equation}\label{MyersonUtility}
+    U_i(v_i,v_{-i})-U_i(a_i,v_{-i})=\int_{a_i}^{v_i}f_i(x,v_{-i})\mathrm{d}x.
+\end{equation}
+Furthermore, to ensure IR and no positive transfer, we require
+\begin{equation}\label{startCond}
+    0\le U_i(a_i,v_{-i})\le a_if_i(a_i,v_{-i}).
+\end{equation}
+To sum up, to get a mechanism which is DSIC, IR and makes no positive transfer, \eqref{MyersonAllocMonotonicity}, \eqref{MyersonUtility} and \eqref{startCond} should be satisfied for any $i$ and any $v_{-i}$. It is not hard to see that they are at the same time sufficient. Thus
+\begin{theorem}
+    In a single parameter domain, a mechanism $(f,p)$ is DSIC, IR and makes no positive transfer if and only if \eqref{MyersonAllocMonotonicity}, \eqref{MyersonUtility} and \eqref{startCond} are satisfied.
+\end{theorem}
+
+If one is interested in social welfare maximization, then for each $v$ one can decide an optimal social choice $f(v)$. If this social choice function turns out to be monotone, in other words satisfies \eqref{MyersonAllocMonotonicity}, then \eqref{MyersonUtility} and \eqref{startCond} can be used to determine the payment functions.
+
+In revenue maximization, we make use of those prior distributions and try to maximize the expected revenue. Fix $i$ and $v_{-i}$, the expected revenue gathered from player $i$ is
+\begin{equation*}
+    \begin{array}{cl}
+         & \displaystyle\int_{a_i}^{b_i}\left[v_if_i(v_i,v_{-i})-U_i(v_i,v_{-i})\right]d_i(v_i)\mathrm{d}v_i \\
+        \le & \displaystyle\int_{a_i}^{b_i}\left[v_if_i(v_i,v_{-i})-\int_{a_i}^{v_i}f_i(x,v_{-i})\mathrm{d}x\right]d_i(v_i)\mathrm{d}v_i \\
+        = & \displaystyle\int_{a_i}^{b_i}v_if_i(v_i,v_{-i})d_i(v_i)\mathrm{d}v_i-\int_{a_i}^{b_i}f_i(x,v_{-i})\left[\int_x^{b_i}d_i(v_i)\mathrm{d}v_i\right]\mathrm{d}x \\
+        = & \displaystyle\int_{a_i}^{b_i}v_if_i(v_i,v_{-i})d_i(v_i)\mathrm{d}v_i-\int_{a_i}^{b_i}f_i(x,v_{-i})(1-D_i(x))\mathrm{d}x \\
+        = & \displaystyle\int_{a_i}^{b_i}\left(v_i-\frac{1-D_i(v_i)}{d_i(v_i)}\right)f_i(v_i,v_{-i})d_i(v_i)\mathrm{d}v_i.
+    \end{array}
+\end{equation*}
+Let $\varphi_i(v_i)=v_i-\frac{1-D_i(v_i)}{d_i(v_i)}$. Then the expected revenue gather from $i$ given $v_{-i}$ is $\mathbb{E}_{v_i\sim D_i}[\varphi_i(v_i)f_i(v_i,v_{-i})]$. The total expected revenue is $\mathbb{E}_{v\sim D}[\sum_{i=1}^{n}\varphi_i(v_i)f_i(v)]$. Since we need to choose an $f(v)$ for every profile $v$, one natural idea is to choose $\arg\max_{a\in A}\varphi_i(v_i)a_i$. Also from the above derivation, we know that the amount paid by player $i$ should be $v_if_i(v)-\int_{a_i}^{v_i}f_i(x,v_{-i})\mathrm{d}x$. However, we still need to make sure that such a social choice function is monotone. One sufficient condition is that for each $i$, $\varphi_i$ is a strictly monotonically increasing function. This property is called \textbf{regularity}.
+
+\subsubsection{Uniqueness of Payment Functions}
+\begin{theorem}
+    For each $i$, assume $V_i$ is connected in the Euclidean space. Let $(f,p_1,\ldots,p_n)$ and $(f,p_1',\ldots,p_n')$ be two mechanisms with different payment functions, and the first mechanism is DSIC. Then the second mechanism is also DSIC if and only if for each $i$ there exists $h_i:V_{-i}\to \mathbb{R}$ such that for all $v$, $p_i(v)=p_i'(v)+h_i(v_{-i})$.
+\end{theorem}
+
+\section{Bayesian-Nash Implementation}
+\begin{definition}
+    A game with \textbf{independent private values} and \textbf{incomplete information} on a set of $n$ players consists of:
+    \begin{itemize}
+        \item For player $i$, a set of actions $X_i$;
+        \item For player $i$, a set of types $T_i$ and the prior distribution $D_i$ on $T_i$. The true type $t_i\in T_i$ is a private information of player $i$, which is sampled with the a priori probability $D_i(t_i)$.
+        \item For player $i$, a utility function $u_i:T_i\times X_1\times\cdots\times X_n\to \mathbb{R}$.
+    \end{itemize}
+\end{definition}
+\begin{definition}$\ $
+    \begin{itemize}
+        \item A strategy of player $i$ is a function $s_i:T_i\to X_i$.
+        \item A profile $s$ is a \textbf{Bayesian-Nash equilibrium}, if for every $i$, every $t_i\in T_i$, $s_i(t_i)$ is $i$'s best response to $s_{-i}$ when player $i$'s type is $t_i$, in expectation over all $t_{-i}\in T_{-i}$. Formally, for every $i$, every $t_i\in T_i$, and every $x_i'\in X_i$, we have
+        \begin{equation}
+            \mathbb{E}_{t_{-i}\sim D_{-i}}[u_i(t_i,s_i(t_i),s_{-i}(t_{-i}))]\ge \mathbb{E}_{t_{-i}\sim D_{-i}}[u_i(t_i,x_i',s_{-i}(t_{-i}))].
+        \end{equation}
+    \end{itemize}
+\end{definition}
+\paragraph{Remark}
+The above two definitions are special cases of the more general Definition \ref{BayesGame} and Definition \ref{BayesNE}.
+\begin{definition}$\ $
+    \begin{itemize}
+        \item A (non-direct revelation) Bayesian mechanism for $n$ players consists of
+        \begin{itemize}
+            \item A set $A$ of alternatives;
+            \item For player $i$, a set of types $T_i$, on which there is a prior distribution $D_i$;
+            \item For player $i$, a valuation function $v_i:T_i\times A\to \mathbb{R}$;
+            \item For player $i$, a set of actions $X_i$;
+            \item An outcome function $a:X_1\times\cdots\times X_n\to A$;
+            \item For player $i$, a payment function $p_i:X_1\times\cdots\times X_n\to \mathbb{R}$.
+        \end{itemize}
+        The game with incomplete information induced by the mechanism is given by $T_i$'s, $D_i$'s, $X_i$'s, and for player $i$ the utility function $u_i(t_i,x)=v_i(t_i,a(x))-p_i(x)$.
+        \item We say the mechanism implements a social choice function $f:T_1\times\cdots\times T_n\to A$ in Bayesian-Nash equilibrium if there exists some Bayesian-Nash equilibrium $s$ of the induced game such that for any $t_1\in T_1,\ldots,t_n\in T_n$, $f(t)=a(s(t))$.
+    \end{itemize}
+\end{definition}
+
+In the very similar way, we can define the Bayesian incentive compatibility (BIC). Furthermore, we still have the following property:
+\begin{proposition}[The Revelation Principle]
+    If there exists a mechanism implementing $f$ in Bayesian-Nash equilibrium, then there exists an direct revelation Bayesian incentive compatible mechanism implementing $f$, with the same expected payments as the original mechanism.
+\end{proposition}
+
+Another important fact is that under mild conditions the expected revenue is decided solely by the social choice function.
+\begin{theorem}[The Revenue Equivalence Principle]
+    Consider two Bayesian-Nash implementations of the same social choice function. For player $i$, if the set of types $T_i$ is convex (or more generally path-connected), and if there exists a type $t_i^{(0)}$ such that in two implementations the expected payments are the same, then it is true for any value $t_i$.
+\end{theorem}
+
+\chapter{Combinatorial Auctions}
+In combinatorial auctions we want to auctioned $m$ items among $n$ bidders.
+
+On the auctioneer side, items are usually assumed to be \textbf{indivisible}. The supply of each item can be either limited or unlimited, and in the first case usually we can assume w.l.o.g. each item has \textbf{one} copy. Those alternatives will be further clarified later.
+
+On the bidder side, each bidder has a valuation function for the bundle he or she gets. If each item has one copy, then the valuation function is $v:2^{[m]}\to \mathbb{R}$. It is usually further assume that $v(\emptyset)=0$ and $v$ is \textbf{monotone}, in the sense that for all $S\subset T\subset[m]$, $v(S)\le v(T)$. Note that in general we \textbf{do not} assume $v$ is \textbf{additive}. In fact, for non-intersect $S$ and $T$, if $v(S\cup T)>v(S)+v(T)$, we say $S$ and $T$ are \textbf{complements}, while if $v(S\cup T)<v(S)+v(T)$, we say $S$ and $T$ are \textbf{substitutes}. Another point is that generally there are no externality encoded in a valuation function; however, by considering a quasi-linear \textbf{utility} and include externality into the money one bidder needs to pay, we can in some sense internalize the externality and increase the social welfare.
+
+There are three main difficulties in combinatorial auctions:
+\begin{itemize}
+    \item Computational complexity: Some cases have been shown to be $\mathbf{NP}$-hard, and we need to avoid this difficulty.
+    \item Representation: The valuation functions may need exponentially large space to describe.
+    \item Strategies: How bad is, and furthermore how to avoid strategic behaviors in combinatorial auctions?
+\end{itemize}
+
+\section{The Single-Minded Case}
+A valuation $v$ is \textbf{single-minded} if there exists $S^*\subset 2^{[m]}$ and a value $v^*\in \mathbb{R}_+$ such that $v(T)=v^*$ if $S\subset T$ and $v(T)=0$ otherwise. Such a valuation is easy to represent, but we still need to deal with the computational complexity and strategic behaviors.
+
+\appendix
+\chapter{Valuation Functions}
+In this chapter, we summarize \textbf{valuation} functions which are widely used in economics. By contrast, ``\textbf{utility} functions" often incorporate both valuation and money. However, sometimes in the AGT literature the difference between valuation and expense is also called utility, which should be termed \textbf{net utility} instead.
+
+\section{General Valuation Functions}
+We first describe general valuation functions. Sometimes we will define them in a more general setting, but most often the interesting case is the Euclidean space.
+
+\subsection{Subadditive Functions}
+\begin{definition}
+    A \textbf{subadditive} function is a function $f:A\to B$, where the domain $A$ and ordered range $B$ are both closed under addition, such that for any $x,y\in A$,
+    \begin{equation}\label{subaFunc}
+        f(x+y)\le f(x)+f(y).
+    \end{equation}
+    A sequence $\{a_n\}_{n\ge1}$ is called subadditive if for all $m,n$,
+    \begin{equation}\label{subaSeq}
+        a_{m+n}\le a_m+a_n.
+    \end{equation}
+    Similarly, we can define \textbf{superadditive} functions and sequences.
+\end{definition}
+\paragraph{Remark}
+In economics, the subadditive functions are in fact generally used to model the cost function of a \textbf{natural monopoly}. Specifically, it is cheap to let one firm produce all the goods, rather than distribute the production task among several firms.
+
+\begin{lemma}[Fekete's Subadditive Lemma]
+    For any subadditive sequence $\{a_n\}_{n\ge1}$, $\lim_{n\to\infty}\frac{a_n}{n}$ exists and equals $\inf_{n\ge1}\frac{a_n}{n}$.
+\end{lemma}
+\paragraph{Remark}
+The above limit might be $-\infty$; consider $a_n=-\ln n!$.
+
+\begin{theorem}
+    For every measurable subadditive function $f:(0,\infty)\to \mathbb{R}$, $\lim_{x\to\infty}\frac{f(x)}{x}$ exists and equals $\inf_{x>0}\frac{f(x)}{x}$.
+\end{theorem}
+\begin{proposition}
+    Below are some claims on subadditive functions, and on the relationship between subadditive functions and concave functions:
+    \begin{itemize}
+        \item Suppose $f:[0,\infty]\to \mathbb{R}$ is subadditive, then $f(0)\ge0$.
+        \item Suppose $f:[0,\infty]\to \mathbb{R}$ is concave and $f(0)\ge0$, then $f$ is subadditive.
+    \end{itemize}
+\end{proposition}
+\begin{proof}
+    As to the first argument, note that $f(0+0)\le f(0)+f(0)$.
+
+    As to the second argument, note that $f(x)\ge \frac{y}{x+y}f(0)+\frac{x}{x+y}f(x+y)$, and $f(y)\ge \frac{x}{x+y}f(0)+\frac{y}{x+y}f(x+y)$. Add them we get $f(x)+f(y)\ge f(0)+f(x+y)\ge f(x+y)$.
+\end{proof}
+
+\subsection{Submodular Functions}
+\begin{definition}
+    A function $f:\mathbb{R}^n\to \mathbb{R}$ is called \textbf{submodular} if for all $x,y\in \mathbb{R}^n$,
+    \begin{equation}
+        f(x\uparrow y)+f(x\downarrow y)\le f(x)+f(y),
+    \end{equation}
+    where $x\uparrow y$ ($x\downarrow y$) is the component-wise maximum (minimum) of $x$ and $y$.
+
+    If $-f$ is submodular then $f$ is called \textbf{supermodular}.
+\end{definition}
+\begin{theorem}
+    If $f:\mathbb{R}^n\to \mathbb{R}$ is twice continuously differentiable, then $f$ is submodular if and only if for all $x\in \mathbb{R}^n$ and $i\ne j$,
+    \begin{equation}
+        \frac{\partial^2f}{\partial x_i\partial x_j}\le0.
+    \end{equation}
+\end{theorem}
+\paragraph{Remark}
+In economics, a submodular function is often related to substitute goods, while a supermodular function is often related to complementary goods.
+
+\section{Set Valuation Functions}
+A set valuation function is often used in combinatorial auctions. Specifically, we have a finite set $\Omega$, and a set valuation function $f:2^{\Omega}\to \mathbb{R}$ maps subsets of $\Omega$ to real values. Usually we normalize $f$ so that $f(\emptyset)=0$.
+
+Simple assumptions on valuations include:
+\begin{itemize}
+    \item Non-negativity: For all $S\subset\Omega$, $f(S)\ge0$.
+    \item Monotonicity: For all $S\subset T\subset\Omega$, $f(S)\le f(T)$.
+\end{itemize}
+\begin{remark}
+    Note that monotonicity and zero valuation of the empty set will imply non-negativity.
+\end{remark}
+
+\subsection{Subadditive Set Functions}
+\begin{definition}
+    A set function $f:2^{\Omega}\to \mathbb{R}$ is \textbf{subadditive} if for any $S,T\subset\Omega$, $f(S\cup T)\le f(S)+f(T)$.
+
+    $f$ is \textbf{superadditive} if for any $S,T\subset\Omega$, $f(S\cup T)\ge f(S)+f(T)$.
+\end{definition}
+\begin{proposition}
+    Suppose $f:2^{\Omega}\to \mathbb{R}$ is subadditive. Then $f(\emptyset)\ge0$.
+\end{proposition}
+
+\subsection{XOS Functions}
+\begin{definition}
+    A set function $f:2^{\Omega}\to \mathbb{R}$ is \textbf{XOS} if there exists vectors $a_1,\ldots,a_k\in \mathbb{R}^{\Omega}$ such that for any $S\subset\Omega$, $f(S)=\max_{i=1}^k \langle a_i,S\rangle$.
+\end{definition}
+\begin{proposition}
+    An XOS function is subadditive.
+\end{proposition}
+\begin{definition}
+    A set function $f:2^{\Omega}\to \mathbb{R}$ is \textbf{fractionally subadditive} if for any $S\subset\Omega$, any $S_1\ldots,S_k\subset\Omega$, and any $\alpha_1,\ldots,\alpha_k\in[0,1]$, if $\mathbbm{1}_S\le \sum_{i=1}^{k}\alpha_i\mathbbm{1}_{S_i}$, then $f(S)\le \sum_{i=1}^{k}\alpha_if(S_i)$.
+\end{definition}
+\begin{proposition}
+    A set function $f$ is XOS if and only if $f$ is fractionally subadditive.
+\end{proposition}
+
+\subsection{Submodular Set Functions}
+\begin{definition}
+    A set function $f:2^{\Omega}\to \mathbb{R}$ is \textbf{submodular} if it satisfies one of the following equivalent definitions:
+    \begin{itemize}
+        \item For any $S\subset T\subset\Omega$ and $x\in\Omega-T$, $f(S\cup\{x\})-f(S)\ge f(T\cup\{x\})-f(T)$.
+        \item For any $S,T\subset\Omega$, $f(S)+f(T)\ge f(S\cup T)+f(S\cap T)$.
+    \end{itemize}
+\end{definition}
+\begin{remark}
+    One can write the second definition as $f(S)-f(S\cap T)\ge f(S\cup T)-f(T)$, which naturally leads to a proof of equivalence of the above two definitions.
+\end{remark}
+\begin{proposition}
+    A submodular set function $f$ with $f(\emptyset)=0$ is XOS.
+\end{proposition}
+\begin{proof}
+    Let $\pi$ denote an arbitrary order on $\Omega$, $\Omega_{\pi}^{<\omega}$ denote the set of elements which precede $\omega$ in order $\pi$, and $a_{\pi,\omega}=v(\Omega_{\pi}^{<\omega}\cup\{\omega\})-v(\Omega_{\pi}^{<\omega})$. One can then show that for any $S\subset\Omega$,
+    \begin{equation*}
+        f(S)=\max_{\pi}\langle a_{\pi},S\rangle.
+    \end{equation*}
+\end{proof}
+\begin{remark}
+    The above proof is similar to Definition \ref{def:ShapleyValue} of Shapley value. However, notice that the above proof only gives an exponentially large description of a submodular function as an XOS function.
+\end{remark}
+
+\subsection{Gross Substitute Functions}
+Given a set valuation function $f:2^{\Omega}\to \mathbb{R}$, its quasi-linear utility function $u:2^{\Omega}\times \mathbb{R}_+^{\Omega}\to \mathbb{R}$ is defined as $u(S,p)=f(S)-\langle p,S\rangle$.
+\begin{definition}
+    Given a set valuation function $f:2^{\Omega}\to \mathbb{R}$ and a price $p\in \mathbb{R}_+^{\Omega}$, its \textbf{demand correspondence} is defined as
+    \begin{equation}
+        D(p)=\{S\subset \Omega|u(S,p)\ge u(T,p)\textrm{ for any }T\subset\Omega\}.
+    \end{equation}
+\end{definition}
+\begin{definition}
+    A valuation function $f:2^{\Omega}\to \mathbb{R}$ satisfies the \textbf{gross substitute} condition if for any two price vectors $p,q\in \mathbb{R}_+^{\Omega}$ with $p\le q$, and any $S\in D(p)$, there exists $T\in D(q)$ such that $T\supset\{\omega\in\Omega|p_{\omega}=q_{\omega}\}$.
+\end{definition}
+\begin{example}
+    A valuation function $f:2^{\Omega}\to \mathbb{R}$ is a \textbf{unit demand valuation} if $f(\emptyset)=0$ and for any nonempty $S\subset\Omega$,
+    \begin{equation}
+        f(S)=\max_{\omega\in S}f(\omega),
+    \end{equation}
+    where we use $f(\omega)$ to denote $f(\{\omega\})$ for simplicity.
+
+    One can verify that a unit demand valuation satisfies the gross substitute condition.
+\end{example}
+\begin{example}
+    A valuation function $f:2^{\Omega}\to \mathbb{R}$ is \textbf{additive} if for any $S\subset\Omega$,
+    \begin{equation}
+        f(S)=\sum_{\omega\in S}^{}f(\omega),
+    \end{equation}
+    where we use $f(\omega)$ to denote $f(\{\omega\})$ for simplicity.
+
+    One can verify that an additive valuation satisfies the gross substitute condition.
+\end{example}
+\begin{lemma}[\cite{GS99} Lemma 5]
+    Given a valuation function $f:2^{\Omega}\to \mathbb{R}$, if it is monotone and satisfies the gross substitute condition, then $f$ is submodular.
+\end{lemma}
+
+\bibliography{Notes_on_Computational_Economics}
+\bibliographystyle{plainnat}
+
+\end{document}

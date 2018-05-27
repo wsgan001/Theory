@@ -1,0 +1,71 @@
+Slide 1:
+I did my undergrad at SJTU in China. During my junior year, I worked with Prof. Xiaotie Deng on AGT and OA. 
+Then during the first semester of my senior year, I went to HKU, and worked with Prof. Zhiyi Huang on online algorithms. We considered some online linear programming problem, and it was my first exposition to optimization.
+Then I came to UIUC, and during my first year I worked with Prof. Ruta Mehta. Ruta, Matus and I worked together on an economics-based optimization problem. In this project, I learned some convex optimization methods and applied them to this specific economic problem. I will talk more about this project later.
+Last semester, I did an independent study with Matus, and decided to switch to him. The reason is that machine learning is becoming more and more powerful nowadays, and thus I want to understand more why machine learning works so well, if it has some limit, and how to further improve it within its limit. And also I am more interested in the math used in machine learning, those analysis stuff.
+
+Slide 2:
+Next I will talk about my past research. My past research is basically focused on optimization, and specifically, the application of convex optimization methods to different problems. Here I will talk about two projects, one is an economics problem, maximizing social welfare from revealed preference by optimizing the dual. The other is a machine learning problem, loss and parameter convergence of logistic regression. I will explain the meaning of terms like revealed preference later. The second paper is submitted to COLT, and the first paper is on arxiv but we still haven't submitted it. We planned to submit it to EC, but the EC deadline is just one day before COLT deadline, and we didn't have enough time. We will submit the first paper later.
+
+Slide 3:
+Let me first talk about my work with Ruta and Matus. In economics, it is assumed that there are many participants, or agents, in a market. Agents are self-interested, meaning that each of them has his or her own preference. When agents interact with each other, their interests might conflict. A classical example is the election, someone likes this candidate, someone likes that candidate, but who should eventually be elected? And more general, what should we do when participants of some activity like election have different preferences? 
+
+Actually this question is still vague, so let me breaks it down into three parts. First of all, what should we aim at? For the election example, we know the answer given by history is voting. If there are just two candidates, then who gets more votes, who will be elected. More generally and formally speaking, we first quantify each agent's happiness for different outcomes. For each outcome, we add up agents' happiness and call it the social welfare of this outcome. Then we just try to find an outcome which maximizes the social welfare. Therefore this is indeed an optimization problem by nature.
+
+The next questions is what do we know. We assume that each agent has a quantified happiness for each outcome, for example, how much he likes candidate A, how much he likes candidate B, etc. However, we are not going to know those exact value, what we can know is just whether he votes for A or not. In contrast to those true happiness or preference, those behaviors of agents that we can observe are called revealed preferences. 
+
+However, many classical work in this area actually assume that the real preferences are known, which is of course not true in practice. Therefore the challenge is to maximize social welfare only with knowledge of revealed preferences.
+
+Slide 4:
+Here is the formal definition of our problem. We assume there are n kinds of divisible goods in the market. This is a standard assumption in economics, even though it looks impractical. I think the justification for this divisibility of goods is that if a market a large enough, the number of each goods is large enough, then we can kind of view goods as divisible. 
+
+There is one consumer, with a concave valuation function, giving his quantified happiness when given a specific bundle of goods. Here concavity is a standard economic assumption. We assume there is 1 consumer just for simplicity, our results can be generalized to multi-consumer case. 
+
+There is also one producer, who has a convex cost function, giving the cost of producing a certain bundle of goods. As before, convexity is standard. It is not straightforward whether our result can be extended to multi-producer case; the problem might be completely different.
+
+The above kind of describes agents in the market and their preferences. Next we define the set of outcomes.
+
+{}
+
+{}
+
+Slide 5:
+
+Slide 6:
+
+Slide 7:
+Next I will describe our work on convergence results of gradient descent on logistic regression. Let me first give the model. Support we have m empirical data points.
+
+Since we only consider convex loss here, this optimization problem will also be convex, which means those classical convex optimization methods like gradient descent should work here. So what's the problem? The problem is, there might be no finite optimum solution. For example, 1 data 1 dim case...
+
+Slide 8:
+By contrast, in convex optimization, it is often assumed that an optimum solution exists. Especially, in smooth optimization, which means the second derivative of the objective function is bounded, it is always assumed that an optimum solution exists. Here of course no optimum solution exists, but if we want better convergence rate, we still need to use the smooth condition. So this is the challenge.
+
+Slide 9:
+Let's start with the linearly separable case, which means there exists a linear predictor which perfectly classifies the data points. Here is a graph...
+
+We can also define the linear predictor with the max margin on the data set. We normalize it so that it has norm 1.
+
+We will show two convergence results of gradient descent: First the loss converges to 0, second the gradient descent iterate w_t converges to this max margin direction.
+
+Slide 10:
+
+Slide 11:
+One corollary of the previous theorem is that w_t goes to infinity. The next result shows that as w_t goes to infinity, is converges in direction to bar u, the max margin predictor.
+
+Slide 12:
+
+Slide 13:
+
+Slide 14:
+
+Slide 15:
+
+Slide 16:
+Now I will proceed to this generalization paper. First I will formalize the generalization error.
+
+Slide 17:
+One tool to bound the uniform deviation is Rademacher complexity.
+
+
+

@@ -1,0 +1,190 @@
+\documentclass{article}
+\usepackage[margin=1.25in]{geometry}
+\usepackage[round,comma]{natbib}
+\usepackage{amsmath}
+\usepackage{amssymb,graphicx,dsfont}
+
+%hoping the following suffices to give me proper \qedhere placement..
+%http://tex.stackexchange.com/questions/2274/problem-with-qedhere
+\usepackage{amsthm}
+%%ntheorem gets mad at being combined with natbib?  as in, things break as soon
+%% as I make a citation?  it must at the core be some complaint with thmtools, I guess..
+%% for now just avoiding ntheorem..
+%\usepackage[amsmath,amsthm,thmmarks]{ntheorem}
+%thmtools documentation says some things break when ntheorem is used.. hmm
+\usepackage{thmtools}
+\usepackage{subfig} %must be after thmtools..
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{mathrsfs}
+\usepackage{wrapfig}
+\usepackage{mathtools}
+\usepackage{nicefrac}
+
+%%%% stolen from djhsu
+%
+\def\ddefloop#1{\ifx\ddefloop#1\else\ddef{#1}\expandafter\ddefloop\fi}
+% \bA, \bB, ...
+\def\ddef#1{\expandafter\def\csname b#1\endcsname{\ensuremath{\mathbf{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+% \bbA, \bbB, ...
+\def\ddef#1{\expandafter\def\csname bb#1\endcsname{\ensuremath{\mathbb{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+% \cA, \cB, ...
+\def\ddef#1{\expandafter\def\csname c#1\endcsname{\ensuremath{\mathcal{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+% \vA, \vB, ..., \va, \vb, ...
+\def\ddef#1{\expandafter\def\csname v#1\endcsname{\ensuremath{\boldsymbol{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\ddefloop
+% \valpha, \vbeta, ...,  \vGamma, \vDelta, ...,
+\def\ddef#1{\expandafter\def\csname
+  v#1\endcsname{\ensuremath{\boldsymbol{\csname #1\endcsname}}}}
+\ddefloop
+    {alpha}{beta}{gamma}{delta}{epsilon}{varepsilon}{zeta}{eta}{theta}{vartheta}{iota}{kappa}{lambda}{mu}{nu}{xi}{pi}{varpi}{rho}{varrho}{sigma}{varsigma}{tau}{upsilon}{phi}{varphi}{chi}{psi}{omega}{Gamma}{Delta}{Theta}{Lambda}{Xi}{Pi}{Sigma}{varSigma}{Upsilon}{Phi}{Psi}{Omega}\ddefloop
+
+
+%\def\1{\mathds 1}
+\def\1{\mathbf 1}
+\def\R{\mathbb R}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+
+\def\epi{\textup{epi}}
+\def\dom{\textup{dom}}
+\newcommand{\ip}[2]{\left\langle #1, #2 \right \rangle}
+\newcommand{\argmax}{\operatornamewithlimits{arg\,max}}
+\newcommand{\argmin}{\operatornamewithlimits{arg\,min}}
+
+
+\title{Neural net separations}
+\author{}
+\date{}
+
+\begin{document}
+
+\section{Convexity}
+
+\begin{itemize}
+  \item
+    Let $f : \R^d\to\R\cup \{\infty\}$ be convex, and define its \emph{effective domain}
+    $\dom(f) := \{x \in\R^d : f(x) < \infty\}$.
+    $f$ is \emph{closed} when $\epi(f) := \{ (x,y) : y\geq f(x)\}$
+    is a closed set.
+    For every $x\in\dom(f)$, define the \emph{subdifferential}
+    \[
+      \partial f(x) = \{s\in\R^d : \forall x'\in\R^d\centerdot f(x') \geq f(x) + \ip{s}{x'-x}\}.
+    \]
+
+  \item
+    If $f$ is convex, the \emph{fenchel conjugate} $f^*(s) := \sup_x \ip{x}{s} - f(x)$ is closed convex.
+    If $f$ is closed convex, then $f=f^{**}$, and
+    every pair $(x,s) \in \R^d\times\R^d$ satisfy
+    \begin{align*}
+    s \in \partial f(x)
+      &\iff
+      x \in \partial f^*(s)
+     %\\
+     %&
+      \iff
+      x \in \argmax_{x'} ( \ip{s}{x'} - f(x') )
+     %\\
+     %&
+      \iff
+      s \in \argmax_{s'} ( \ip{s}{x} - f^*(s') ).
+    \end{align*}
+    See for instance
+    \citep[Theorem 23.5]{ROC}
+    or \citep[Corollary E.1.4.4]{HULL}
+
+  \item
+    Let $f :R^d \to \R$ be closed convex and $S$ be closed convex.  \emph{Subgradient descent} consists
+    of the following steps.
+    \begin{enumerate}
+      \item
+        Let $x_0 \in S$ be given.
+      \item
+        for $i\in \{1,\ldots,t\}$:
+
+        \begin{enumerate}
+          \item
+            Choose $s_i \in \partial f(x_{i-1})$.
+          \item
+            Set $w_i := \Pi_S(w_{i-1} - \eta_i s_i)$, where $\eta_i$ is a step size and
+            $\Pi_S$ denotes orthogonal projection onto $S$.
+        \end{enumerate}
+    \end{enumerate}
+    The standard guarantees are as follows \citep[Chapter 3]{bubeck}.
+
+    \begin{itemize}
+      \item
+        If $S$ is compact with $\sup_{x,y\in S} \|x-y\|_2 \leq R$ and $f$ is $L$-lipschitz over $S$,
+        then the choice $\eta_i := \eta := R / (L\sqrt{t})$ implies
+        the average iterate $w = (t+1)^{-1} \sum_i w_i$ satisfies
+        $f(w) - \inf_w f(w) \leq RL/\sqrt{t+1}$.
+
+      \item
+        If $f$ is $\beta$-smooth,
+        then $\eta_i := \eta := 1/\beta$
+        gives $f(w_t) - \inf_w f(w) = \cO(1/t)$ \red{(sorry, being lazy)}.
+    \end{itemize}
+
+    \red{(SGD can be re-analyzed with approximate subgradients, though I'm too lazy to put this here.)}
+
+\end{itemize}
+
+
+\section{Subgradient descent with $f^*$ oracle}
+
+\begin{itemize}
+  \item
+    Suppose we would like to perform subgradient descent, but can not evaluate $\partial f$ or $f$,
+    but rather only $f^*(s) = \sup_{x}(\ip{s}{x} - f(x))$.
+    If $f$ is closed convex, then $f^{**} = f$, thus
+    (by the above)
+    \begin{align*}
+      s \in \partial f(x)
+      &\iff
+      s \in \partial f^{**}(x)
+      \\
+      &\iff
+      s \in \argmax_{s'} ( \ip{s'}{x} - f^*(s') )
+      \\
+      &\iff
+      s \in -\argmin_{s'} ( f^*(s') - \ip{s'}{x} )
+      \\
+      &\iff
+      s \in -\argmin_{s'} ( \sup_{x'}( \ip{s'}{x'} - f(x') ) - \ip{s'}{x} )
+      \\
+      &\iff
+      s \in - \argmin_{s'} \sup_{x'} ( \ip{s'}{x'-x} - f(x') ).
+    \end{align*}
+    Thus to minimize $f$ with such an oracle, one can run subgradient descent on $f$,
+    but replace computation of $s_i\in\partial f(x_{i-1})$ with a nested sgd on the convex objective function
+    \[
+      s' \mapsto \sup_{x'}(\ip{s'}{x'-x_{i-1}} - f(x'))
+      = \ip{s'}{x_{i-1}} + f^*(s').
+    \]
+
+  \item
+    Other optimization methods which may be relevant:
+    Frank-Wolfe \citep[Section 3.3]{bubeck},
+    Nesterov's dual averaging \citep[Section 4.4]{bubeck}.
+
+  \item
+    If there are awkward constraints on $s'$ and $x'$ above, there is some hope
+    (since all the iffs can handle constraint sets by baking them into $\dom(f)$
+    and since subgradient descent can handle constraints), but perhaps in some settings
+    it's not so easy.
+    \red{(sorry, imprecise.)}
+
+\end{itemize}
+
+
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{plainnat}
+%following triggers an error when used with empty citation list and ntheorem loaded..
+\bibliography{sgd}
+\appendix
+
+\end{document}

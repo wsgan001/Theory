@@ -1,0 +1,283 @@
+\documentclass[openany]{book}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{hyperref}
+
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}{Lemma}[chapter]
+\newtheorem{corollary}{Corollary}[chapter]
+\newtheorem{example}{Example}[chapter]
+% Global consistency is subject to local consistency.
+
+% When giving labels for above environments or algorithm environments, use the initials.
+% For equations, do use the initial "e".
+% When labeling the same object more than once, include the chapter name.
+% Using camel case.
+
+% Do not using $rac$ in a super- or subscript with inline style. Otherwise do use it.
+% Use $\dfrac$ in arrays. Use $\frac$ inline.
+% Use $\left\right$ only with fractions. However, if fractions are far away from delimiters
+% , it is also possible to use normal delimiters, based on subjective choice.
+
+\author{Ziwei Ji}
+\title{Notes on Communication Complexity}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter*{Preface}
+This is Ziwei's notes on communication complexity. Materials comes from \cite{AB09} and \cite{R15}.
+
+\part{Theory}
+
+\chapter{Communication Complexity}
+\section{Basic definition}
+\begin{definition}
+    Assume there are two parties, Alice and Bob. Alice has an input $x\in\{0,1\}^n$ while Bob has an input $y\in\{0,1\}^n$. Neither one knows the other's input, and they want to compute a function $f(x,y)$ via communication, where $f:\{0,1\}^{2n}\to\{0,1\}$. The \textbf{(two-party) communication complexity} is defined as the minimum number of bits required to be sent between Alice and Bob, so that at least one of them can compute $f(x,y)$, denoted by $C(f)$.
+
+    If message is only allowed to be sent from Alice to Bob, the minimum number of bits required is called \textbf{one-way (two-party) communication complexity}, denoted by $C_1(f)$.
+\end{definition}
+
+\begin{definition}
+    In \textbf{randomized communication complexity}, the setting is the same except that public-coin randomized protocals with success probability at least $\frac{2}{3}$ are considered. The randomized communication complexity is defined as the worst-case number of bits needed, w.r.t. all possible inputs and random bits. Denote it by $R(f)$, $R_1(f)$, etc.
+\end{definition}
+\paragraph{Remark}
+In the above definition, we consider public-coin protocols. Although private-coin protocols might be more natural, lower bounds for public-coin protocols also apply to private-coin protocols, and we can make use of Yao's principle with the public-coin model. Also, although lower bounds for private-coin protocols can be higher, they are not too far away from lower bounds for public-coin protocols dut to Newman's theorem, which says that if there is a public-coin protocol with two-sided error $\frac{1}{3}$ and communication cost $c$, then there is a private-coin protocol with two-sided error $\frac{1}{3}$ and communication cost $O(c+\log n)$.
+
+We also consider two-sided error, and our lower bounds automatically apply to protocols with one-sided error.
+
+Finally, we may also consider the expected number of bits needed. However, it may be more convenient to work with worst-case number of bits; in fact it is also safe to do so, in the sense that we will only lose a constant factor by invoking Markov inequality. \\
+
+Trivially, $R(f)\le C(f),R_1(f)\le C_1(f)\le n$. Below we give some concrete examples.
+\begin{example}[\textsc{Parity}]
+    In \textsc{Parity}, $f(x,y)=1$ if there is an odd number of $1$'s in all bits of $x$ and $y$, and $f(x,y)=0$ otherwise.
+
+    It is clear $R(f)=C(f)=R_1(f)=C_1(f)=1$.
+\end{example}
+\begin{example}[\textsc{Disjointness}]
+    In \textsc{Disjointness}, $f(x,y)=1$ if $x$ and $y$ do not intersect seen as sets.
+
+    One can show by pigeonhole principle that $C_1(f)=n$. We will later show that $C(f)=n$, $R_1(f)=\Omega(n)$ and $R(f)=\Omega(n)$.
+\end{example}
+\begin{example}[\textsc{Index}]
+    In \textsc{Index}, Alice gets a string $x\in\{0,1\}^n$ while Bob gets an index $i\in[n]$, which can be encoded using $\lceil\log(n+1)\rceil$ bits. The joint function is $f(x,i)=x_i$.
+
+    One can show by pigeonhole principle that $C_1(f)=n$. Below we will show that $R_1(f)=\Omega(n)$. Notice that $C(f)=O(\log n)$, thus \textsc{Index} is an example for which $C(f)<R_1(f)$.
+\end{example}
+\begin{example}
+    In \textsc{Equality}, $f(x,y)=1$ if and only if $x=y$.
+
+    One can show by pigeonhole principle that $C_1(f)=n$. We will later show that $C(f)=n$. One can give an explicit protocol showing that $R_1(f)=O(1)$, and thus this is an example for which $R_1(f)<C(f)$.
+\end{example}
+
+\section{Techniques for Deterministic Protocols}
+To argue about one-way deterministic communication complexity, one usually make use of the pigeonhole principle. To argue about general deterministic communication complexity, there are many useful techniques.
+
+\subsection{The Tiling Method and the Fooling Set Method}
+Let $X=Y=\{0,1\}^n$, and $X\times Y$ denote the set of possible inputs. We can build a $2^n$-by-$2^n$ matrix $M(f)$, whose entry on the $i$-th row and $j$-th column is the output on corresponding inputs. Each entry will also correspond to a sequence of bits exchanged in the protocol. An important observation is that for each possible sequence of bits, the input generating this sequence is a subrectangle $A\times B\subset X\subset Y$\footnote{Note that since the protocol is deterministic, given a sequence there is a unique way to partition it into sequences from different rounds.}, and entries $A\times B$ should be all $0$ or or $1$, if both Alice and Bob know the results. Suppose $\chi(f)$ is the smallest number of monochromatic subrectangles into which $M(f)$ can be divided, then:
+\begin{theorem}[\cite{AB09} Theorem 13.8]
+    $\chi(f)\le C(f)+1\footnote{Here minusing $1$ accounts for the difference between at least one knows the answer or both know the answer.}\le16\log^2\chi(f)$.
+\end{theorem}
+
+One special case is the following:
+\begin{definition}
+    A \textbf{fooling set} for a function $f$ is a set $F\subset X\times Y$ such that $f$ is constant on $F$ and for any two distinct $(x_1,y_1),(x_2,y_2)\in F$, either $(x_1,y_2)$ or $(x_2,y_1)$ is of the opposite value.
+\end{definition}
+\begin{theorem}
+    Suppose $F_1$ and $F_2$ are two fooling sets of different values, then at least $\log_2(|F_1|+|F_2|)-1$ is required.
+\end{theorem}
+\begin{theorem}
+    $C(f_{\textsc{Equality}})=n$.
+\end{theorem}
+\begin{theorem}
+    $C(f_{\textsc{Disjointness}})=n$.
+\end{theorem}
+
+\subsection{The Rank Method}
+\begin{lemma}
+    The rank of an $n$-by-$n$ matrix $M$ over a field $\mathbb{F}$ is the minimum of $l$ such that $M$ can be expressed as the sum of $l$ matrices of rank at most $1$.
+\end{lemma}
+\begin{theorem}
+    $\chi(f)\ge \mathrm{rank}(M(f))$.
+\end{theorem}
+
+\section{Techniques for Randomized Protocols}
+It can be hard to argue about randomized communication complexity directly. However, one can make a connection to \textbf{distributional complexity}. To build this technique, let us first look at Yao's principle.
+\paragraph{Detour: Yao's Principle}
+Consider an abstract problem. Assume there are $n$ deterministic algorithms for it, and $m$ possible inputs. Note that public-coin randomized algorithms can be seen as a distribution over the deterministic algorithms.
+
+First, we have the following inequality:
+\begin{equation}\label{minimax}
+    \max_{1\le i\le m}\min_{1\le j\le n}A_{ij}\le\min_{1\le j\le n}\max_{1\le i\le m}A_{ij}.
+\end{equation}
+or more generally
+\begin{equation}
+    \forall1\le\tilde{i}\le m,\forall1\le\tilde{j}\le n,\min_{1\le j\le n}A_{\tilde{i}j}\le\max_{1\le i\le m}A_{i\tilde{j}}.
+\end{equation}
+We can interpret (\ref{minimax}) in this way: The cost of the best deterministic algorithm on its worst input is larger than or equal to the cost of the worst input on its best deterministic algorithm.
+
+Furthermore, we have the following inequality, which is known as Yao's principle:
+\begin{equation}\label{YaoPrinciple}
+    \max_{p\in\Delta_m}\min_{1\le j\le n}(p^{\mathrm{T}}A)_j\le\min_{q\in\Delta_n}\max_{1\le i\le m}(Aq)_i.
+\end{equation}
+or more generally
+\begin{equation}
+    \forall \tilde{p}\in\Delta_m,\forall \tilde{q}\in\Delta_n,\min_{1\le j\le n}(\tilde{p}^{\mathrm{T}}A)_j\le \max_{1\le i\le m}(A\tilde{q})_i.
+\end{equation}
+Similarly, we can interpret (\ref{YaoPrinciple}) in this way: The cost of the best randomized algorithm on its worst input is larger than or equal to the worst input distribution on its best deterministic algorithm. In fact, by Slater's condition, ineqaulity (\ref{YaoPrinciple}) holds with equality. \\
+
+Now let us come back to communication complexity.
+\begin{lemma}
+    Let $\tilde{p}$ be a distribution on the input space $\{0,1\}^{2n}$. Suppose every deterministic (one-way) protocol $P$ with
+    \begin{equation*}
+        \mathrm{Pr}_{(x,y)\sim \tilde{p}}[P\textrm{ is wrong on }(x,y)]\le\epsilon
+    \end{equation*}
+    has communication cost at least $k$. Then every public-coin randomized one-way protocal $R$ with two-sided error at most $\epsilon$ on every input has communication cost at least $k$ (in the worst-case sense).
+\end{lemma}
+\begin{proof}
+    Here we have two matrices $A$ and $B$, where $A_{ij}$ is the communication cost of deterministic protocol $j$ on input $i$ and $B_{ij}$ indicates whether deterministic protocol $j$ is wrong on input $i$. Suppose there are in total $s=2^{2n}$ inputs and $t$ deterministic protocols.
+
+    Given a public-coin randomized one-way protocal $R$, we denote it by $\tilde{q}$ over the deterministic protocols. W.l.o.g., we can assume the support of $\tilde{q}$ is $[t]$, otherwise just ignore the deterministic protocols with zero probability. Its two-sided error vector is then $B\tilde{q}$. If $R$ has two-sided error at most $\epsilon$ on every input, then we have
+    \begin{equation}
+        \min_{1\le j\le t}(\tilde{p}^{\mathrm{T}}B)_j\le \max_{1\le i\le s}(B\tilde{q})_i\le\epsilon.
+    \end{equation}
+    In other words, there exists a deterministic protocol $\tilde{j}$ such that its failure probability is no more than $\epsilon$. Then by the condition, $\tilde{j}$ has communication cost at least $k$ for some input $\tilde{i}$, and thus in the worst-case communication sense,
+    \begin{equation}
+        k\le A_{\tilde{i}\tilde{j}}\le\max_{1\le i\le s}\max_{1\le j\le t}A_{ij}.
+    \end{equation}
+\end{proof}
+
+\begin{theorem}\label{randOneWayInd}
+    $R_1(f_{\textsc{Index}})=\Omega(n)$.
+\end{theorem}
+\begin{proof}
+    We will show that if we take the uniform distribution over all possible inputs, then for sufficiently small $c$ and sufficiently large $n$, every determinisitc one-way protocol which uses no more than $cn$ bits, will suffer a failure probability no less than $\frac{1}{8}$.
+
+    Given Alice's input $x$, let $z(x)$ denote the message Alice sends to Bob, which captures our algorithm. Given a message $z$, Bob needs to compute one bit for every $i\in[n]$, and thus we define $a(z)\in\{0,1\}^n$ where $a(z)_i$ equals Bob's output given $z$ and $i$.
+
+    Since we take the uniform distribution over the possible inputs, and especially over $i$, we know that for a specific Alice's input $x$, the failure probability is
+    \begin{equation}
+        \mathrm{Pr}[a(z(x))_i\ne x_i]=\frac{d_H(a(z(x)),x)}{n},
+    \end{equation}
+    where $d_H(\cdot,\cdot)$ is the Hamming distance.
+
+    Next we consider the uniform distribution over Alice's inputs. Let $A=\{a(z(x))|x\in\{0,1\}^n\}$ denote the set of possible outputs. We say a string $x$ is "good" if there exists $w\in A$ such that $d_H(x,w)\le \frac{n}{4}$, otherwise we say $x$ is bad. We are done if we can show that at least half of the strings are bad.
+
+    In fact, the number of good strings is
+    \begin{equation}
+        \binom{n}{0}+\binom{n}{1}+\cdots+\binom{n}{\frac{n}{4}}.
+    \end{equation}
+    We can show that the above value is less than $2^{n-1}$ using the inequality $\binom{n}{k}\le(\frac{en}{k})^k$ for $k\ge1$.
+\end{proof}
+\begin{theorem}\label{randOneWayDisj}
+    $R_1(f_{\textsc{Disjointness}})=\Omega(n)$.
+\end{theorem}
+\begin{proof}
+    We can reduce \textsc{Index} to \textsc{Disjointness}. The reduction is in fact very simple: On reeiving an index $i$, Bob just constructs the vector $e^{(i)}$, where $e^{(i)}_i=1$ and $e^{(i)}_j=0$ for any $j\ne i$.
+\end{proof}
+\begin{example}[\textsc{GapHamming}]
+    \textsc{GapHamming}$(c,t)$ is desribed as: If $d_H(x,y)<tn-c\sqrt{n}$, return $0$; if $d_H(x,y)>tn+c\sqrt{n}$, return $1$; otherwise any return is OK.
+\end{example}
+\begin{theorem}\label{randOneWayGapHam}
+    For sufficiently small $c$,  $R_1(f_{\textsc{GapHamming}(c,1/2)})=\Omega(n)$.
+\end{theorem}
+\begin{proof}
+    We will reduce \textsc{Index} to \textsc{GapHamming}. Take an \textsc{Index} instance $(x,i)$, w.l.o.g. assume that $n$ is odd and sufficiently large.
+
+    Alice and Bob will construct inputs to \textsc{GapHamming}, respectively without communication, depending on public coins. To construct the $j$-th bit of the inputs, take $n$ random bits $r_1,\ldots,r_n$. Bob's input bit $b_j$ is just $r_i$. Alice's input bit $a_j$ is $1$ if $d_H(x,r)<\frac{n}{2}$, or is $0$ if $d_H(x,r)>\frac{n}{2}$. (Note that since we assume $n$ is odd, exactly one of the two alternatives will happen.)
+
+    Now the good thing is that $a_j$ and $b_j$ are correlated. In fact, if in the $n-1$ random bits excluding $r_i$, at least $\frac{n+1}{2}$ is $0$ or $1$, then $\mathrm{Pr}[a_j=b_j]=\frac{1}{2}$. Otherwise, $\mathrm{Pr}[a_j=b_j]=x_i$. More exactly, there exists a constant $c'$, such that if $x_i=1$, $\mathrm{Pr}[a_j=b_j]\ge \frac{1}{2}+\frac{c'}{\sqrt{n}}$, while if $x_i=0$, $\mathrm{Pr}[a_j=b_j]\le \frac{1}{2}-\frac{c'}{\sqrt{n}}$.
+
+    Now if we construct $m=qn$ such bits, if $x_i=1$, $\mathbb{E}[d_H(a,b)]\le \frac{m}{2}-\frac{c'm}{\sqrt{n}}$, while if $x_i=1$, $\mathbb{E}[d_H(a,b)]\ge \frac{m}{2}+\frac{c'm}{\sqrt{n}}$. One can show by invoking Chernoff's bound that for sufficiently small $c$ and sufficiently large $q$, if $x_i=1$, $\mathrm{Pr}[d_H(a,b)\le \frac{m}{2}-c\sqrt{m}]\ge \frac{8}{9}$, and if $x_i=0$, $\mathrm{Pr}[d_H(a,b)\ge \frac{m}{2}+c\sqrt{m}]\ge \frac{8}{9}$. Then we can use an algorithm for \textsc{GapHamming} (with failure probability $\frac{1}{3}$) to solve \textsc{Index}, with failure probability at most $\frac{4}{9}$. The size of the input to \textsc{GapHamming} is $m=\Theta(n)$.
+\end{proof}
+
+\begin{theorem}
+    $R(f_{\textsc{Disjointness}})=\Omega(n)$.
+\end{theorem}
+
+\part{Application}
+
+\chapter{Data Streams: Algorithms and Lower Bounds}
+Suppose data stream elements come from a known universe $U=\{1,2,\ldots,n\}$. The input is a stream $x_1,x_2,\ldots,x_m\in U$ arriving one by one. $m$ may or may not be known in advance. Now for each element $j$ in $U$, let $f_j$ denote the number of appearances of $j$ in the stream. Then the $k$-th frequency moment of the stream is defined as
+\begin{equation}\label{freqmoment}
+    F_k=\sum_{j=1}^{n}f_j^k.
+\end{equation}
+
+\section{Estimating $F_2$}
+Below is the clever algorithm to estimate the second frequency moment:
+\begin{enumerate}
+    \item Fix a function $h:U\to\{0,1\}$ which assigns a random bit to every element in the universe $U$. We can start with a completely random hash function, but we will see that we in fact do not need this much randomness.
+    \item Initialize $Z=0$.
+    \item On receiving $x_i$, add $h(x_i)$ to $Z$.
+    \item Output $X=Z^2$ as the estimate of $F_2$.
+\end{enumerate}
+One can show the following property:
+\begin{lemma}\label{2ndMomentMean}
+    $\mathbb{E}_h[X]=F_2$.
+\end{lemma}
+\begin{lemma}\label{2ndMomentVar}
+    $\mathrm{Var}_h[X]\le2F_2^2$.
+\end{lemma}
+The proof for Lemma \ref{2ndMomentMean} and \ref{2ndMomentVar} only requires direct calculation. We can combine those two lemmas to get a high-probability result. First, if we run $s$ estimators in parallel and compute their mean, by Chebyshev's inequality,
+\begin{equation}
+    \mathrm{Pr}[(1-\epsilon)F_2\le\overline{X}\le(1+\epsilon)F_2]\ge1-\frac{2}{s\epsilon^2}.
+\end{equation}
+Let $s=\frac{6}{\epsilon^2}$, the probability that $\overline{X}$ is multiplicative $\epsilon$-far from $F_2$ is no more than $\frac{1}{3}$. Then we run the above algorithms $t$ times, and compute the median of those means, denoted by $Y$. Using Chernoff bounds, we can show that
+\begin{equation}
+    \mathrm{Pr}[(1-\epsilon)F_2\le Y\le(1+\epsilon)F_2]\ge1-2\exp(-\frac{1}{36}t).
+\end{equation}
+In other words, to get a $\delta$ overall failure proabability, we need $t\ge36\ln(\frac{\delta}{2})$. In total, we need $O(\frac{1}{\epsilon^2}\log \frac{1}{\delta})$ executions of the basic estimator.
+
+\paragraph{Remark}
+Note that we cannot apply Chernoff bound directly to $X$, because it may be unbounded.
+
+Another point is the implementation of the random hash function $h$. If we look at the proof of Lemma \ref{2ndMomentMean} and \ref{2ndMomentVar} carefully, we can notice that only pairwise independence is needed in Lemma \ref{2ndMomentMean} and 4-wise independence is needed in Lemma \ref{2ndMomentVar}. Such a hash function exists and can be described in $O(\log n)$ space. The counter $Z$ needs $O(\log m)$ space. So the total space consumption is $O(\frac{1}{\epsilon^2}\log \frac{1}{\delta}(\log n+\log m))$.
+
+\section{Estimating $F_0$}
+Roughly speaking, to estimate $F_0$, we first randomly permute the elements in $U$ using $h$, and record the minimum $h(x)$ for $x$ observed. One can show that we need $O(\frac{1}{\epsilon^2}\log \frac{1}{\delta}\log n)$ space.
+
+\section{Lower Bounds}
+Now as to the first possible improvement discussed at the beginning of this section, we have
+\begin{theorem}
+    For any randomized algorithm which on input a stream from a size-$n$ universe outputs $F_{\infty}$ within a $(1\pm0.2)$ factor with probability at least $\frac{2}{3}$, $\Omega(n)$ space is required.
+\end{theorem}
+\begin{proof}
+    Suppose we have an algorithm $A$ with the above approximation and probability guarantee using $s(n)$ space. Then given a \textsc{Disjointness} instance, we put the subset of Alice into the stream and invoke $A$, send the result (or more exactly, the information recorded by $A$ in the end) to Bob, and invoke $A$ again on this message and Bob's subset. If the two subsets are disjoint, then the output will be no more than $1.2$ with probability $\frac{2}{3}$, otherwise the output will be no less than $1.6$ with probability $\frac{2}{3}$. Thus we get a probabilistic algorithm for \textsc{Disjointness}, and $s(n)$, or the length of message sent to Bob, is $\Omega(n)$ by Theorem \ref{randOneWayDisj}.
+\end{proof}
+
+\paragraph{Remark}
+It is further argued that for a stream of length $m$, $\min\{m,n\}$ space is required. I am not sure about the proof. \\
+
+Regarding the necessity of randomization and approximation, we have
+\begin{theorem}
+    For any $k\ne1$, every randomized algorithm which computes $F_k$ exactly with probability at least $\frac{2}{3}$ uses $\Omega(\min\{m,n\})$ space.
+\end{theorem}
+\begin{proof}
+    Think the moment as an operation, it is associative if and only if $k=1$ or two streams do not have common elements.
+\end{proof}
+
+Regarding the dependency on $\frac{1}{\epsilon}$, we have
+\begin{theorem}
+    There is a constant $c>0$ such that there is no sub-linear randomized algorithm which computes $F_0$ within a $1\pm \frac{c}{\sqrt{n}}$ factor and with a failure probability at most $\frac{2}{3}$.
+\end{theorem}
+\begin{proof}
+    We can reduce \textsc{GapHamming}$(c,\frac{1}{2})$ to $F_0$ estimate.
+\end{proof}
+In fact if the padding technique is used in the above reduction, we can prove for $\epsilon=\Omega(\frac{1}{\sqrt{n}})$, $\Omega(\frac{1}{\epsilon^2})$ space is needed to compute $F_0$. For $n$ and $\epsilon\ge \frac{1}{\sqrt{n}}$, we reduce from \textsc{GapHamming} of size $\Theta(\frac{1}{\epsilon^2})$ to $F_0$ estimate by padding $n-m$ $0$'s.
+
+\chapter{Property Testing}
+
+
+\bibliography{Notes_on_Communication_Complexity}
+\bibliographystyle{plain}
+
+\end{document}
