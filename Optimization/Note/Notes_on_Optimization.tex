@@ -30,16 +30,26 @@
 \newtheorem*{question}{Question}
 \newtheorem*{trick}{Trick}
 
+% Each time there is a proposed change in notation style, do not try to
+% update the whole file. It is enough to make the newly added contents
+% comply with the new style, and update any old contents when tounching it.
+
 % Global consistency is subject to local consistency.
 
 % When giving labels for above environments or algorithm environments,
-% use def:, thm:, lemma:, cor:, prop:, e.g.:, asm:, alg:, etc., as the prefix.
+% use def:, thm:, lem:, cor:, prop:, e.g.:, asm:, alg:, etc., as the prefix.
 % When labeling the same object more than once, use \tag{}.
 % Use camel case.
 
 % Try to avoid sizes that are smaller than normal by at least two levels.
-% Use $\left\right$ only with fractions. However, if fractions are far away from
-% delimiters, it is also possible to use normal delimiters.
+% Use commath (with local adjustments when necessary).
+
+% Use () and ordered indexes for sequences, {} and unordered indexes for sets.
+% (Ideally, convergence as a collective property should be a property of
+% the sequence, but by convention () is often not used. In this note,
+% to keep consistency, () will be used only with indexes.
+% When discussing common properties shared among elements, 's is recommended
+% but not necessary.
 
 \author{Ziwei Ji}
 \title{Notes on Optimization}
@@ -155,7 +165,7 @@ For points $x_1,\ldots,x_k$, $\sum_{i=1}^k\lambda_ix_i$ is called a \textbf{(con
 The \textbf{closed (convex) conic hull} of $C$ is $\mathbf{cl}\,\mathbf{cone}\,C$, denoted by $\overline{\mathbf{cone}}\,C$.
 
 \paragraph{Tangent cones and normal cones}
-Suppose $C\subset \mathbb{R}^n$ is non-empty convex, and $x\in C$. We say that $d$ is a direction tangent to $C$ at $x$ if there exists a sequence $(x_k)\in C$ and a sequence $(t_k)\in \mathbb{R}_{++}$ such that as $k\to+\infty$,
+Suppose $C\subset \mathbb{R}^n$ is non-empty convex, and $x\in C$. We say that $d$ is a direction tangent to $C$ at $x$ if there exists a sequence $x_k\in C$ and a sequence $t_k\in \mathbb{R}_{++}$ such that as $k\to+\infty$,
 \begin{equation}
     x_k\to x,\quad t_k\to0,\quad \frac{x_k-x}{t_k}\to d.
 \end{equation}
@@ -421,7 +431,7 @@ Note that the converse is not true; see \cite{HL12} Fig. A.2.3.1.
     \begin{equation*}
         C_{\infty}=C_{\infty}(x)=\{d\in \mathbb{R}^n|x+\lambda d\in C\textrm{ for all }\lambda>0\}.
     \end{equation*}
-    $d\in C_{\infty}$ if and only if $d$ is the limit of some sequence $(\lambda_ix_i)$ where $\lambda_i\to0$ and $x_i\in C$.
+    $d\in C_{\infty}$ if and only if $d$ is the limit of some sequence $\lambda_ix_i$ where $\lambda_i\to0$ and $x_i\in C$.
 \end{theorem}
 \begin{proof}
     Suppose $\lambda_i<1$. Then for any $x\in C$, $(1-\lambda_i)x+\lambda_ix_i\in C$, whose limit is $x+d$. Since $C$ is closed, $x+d\in C$, and thus $C+\{d\}\subset C$. As a result, $d\in C_{\infty}$.
@@ -660,7 +670,7 @@ Next we discuss proper convex functions.
 
     Assume $\mathbf{int}\,C\ne\emptyset$. Apply the supporting hyperplane theorem to $\mathbf{epi}\,f$ and $(x,f(x))$, we know that there exists $(a,b)\ne0$ such that $\langle a,x\rangle+bf(x)\le \langle a,y\rangle+bt$ for all $(y,t)\in \mathbf{epi}\,f$. Let $y=x$ and $t=f(x)+1$, we know that $b\ge0$. Since $x\in \mathbf{int}\,C$, we know that $b\ne0$, otherwise $a\ne0$ and $y=x-\epsilon a$ such that $y\in C$ will give us a contradiction.
 
-    Finally, if $\partial f(x)$ is unbounded, then there exists a sequence $\{g_k\}$ such that $g_k\in\partial f(x)$ for all $k$ but $\|g_k\|\to\infty$. By Theorem \ref{convCont}, we know that $f$ is upper-bounded in $B(x,\epsilon)$ for some $\epsilon$. Construct another sequence $\{y_k\}$ such that $y_k=x+\epsilon \frac{1}{\|g_k\|}g_k$. Then $y_k\in B(x,\epsilon)$ for all $k$, but $f(y_k)-f(x)\ge\epsilon\|g_k\|\to\infty$, which is a contradiction.
+    Finally, if $\partial f(x)$ is unbounded, then there exists a sequence $g_k$ such that $g_k\in\partial f(x)$ for all $k$ but $\|g_k\|\to\infty$. By Theorem \ref{convCont}, we know that $f$ is upper-bounded in $B(x,\epsilon)$ for some $\epsilon$. Construct another sequence $y_k$ such that $y_k=x+\epsilon \frac{1}{\|g_k\|}g_k$. Then $y_k\in B(x,\epsilon)$ for all $k$, but $f(y_k)-f(x)\ge\epsilon\|g_k\|\to\infty$, which is a contradiction.
 
     Now suppose $f$ is $\alpha$-strongly convex. Given $x,y\in C$, assume $\partial f(x)\ne\emptyset$. We know that for all $\lambda\in[0,1]$, we have $\lambda f(x)+(1-\lambda)f(y)\ge f(\lambda x+(1-\lambda)y)+\frac{\alpha}{2}\lambda(1-\lambda)\|y-x\|^2$. Equivalently, we have for any $\lambda\in[0,1)$,
     \begin{equation*}
@@ -1175,7 +1185,7 @@ One application is that suppose $f$ is twice differentiable, then $f$ is supermo
 \end{comment}
 
 \chapter{Optimization and Convex Optimization Problems}
-\section{High-Level Picture}
+\section{The High-Level Picture}
 In an optimization problem, basically we want to optimize some function $f$, and achieve some other good properties when possible. Here are some possible parameters of the model:
 \begin{itemize}
     \item The optimization variable may be continuous or discrete. In this note we will mainly consider continuous optimization variables.
@@ -1234,18 +1244,49 @@ In economics, and specifically monotone comparative statics, the following param
 Here $t\in T$ is a parameter. Monotone comparative statics are interested especially in cases when the optimal solution is a monotone function of $t$.
 \end{comment}
 
-\subsection{Stochastic Optimization Problems}
-Sometimes there will be some uncertainty in the problem. For simplicity, we formalize the \textbf{stochastic optimization} problem as
-\begin{equation}\label{stochOptProb}
-    \min_{x\in C}f(x)=\mathbb{E}_{\xi}[F(x,\xi)].
-\end{equation}
-Here $\xi$ is a random variable (vector).
+\subsection{Optimization in Face of Uncertainty}
+We consider the following general model of optimization in uncertainty. We are given a function $F(x,\xi)$; at step $t$, after we choose $x^{(t)}$, an $\xi^{(t)}$ is revealed to us by the environment, and a loss of $F(x^{(t)},\xi^{(t)})$ is incurred. Different assumptions can be made on the eivonment:
 
-In practice, such as \textbf{empirical risk minimization}, people will first sample $\xi_1,\xi_2,\ldots,\xi_m$, and do the following optimization (denote $F(x,\xi_i)$ by $f_i(x)$):
+\paragraph{Adversarial Environments}
+To model the worst case, we make no assumption on $\xi^{(t)}$; in other words, it can be adversarial. The optimization goal in this case is to minimize the \textbf{regret}:
+\begin{equation}\label{eq:regret}
+    \sum_{t=1}^{T}F(x^{(t)},\xi^{(t)})-\min_{x\in C}\sum_{t=1}^{T}F(x,\xi^{(t)}).
+\end{equation}
+This model is often called the \textbf{online model}.
+
+\paragraph{(Stationary) Stochastic Environments}
+Adversarial environments may be too pessimistic; we may instead assume that $\xi^{(t)}$'s are sampled i.i.d. from some (unknown) distribution. Let $f(x)=\mathbb{E}_{\xi}\sbr{F(x,\xi)}$. Two common objectives are (expectation is taken w.r.t. $\xi^{(1)},\ldots,\xi^{(t)}$) the \textbf{expected regret}
+\begin{equation}\label{eq:expectRegret}
+    \begin{split}
+        \mathbb{E}\sbr{\sum_{t=1}^{T}F(x^{(t)},\xi^{(t)})-\min_{x\in C}\sum_{t=1}^{T}F(x,\xi^{(t)})} & = \mathbb{E}\sbr{\sum_{t=1}^{T}f(x^{(t)})-\min_{x\in C}\sum_{t=1}^{T}F(x,\xi^{(t)})} \\
+         & =\mathbb{E}\sbr{\sum_{t=1}^{T}f(x^{(t)})}-\mathbb{E}\sbr{\min_{x\in C}\sum_{t=1}^{T}F(x,\xi^{(t)})},
+    \end{split}
+\end{equation}
+and the \textbf{pseudo-regret}
+\begin{equation}\label{eq:pseudoRegret}
+    \mathbb{E}\sbr{\sum_{t=1}^{T}f(x^{(t)})}-\min_{x\in C}\mathbb{E}\sbr{\sum_{t=1}^{T}F(x,\xi^{(t)})}=\mathbb{E}\sbr{\sum_{t=1}^{T}f(x^{(t)})}-\min_{x\in C}\sum_{t=1}^{T}f(x).
+\end{equation}
+An online bound implies a bound on the expected regret, which in turn implies a bound on the pseudo-regret.
+
+Another objective which is often stronger and preferable is the high probability bound: With high probability over $\xi^{(1)},\ldots,\xi^{(t)}$, the difference
+\begin{equation}\label{eq:stochRegret}
+    \sum_{t=1}^{T}f(x^{(t)})-\min_{x\in C}\sum_{t=1}^{T}f(x)
+\end{equation}
+is small.
+\begin{remark}
+    In machine learning, \eqref{eq:stochRegret} (or sometimes \eqref{eq:pseudoRegret}) is preferred, because it does not make sense to consider $\sum_{t=1}^{T}F(x,\xi^{(t)})$.
+\end{remark}
+
+Since in most cases $f$ cannot be computed explicitly, in practice \textbf{empirical risk minimization} is often considered. We first sample $\xi_1,\xi_2,\ldots,\xi_m$, and do the following optimization (denote $F(x,\xi_i)$ by $f_i(x)$):
 \begin{equation}\label{finiteSum}
     \min_{x\in C}f(x)=\frac{1}{m}\sum_{i=1}^{m}f_i(x).
 \end{equation}
 All those $f_i$'s are known by us, and thus we can apply any optimization algorithms. However, in practice even in this situation people may be more interested in stochastic algorithms; For example, at each step, instead of computing gradients of all those $f_i$'s, we just compute gradients of a few $f_i$'s. In this way we will suffer less per-step cost. The intuition behind is that more data should make our job easier, not harder.
+
+\paragraph{Intermediate Environments}
+In contrast to adversarial environments, stationary stochastic environments may be too optimistic. There are many possible intermediate models between those two.
+
+Sometimes people consider non-stationary stochastic models. Examples include hidden Markov models, (partially observable) Markov decision processes, etc. In adversarial training, local adversary is introduced in the stationary stochastic model.
 
 \section{Convex Optimization Problems}
 \subsection{General Convex Optimization Problems}
@@ -1257,31 +1298,15 @@ A general \textbf{convex optimization} problem looks like:
  & Ax=b. & \\
 \end{array}
 \end{equation}
-Here $f,g_i$ are convex. The domain of the problem is $\mathbf{dom}\,f\cap\left(\bigcap_{i=1}^m\mathbf{dom}\,g_i\right)$, which is convex. Similarly, we can use the compact \eqref{optProbSetForm}, and further require $f$ and $C$ to be convex.
+$f$ and $g_i$'s are convex. The domain of the problem is $\mathbf{dom}\,f\cap\left(\bigcap_{i=1}^m\mathbf{dom}\,g_i\right)$, which is convex. Similarly, we can use the compact \eqref{optProbSetForm}, and further require $f$ and $C$ to be convex.
 
 In a convex optimization problem, local minimum is also global minimum. Proposition \ref{optProbFirst} now becomes necessary and sufficient.
 \begin{proposition}[\cite{BL10} Proposition 2.1.2]\label{convOptProbFirst}
     Given convex $f$ and $C$, $x\in C$ is a global minimizer of $f$ iff for any $x'\in C$, $f'(x;x'-x)\ge0$, or $-\nabla f(x)\in N_C(x)$ when $f$ is differentiable at $x$.
 \end{proposition}
 
-\subsection{Stochastic Convex Optimization Problems}
-In \eqref{stochOptProb}, if $F(x,\xi)$ is convex in $x$ for all $\xi$, then the optimization problem is convex.
-
-\subsection{Online Convex Optimization Problems}
-In an \textbf{online convex optimization} problem, we are given a convex set $C$ at the beginning. At each step, a vector $x^{(t)}\in C$ needs to be chosen. Then a convex loss function $f_t:C\to \mathbb{R}$ will be revealed to us, and a loss of $f_t(x^{(t)})$ will be incurred.
-
-We want to minimize the \textbf{regret}. The regret of an online algorithm with respect to a vector $u$ in $T$ steps is defined as
-\begin{equation}\label{OCORegretSingle}
-    \mathrm{Regret}_u(T)=\max_{f_1,\ldots,f_T}\left\{\sum_{t=1}^{T}f_t(x^{(t)})-\sum_{t=1}^{T}f_t(u)\right\},
-\end{equation}
-Here there are usually some restrictions over $f_1,\ldots,f_T$. The regret with respect to a set $U$ in $T$ steps is then defined as
-\begin{equation}\label{OCORegretSet}
-    \mathrm{Regret}_U(T)=\max_{u\in U}\mathrm{Regret}_u(T).
-\end{equation}
-$\mathrm{Regret}_U(T)$ is what we want to minimize.
-\begin{remark}
-    The notion of regret may look a little strange at the first glance. However, it does generalize naturally the notion of error in batch optimization. In fact, if we set $U=C$, and let all $f_t$'s be identical, then we are in fact doing a batch optimization. Suprisingly, one can get nearly the same convergence rate for the online optimization problem.
-\end{remark}
+\subsection{Convex Optimization in Face of Uncertainty}
+Similarly, we can assume that $F(x,\xi)$ is convex in $x$ for any fixed $\xi$.
 
 \chapter{Duality Theory}
 \section{Fenchel Duality}
@@ -1493,7 +1518,7 @@ Here we establish the existence of a Lagrange multiplier for a local minimum und
     \mathrm{s.t.} & g_i(x)\le0, & 1\le i\le m. \\
     \end{array}
 \end{equation}
-Further assume that $f$ and $g_i$ are continuous.
+Further assume that $f$ and $g_i$'s are continuous.
 
 Given a feasible $x\in C$, let $I(x)=\{i|1\le i\le m,g_i(x)=0\}$ denote the set of indexes of active constraints.
 \begin{theorem}[Fritz John conditions, \cite{BL10} Theorem 2.3.6]
@@ -1951,7 +1976,7 @@ We can then sum them up, and have the following result.
         \sum_{t=0}^{T-1}\eta_t\left(f(x^{(t)})-f(x)\right)\le\left(D_{\omega}(x,x^{(0)})-D_{\omega}(x,x^{(T)})\right)+\sum_{t=0}^{T-1}\frac{\eta_t^2}{2}\|\partial f(x^{(t)})\|_*^2.
     \end{equation*}
 
-    If furthermore $(\alpha_t)$ is some non-negative non-decreasing sequence and for any $x\in C$, $x^{\star}$ a minimizer of $f$, $D_{\omega}(x^{\star},x)\le R^2/2$, then
+    If furthermore $\alpha_t$ is some non-negative non-decreasing sequence and for any $x\in C$, $x^{\star}$ a minimizer of $f$, $D_{\omega}(x^{\star},x)\le R^2/2$, then
     \begin{equation*}
         \sum_{t=0}^{T-1}\alpha_t\eta_t\left(f(x^{(t)})-f(x)\right)\le \frac{\alpha_{T-1}R^2}{2}+\sum_{t=0}^{T-1}\frac{\alpha_t\eta_t^2}{2}\|\partial f(x^{(t)})\|_*^2.
     \end{equation*}
@@ -1965,7 +1990,7 @@ There is another related process called dual averaging. Here it is only required
         x^{(t+1)} & =\nabla\omega^*\left(\frac{x^{(t+1)*}}{\alpha_{t+1}}\right)=\arg\max_{x\in C}\left(\langle x^{(t+1)*},x\rangle-\alpha_{t+1}\omega(x)\right),
     \end{split}
 \end{equation}
-where $(\alpha_t)$ is some non-negative non-decreasing sequence with $\alpha_0=0$.
+where $\alpha_t$ is some non-negative non-decreasing sequence with $\alpha_0=0$.
 \begin{remark}
     One can compare \eqref{DAUpdate} and \eqref{MDUpdateAlt} when $\alpha_t=1$. The only difference is how we get $x^{(t+1)*}$.
 \end{remark}
