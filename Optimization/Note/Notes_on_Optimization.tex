@@ -1211,7 +1211,6 @@ The domain of the problem is $\mathbf{dom}\,f\cap\left(\bigcap_{i=1}^m\mathbf{do
 \end{equation}
 Here $C$ is some constraint set. \eqref{optProb} can also be expressed in this form, if we take $C$ as the feasible set. The above forms are often called \textbf{constrained optimization problems}, while if $C=\mathbb{R}^n$, it is called \textbf{unconstrained optimization problems}.
 
-\paragraph{Optimality Conditions}
 Given \eqref{optProbSetForm}, we have some first- and second-order optimality conditions.
 \begin{proposition}[\cite{BL10} Proposition 2.1.1]\label{optProbFirst}
     Suppose $C\subset \mathbb{R}^n$ is convex and $x^{\star}$ is a local minimizer of $f$ over $C$. Then for any $x\in C$, if the directional derivative $f'(x^{\star};x-x^{\star})$ exists, we have $f'(x^{\star};x-x^{\star})\ge0$. In particular, if $f$ is differentiable at $x^{\star}$, then $-\nabla f(x^{\star})\in N_C(x)$.
@@ -1253,6 +1252,8 @@ To model the worst case, we make no assumption on $\xi^{(t)}$; in other words, i
     \sum_{t=1}^{T}F(x^{(t)},\xi^{(t)})-\min_{x\in C}\sum_{t=1}^{T}F(x,\xi^{(t)}).
 \end{equation}
 This model is often called the \textbf{online model}.
+
+\eqref{eq:regret} seems to suggest that the computation of $x^{(t)}$ is deterministic; however, the problem is usually too hard to solve in this case. Instead, one can think of $x^{(t)}$ as a distribution over actions, and correspondingly $C$ is the space of distributions over actions; then \eqref{eq:regret} can also model randomness in $x^{(t)}$. However, there is one more subtle point:
 
 \paragraph{(Stationary) Stochastic Environments}
 Adversarial environments may be too pessimistic; we may instead assume that $\xi^{(t)}$'s are sampled i.i.d. from some (unknown) distribution. Let $f(x)=\mathbb{E}_{\xi}\sbr{F(x,\xi)}$. Two common objectives are (expectation is taken w.r.t. $\xi^{(1)},\ldots,\xi^{(t)}$) the \textbf{expected regret}

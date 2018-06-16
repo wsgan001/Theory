@@ -462,25 +462,23 @@ As a result, we have the following universal consistency result.
 \end{theorem}
 
 \part{Bandits}
-The bandit problem characterizes the basic trade-off between exploration and exploitation. Basically, suppose there are $K(\ge2)$ arms and $T(\ge K)$ steps. The reward of arm $i$ at step $t$ is $X_{i,t}$, which is unknown in advance, and is revealed if arm $i$ is chosen at step $t$. Suppose the player chooses arm $i_t$ at step $t$. We are interested in the \emph{regret}
+The bandit problem characterizes the basic trade-off between \textbf{exploration and exploitation}. Basically, suppose there are $K(\ge2)$ arms and $T(\ge K)$ steps. The reward of arm $i$ at step $t$ is $X_{i,t}$, which is unknown in advance, and is revealed if arm $i$ is chosen at step $t$. Suppose the player chooses arm $i_t$ at step $t$. We are interested in the \textbf{regret}
 \begin{equation}\label{regret}
     \mathrm{Regret}(T)=\max_{1\le i\le K}\sum_{t=1}^{T}X_{i,t}-\sum_{t=1}^{T}X_{i_t,t}.
 \end{equation}
-At step $t$, the \emph{history} consists of $i_1,X_{i_1,1},\ldots,i_{t-1},X_{i_{t-1},t-1}$. The \emph{forecaster}, or \emph{learning algorithm}, is basically a mapping from the history visible at the current step to the arm chosen at this step. However, it is also of our concern whether such a mapping can be computed efficiently.
+At step $t$, the \textbf{history} consists of $i_1,X_{i_1,1},\ldots,i_{t-1},X_{i_{t-1},t-1}$. The \textbf{forecaster}, or \textbf{learning algorithm}, is basically a mapping from the history visible at the current step to the arm chosen at this step. The number of steps $T$ may also be unknown beforehand; in this case, the algorithm is called an \textbf{anytime} algorithm.
 
-In general, $X_{i,t}$'s and $i_t$'s may both be random variables. In this case we are interested in the \emph{expected regret}
+In general, $X_{i,t}$'s and $i_t$'s may both be random variables. In this case we are interested in the \textbf{expected regret}
 \begin{equation}\label{expectedRegret}
     \mathbb{E}[\mathrm{Regret}(T)]=\mathbb{E}\left[\max_{1\le i\le K}\sum_{t=1}^{T}X_{i,t}-\sum_{t=1}^{T}X_{i_t,t}\right],
 \end{equation}
-and the \emph{pseudo-regret}
+and the \textbf{pseudo-regret}
 \begin{equation}\label{pseudoRegret}
     \overline{\mathrm{Regret}(T)}=\max_{1\le i\le K}\mathbb{E}\left[\sum_{t=1}^{T}X_{i,t}-\sum_{t=1}^{T}X_{i_t,t}\right].
 \end{equation}
 It can be seen that $\overline{\mathrm{Regret}(T)}\le \mathbb{E}[\mathrm{Regret}(T)]$.
 
-The number of steps $T$ may also be unknown beforehand. In this case, the algorithm is called an \emph{anytime} algorithm.
-
-Different assumptions can be made on the nature of rewards. There are three fundamental formalizations of the bandit problem, with different assumptions on the reward process: \emph{stochastic bandits}, \emph{adversarial bandits}, and \emph{Markovian bandits}. (Those frameworks are pretty general and can be extended to other machine learning problems.) Efficient algorithms have been designed for each case: The UCB algorithm for the stochastic case, the Exp3 randomized algorithm for the adversarial case, and the Gittins indices for the Markovian case.
+Different assumptions can be made on the nature of rewards. There are three fundamental formalizations of the bandit problem, with different assumptions on the reward process: \textbf{stochastic bandits}, \textbf{adversarial bandits}, and \textbf{Markovian bandits}. (Those frameworks are pretty general and can be extended to other machine learning problems.) Efficient algorithms have been designed for each case: The UCB algorithm for the stochastic case, the Exp3 randomized algorithm for the adversarial case, and the Gittins indices for the Markovian case.
 
 \chapter{Stochastic Bandits}
 In the stochastic bandit problem, the known parameters are the number of arms $K(\ge2)$, and possibly the number of steps $T(\ge K)$. The unknown parameters are $K$ distributions $\nu_1,\ldots,\nu_K$ on $[0,1]$. It is assumed that if arm $i$ is played at any time, a reward is sampled from $\nu_i$. For any $1\le i\le K$, let $\mu_i=\mathbb{E}[\nu_i]$, $\mu^*=\max_{1\le i\le K}\mu_i$, and $i^*\in\arg\max_{1\le i\le K}\mu_i$. Then the pseudo-regret becomes
