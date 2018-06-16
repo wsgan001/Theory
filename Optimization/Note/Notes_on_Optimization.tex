@@ -1244,19 +1244,21 @@ Here $t\in T$ is a parameter. Monotone comparative statics are interested especi
 \end{comment}
 
 \subsection{Optimization in Face of Uncertainty}
-We consider the following general model of optimization in uncertainty. We are given a function $F(x,\xi)$; at step $t$, after we choose $x^{(t)}$, an $\xi^{(t)}$ is revealed to us by the environment, and a loss of $F(x^{(t)},\xi^{(t)})$ is incurred. Different assumptions can be made on the eivonment:
+We consider the following general model of optimization in uncertainty. We are given a function $F(x,\xi)$; at step $t$, after we choose $x^{(t)}$, an $\xi^{(t)}$ is revealed to us by the environment, and a loss of $F(x^{(t)},\xi^{(t)})$ is incurred. Both $x^{(t)}$'s and $\xi^{(t)}$'s may be chosen randomly. Different assumptions can be made on the eivonment.
 
-\paragraph{Adversarial Environments}
-To model the worst case, we make no assumption on $\xi^{(t)}$; in other words, it can be adversarial. The optimization goal in this case is to minimize the \textbf{regret}:
+\paragraph{Worst-Case Environments}
+To model the worst case, we consider an arbitrary fixed sequence $\xi^{(1)},\ldots,\xi^{(T)}$. The optimization goal in this case is to minimize the \textbf{regret}:
 \begin{equation}\label{eq:regret}
     \sum_{t=1}^{T}F(x^{(t)},\xi^{(t)})-\min_{x\in C}\sum_{t=1}^{T}F(x,\xi^{(t)}).
 \end{equation}
-This model is often called the \textbf{online model}.
+We want to show that either \eqref{eq:regret} is small with high probability, or its expectation is small. This model is often called the \textbf{online model}.
 
-\eqref{eq:regret} seems to suggest that the computation of $x^{(t)}$ is deterministic; however, the problem is usually too hard to solve in this case. Instead, one can think of $x^{(t)}$ as a distribution over actions, and correspondingly $C$ is the space of distributions over actions; then \eqref{eq:regret} can also model randomness in $x^{(t)}$. However, there is one more subtle point:
+\begin{remark}
+    It is actually hard to justify why \eqref{eq:regret} is the right objective. Sometimes we can bound \eqref{eq:regret}, and I personally just view it as a stronger version of a bound on the expected regret or pseudo-regret in the stochastic case. Some people call this model the "adversarial model", but I find this term a little misleading. A real opponent may not be able to find the worst sequence of $\xi^{(t)}$'s, and he or she may be able to react to the randomness in $\xi^{(t)}$'s; the worst-case model cannot express such properties. It is interesting to find a nice model of a real adversary.
+\end{remark}
 
 \paragraph{(Stationary) Stochastic Environments}
-Adversarial environments may be too pessimistic; we may instead assume that $\xi^{(t)}$'s are sampled i.i.d. from some (unknown) distribution. Let $f(x)=\mathbb{E}_{\xi}\sbr{F(x,\xi)}$. Two common objectives are (expectation is taken w.r.t. $\xi^{(1)},\ldots,\xi^{(t)}$) the \textbf{expected regret}
+Adversarial environments may be too pessimistic; we may instead assume that $\xi^{(t)}$'s are sampled i.i.d. from some (unknown) distribution. Let $f(x)=\mathbb{E}_{\xi}\sbr{F(x,\xi)}$. Two common objectives are (expectation is taken w.r.t. $x^{(t)}$'s and $\xi^{(t)}$'s) the \textbf{expected regret}
 \begin{equation}\label{eq:expectRegret}
     \begin{split}
         \mathbb{E}\sbr{\sum_{t=1}^{T}F(x^{(t)},\xi^{(t)})-\min_{x\in C}\sum_{t=1}^{T}F(x,\xi^{(t)})} & = \mathbb{E}\sbr{\sum_{t=1}^{T}f(x^{(t)})-\min_{x\in C}\sum_{t=1}^{T}F(x,\xi^{(t)})} \\
@@ -1269,13 +1271,13 @@ and the \textbf{pseudo-regret}
 \end{equation}
 An online bound implies a bound on the expected regret, which in turn implies a bound on the pseudo-regret.
 
-Another objective which is often stronger and preferable is the high probability bound: With high probability over $\xi^{(1)},\ldots,\xi^{(t)}$, the difference
+Another objective which is often stronger and preferable is the high probability bound: With high probability, the difference
 \begin{equation}\label{eq:stochRegret}
     \sum_{t=1}^{T}f(x^{(t)})-\min_{x\in C}\sum_{t=1}^{T}f(x)
 \end{equation}
 is small.
 \begin{remark}
-    In machine learning, \eqref{eq:stochRegret} (or sometimes \eqref{eq:pseudoRegret}) is preferred, because it does not make sense to consider $\sum_{t=1}^{T}F(x,\xi^{(t)})$.
+    In machine learning, \eqref{eq:stochRegret} (or sometimes \eqref{eq:pseudoRegret}) is preferred, because it does not make sense to consider $\sum_{t=1}^{T}F(x,\xi^{(t)})$. However, sometimes this term can indeed be bounded.
 \end{remark}
 
 Since in most cases $f$ cannot be computed explicitly, in practice \textbf{empirical risk minimization} is often considered. We first sample $\xi_1,\xi_2,\ldots,\xi_m$, and do the following optimization (denote $F(x,\xi_i)$ by $f_i(x)$):
