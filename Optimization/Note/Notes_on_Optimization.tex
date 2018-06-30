@@ -1246,15 +1246,18 @@ Here $t\in T$ is a parameter. Monotone comparative statics are interested especi
 \subsection{Optimization in Face of Uncertainty}
 We consider the following general model of optimization in uncertainty. We are given a function $F(x,\xi)$; at step $t$, after we choose $x^{(t)}$, an $\xi^{(t)}$ is revealed to us by the environment, and a loss of $F(x^{(t)},\xi^{(t)})$ is incurred. Both $x^{(t)}$'s and $\xi^{(t)}$'s may be chosen randomly. Different assumptions can be made on the eivonment.
 
-\paragraph{Worst-Case Environments}
-To model the worst case, we consider an arbitrary fixed sequence $\xi^{(1)},\ldots,\xi^{(T)}$. The optimization goal in this case is to minimize the \textbf{regret}:
+\paragraph{Online Environments}
+To model the online environment, we consider an arbitrary fixed sequence $\xi^{(1)},\ldots,\xi^{(T)}$. The optimization goal in this case is to minimize the \textbf{regret}:
 \begin{equation}\label{eq:regret}
     \sum_{t=1}^{T}F(x^{(t)},\xi^{(t)})-\min_{x\in C}\sum_{t=1}^{T}F(x,\xi^{(t)}).
 \end{equation}
-We want to show that either \eqref{eq:regret} is small with high probability, or its expectation is small. This model is often called the \textbf{online model}.
+We want to show that either \eqref{eq:regret} is small with high probability, or its expectation is small, w.r.t. $x^{(t)}$'s.
 
+Sometimes it is assumed that $\xi^{(t)}$'s are revealed to the algorithm completely (e.g., in online gradient descent), while sometimes it is assumed that only parts of $\xi^{(t)}$'s are revealed to the algorithm (e.g., in bandit models). (See \Cref{chp:onlineStochOpt}.)
 \begin{remark}
-    It is actually hard to justify why \eqref{eq:regret} is the right objective. Sometimes we can bound \eqref{eq:regret}, and I personally just view it as a stronger version of a bound on the expected regret or pseudo-regret in the stochastic case. Some people call this model the "adversarial model", but I find this term a little misleading. A real opponent may not be able to find the worst sequence of $\xi^{(t)}$'s, and he or she may be able to react to the randomness in $\xi^{(t)}$'s; the worst-case model cannot express such properties. It is interesting to find a nice model of a real adversary.
+    In the literture, this model is often called the ``adversarial model''. However, this name might be misleading. On one hand, a real adversary also has only limited information, so the requirement that the algorithm works well for arbitrary $\xi^{(t)}$'s might be too strong. On the other hand, it is reasonable to require that $\xi^{(t)}$ does not depend on $x^{(t)}$, but it is not reasonable to further require that $\xi^{(t+1)}$ cannot depend on $x^{(t)}$; in this sense, the online model is weaker than a real ``adversarial model''.
+
+    Furthermore, it is not straightforward to justify why \eqref{eq:regret} is the right objective. Sometimes we can bound \eqref{eq:regret}, and I personally just view it as a technical result, a stronger version of a bound on the expected regret or pseudo-regret in the stochastic case.
 \end{remark}
 
 \paragraph{(Stationary) Stochastic Environments}
@@ -1277,7 +1280,7 @@ Another objective which is often stronger and preferable is the high probability
 \end{equation}
 is small.
 \begin{remark}
-    In machine learning, \eqref{eq:stochRegret} (or sometimes \eqref{eq:pseudoRegret}) is preferred, because it does not make sense to consider $\sum_{t=1}^{T}F(x,\xi^{(t)})$. However, sometimes this term can indeed be bounded.
+    In machine learning, \eqref{eq:stochRegret} (or sometimes \eqref{eq:pseudoRegret}) is preferred, because it does not make sense to consider $\sum_{t=1}^{T}F(x,\xi^{(t)})$.
 \end{remark}
 
 Since in most cases $f$ cannot be computed explicitly, in practice \textbf{empirical risk minimization} is often considered. We first sample $\xi_1,\xi_2,\ldots,\xi_m$, and do the following optimization (denote $F(x,\xi_i)$ by $f_i(x)$):
@@ -1627,7 +1630,7 @@ or
 Thus in general, we can output $\tilde{x}^{(T)}=\arg\min_{1\le t\le T}f(x^{(t)})$ or $\sum_{t=1}^{T}\lambda_tx^{(t)}$ (or any point in the sublevel set of $\overline{f}$ given by this point), and try to bound the right hand side of \eqref{gradBasedConv}. Or we can output $\tilde{x}^{(T)}$, whose guarantee is bounded by the minimum of the right hand side of \eqref{gradBasedConv} when all $\lambda\in\Delta_T$ is considered.
 \end{comment}
 
-Starting from some initial point $x^{(1)}$, the gradient descent step at time $t$ looks like
+Starting from some initial point $x^{(1)}$, the gradient descent step at time $t$ is
 \begin{equation}\label{gradUpdate}
 y^{(t+1)}=x^{(t)}-\eta_t\nabla f(x^{(t)}),\quad x^{(t+1)}=\Pi_C\left(y^{(t+1)}\right).
 \end{equation}
@@ -1635,12 +1638,12 @@ y^{(t+1)}=x^{(t)}-\eta_t\nabla f(x^{(t)}),\quad x^{(t+1)}=\Pi_C\left(y^{(t+1)}\r
 The following idea can be seen as an extension of the gradient flow ideas. For any $t\ge1$ and $x\in C$,
 \begin{align*}
     \frac{1}{2}\|x^{(t+1)}-x\|_2^2 & \le \frac{1}{2}\|y^{(t+1)}-x\|_2^2 \\
-     & \le \frac{1}{2}\|x^{(t)}-x\|_2^2-\eta_t \langle\nabla f(x^{(t)}),x^{(t)}-x\rangle+\frac{\eta_t^2}{2}\|\nabla f(x^{(t)})\|_2^2 \\
+     & =\frac{1}{2}\|x^{(t)}-x\|_2^2-\eta_t \langle\nabla f(x^{(t)}),x^{(t)}-x\rangle+\frac{\eta_t^2}{2}\|\nabla f(x^{(t)})\|_2^2 \\
      & \le \frac{1}{2}\|x^{(t)}-x\|_2^2-\eta_t\left(f(x^{(t)})-f(x)\right)+\frac{\eta_t^2}{2}\|\nabla f(x^{(t)})\|_2^2.
 \end{align*}
 Therefore,
 \begin{align*}
-    \eta_t\left(f(x^{(t)})-f(x)\right) & \le \frac{1}{2}\|x^{(t+1)}-x\|_2^2-\frac{1}{2}\|x^{(t)}-x\|_2^2+\frac{\eta_t^2}{2}\|\nabla f(x^{(t)})\|_2^2, \\
+    \eta_t\left(f(x^{(t)})-f(x)\right) & \le \frac{1}{2}\|x^{(t)}-x\|_2^2-\frac{1}{2}\|x^{(t+1)}-x\|_2^2+\frac{\eta_t^2}{2}\|\nabla f(x^{(t)})\|_2^2, \\
     f(x^{(t)})-f(x) & \le \frac{1}{2\eta_t}\|x^{(t)}-x\|_2^2-\frac{1}{2\eta_t}\|x^{(t+1)}-x\|_2^2+\frac{\eta_t}{2}\|\nabla f(x^{(t)})\|_2^2.
 \end{align*}
 By telescoping, we have the following theorem.
@@ -1654,6 +1657,7 @@ By telescoping, we have the following theorem.
         \sum_{t=1}^{T}\frac{1}{T}f(x^{(t)})-f(x)\le \frac{D^2}{2\eta_T}+\sum_{t=1}^{T}\frac{\eta_t}{2}\|\nabla f(x^{(t)})\|_2^2.
     \end{equation*}
 \end{theorem}
+
 Here are some practical choices for the step sizes:
 \begin{itemize}
 \item Constant step size: $\eta_t=\eta$ is a positive constant independent of $t$.
@@ -1661,21 +1665,23 @@ Here are some practical choices for the step sizes:
 \item Non-summable diminishing step sizes: $\eta_t>0$, $\lim_{t\rightarrow\infty}\eta_t=0$, $\sum_{t=1}^{\infty}\eta_t=\infty$. One typical choice is $a/\sqrt{t}$ where $a>0$.
 \item Non-summable diminishing step lengths: $\eta_t=\gamma_t/\|\nabla f(x^{(t)})\|_2$, $\gamma_t>0$, $\lim_{t\rightarrow\infty}\gamma_t=0$, $\sum_{t=1}^{\infty}\gamma_t=\infty$.
 \end{itemize}
-%\begin{remark}
-%Subgradient descent will still work with a noise $\|\xi^{(t)}\|_2\le\epsilon$ added to $g^{(t)}$ at each step. With constant step size,
-%\begin{equation}
-%    f^{(t)}_{\mathrm{best}}-f(x^{\star})\le\frac{\|x^{(1)}-x^{\star}\|_2^2+(G^2+\epsilon^2)\eta^2t}{2\eta t}+\epsilon \|x^{(1)}-x^{\star}\|_2.
-%\end{equation}
-%We can still take $\eta=D/G\sqrt{t}$.
-%
-%Subgradient descent can tolerate a small noise $\|\xi^{(t)}\|_2\le\epsilon$ added to $x^{(t)}$ at each step. In this case we had better work with constant step size, and the error looks like
-%\begin{equation}
-%    f^{(t)}_{\mathrm{best}}-f(x^{\star})\le \frac{\|x^{(1)}-x^{\star}\|_2^2}{2\eta t}+\frac{\epsilon^2}{2\eta}+\frac{G^2\eta}{2}.
-%\end{equation}
-%Take $\epsilon=D/\sqrt{2t}$ and $\eta=\epsilon/G=D/G\sqrt{2t}$ will give an error of $\sqrt{2}DG/\sqrt{t}$.
-%
-%Intuitively, subgradient descent can tolerate noise since it include $D$ as part of the step size.
-%\end{remark}
+
+\begin{comment}
+\begin{remark}
+Subgradient descent will still work with a noise $\|\xi^{(t)}\|_2\le\epsilon$ added to $g^{(t)}$ at each step. With constant step size,
+\begin{equation}
+    f^{(t)}_{\mathrm{best}}-f(x^{\star})\le\frac{\|x^{(1)}-x^{\star}\|_2^2+(G^2+\epsilon^2)\eta^2t}{2\eta t}+\epsilon \|x^{(1)}-x^{\star}\|_2.
+\end{equation}
+We can still take $\eta=D/G\sqrt{t}$.
+
+Subgradient descent can tolerate a small noise $\|\xi^{(t)}\|_2\le\epsilon$ added to $x^{(t)}$ at each step. In this case we had better work with constant step size, and the error looks like
+\begin{equation}
+    f^{(t)}_{\mathrm{best}}-f(x^{\star})\le \frac{\|x^{(1)}-x^{\star}\|_2^2}{2\eta t}+\frac{\epsilon^2}{2\eta}+\frac{G^2\eta}{2}.
+\end{equation}
+Take $\epsilon=D/\sqrt{2t}$ and $\eta=\epsilon/G=D/G\sqrt{2t}$ will give an error of $\sqrt{2}DG/\sqrt{t}$.
+
+Intuitively, subgradient descent can tolerate noise since it include $D$ as part of the step size.
+\end{remark}
 
 Now for a good solution, one can output some iterate average. However, it does not follow from \Cref{thm:GDBound} that the last iterate has close-to-optimum function value. Here we present one such result.
 \begin{theorem}[\cite{SZ13} Theorem 2]\label{thm:GDLastBound}
@@ -1684,12 +1690,7 @@ Now for a good solution, one can output some iterate average. However, it does n
         f(x^{(T)})-f(x)\le\left(\frac{D^2}{c}+G^2c\right)\frac{2+\ln T}{\sqrt{T}}.
     \end{equation*}
 \end{theorem}
-\begin{remark}
-    \Cref{thm:GDBound} also works in the online and expectation setting, while \Cref{thm:GDLastBound} also works in the expectation setting.
-\end{remark}
-\begin{question}
-    Any with-high-probability result?
-\end{question}
+\end{comment}
 
 \section{Minimizing Strongly Convex Functions}\label{sec:GDStrConv}
 \begin{comment}
@@ -1731,10 +1732,11 @@ Furthermore,
         \begin{equation*}
             f\left(\frac{1}{T}\sum_{t=1}^{T}x^{(t)}\right)-f(x)\le \frac{G^2(\ln T+1)}{2\alpha T}.
         \end{equation*}
-        Furthermore, for any $T\ge3$,
+        For $T\ge2$,
         \begin{equation*}
-            \|x^{(T)}-x^{\star}\|_2^2\le \frac{G^2}{\alpha^2(T-2)}.
+            \|x^{(T+1)}-x\|_2^2\le \frac{G^2}{\alpha^2T}.
         \end{equation*}
+
         \item Let $\eta_t=\frac{2}{\alpha(t+1)}$, then
         \begin{equation}
             f\left(\sum_{t=1}^{T}\lambda_tx^{(t)}\right)-f(x)\le \frac{2G^2}{\alpha(T+1)},\quad \lambda_t=\frac{2t}{T(T+1)}.
@@ -1753,15 +1755,15 @@ Furthermore,
         (t-1)t\|x^{(t+1)}-x^{\star}\|_2^2\le(t-2)(t-1)\|x^{(t)}-x^{\star}\|_2^2+\frac{t-1}{t}\frac{G^2}{\alpha^2}.
     \end{equation*}
 \end{proof}
+
+\begin{comment}
 \begin{remark}
     As in the non-strongly-convex case, \Cref{thm:GDStrConvBound} works in the online (when making sense) or stochastic case. It is also possible to get some bound for the last iterate; see \cite{SZ13}.
 \end{remark}
-\begin{question}
-    Any with-high-probability result?
-\end{question}
-%\begin{remark}
-%    Both step sizes cannot tolerate noise added to $g(x^{(t)})$ or $x^{(t)}$.
-%\end{remark}
+\begin{remark}
+    Both step sizes cannot tolerate noise added to $g(x^{(t)})$ or $x^{(t)}$.
+\end{remark}
+\end{comment}
 
 \section{Minimizing Strongly Smooth and Convex Functions}\label{sec:GDStrSmooth}
 %We first assume that $f$ is defined on $\mathbb{R}^n$. By using similar lower bound technique, we can get that for any $\lambda\in\Delta_T$ and any $x\in C$, we have
@@ -1819,14 +1821,12 @@ Combining \eqref{GDSmoothOneStep} and \eqref{GDSmoothDec}, we get the following 
         f(x^{(T+1)})-f(x)\le\frac{1}{T}\sum_{t=2}^{T+1}\left(f(x^{(t)})-f(x)\right)\le \frac{\beta\left(\|x^{(1)}-x\|_2^2-\|x^{(T+1)}-x\|_2^2\right)}{2T}.
     \end{equation*}
 \end{theorem}
+
 \begin{remark}
-    The $1/T$ rate of GD is necessary in general. One can consider the function $e^x$. If a constant step size is used and a rate of $1/T^{\alpha}$ where $\alpha>1$ is possible, then GD will converge to a finite point, which is impossible since the optimum point is at the infinity. Intuitively, the reason why GD is slow here is that it fails to identify the change in the smoothness parameter.
-\end{remark}
-\begin{remark}
-    In general, the result cannot be extended to stochastic or online case.
+    The $1/T$ rate of GD is necessary in general. One can consider the function $e^x$. If a constant step size is used and a rate of $1/T^{\alpha}$ where $\alpha>1$ is possible, then GD will converge to a finite point, which is impossible since the optimum point is at the infinity. Intuitively, the reason why GD is slow here is that it fails to identify the change in the smoothness parameter. However, GD should not be blamed too much since it basically only performs local updates.
 \end{remark}
 
-Gradient descent is not optimal for smooth optimization. For strongly smooth convex function defined on a closed convex set, there exists \textbf{accelerated gradient descent} methods which can give a $O(1/t^2)$ rate. Please refer to my course project for UIUC CS 598 MJT F17.
+Gradient descent is not optimal for smooth optimization. For strongly smooth convex function defined on a closed convex set, there exists \textbf{accelerated gradient descent} methods which gives a $O(1/t^2)$ rate. Please refer to my course project for UIUC CS 598 MJT F17.
 
 \section{Minimizing Strongly Smooth and Strongly Convex Functions}
 \begin{theorem}
@@ -1854,7 +1854,7 @@ Gradient descent is not optimal for smooth optimization. For strongly smooth con
         \|x^{(t+1)}-x^{\star}\|_2^2\le\left(\frac{\beta-\alpha}{\beta+\alpha}\right)\|x^{(t)}-x^{\star}\|_2^2.
     \end{equation*}
 
-    Next we set $\eta_t=\frac{2}{\alpha+\beta}$. Using Theorem \ref{strConvSmootht} and consider $\|x^{(t)}-x^{\star}\|_2^2$, one can show that
+    Next we set $\eta_t=\frac{2}{\alpha+\beta}$. By using Theorem \ref{strConvSmootht} and considering $\|x^{(t)}-x^{\star}\|_2^2$, one can show that
     \begin{equation*}
         \|x^{(t+1)}-x^{\star}\|_2^2\le\left(\frac{\beta-\alpha}{\beta+\alpha}\right)^2\|x^{(t)}-x^{\star}\|_2^2.
     \end{equation*}
@@ -1976,69 +1976,68 @@ We can then sum them up, and have the following result.
 \begin{theorem}\label{thm:MDGuarantee}
     For any $x\in C$ and $T\ge1$, we can guarantee that
     \begin{equation*}
-        \sum_{t=0}^{T-1}\eta_t\left(f(x^{(t)})-f(x)\right)\le\left(D_{\omega}(x,x^{(0)})-D_{\omega}(x,x^{(T)})\right)+\sum_{t=0}^{T-1}\frac{\eta_t^2}{2}\|\partial f(x^{(t)})\|_*^2.
+        \sum_{t=1}^{T}\eta_t\left(f(x^{(t)})-f(x)\right)\le\left(D_{\omega}(x,x^{(1)})-D_{\omega}(x,x^{(T+1)})\right)+\sum_{t=1}^{T}\frac{\eta_t^2}{2}\|\partial f(x^{(t)})\|_*^2.
     \end{equation*}
 
-    If furthermore $\alpha_t$ is some non-negative non-decreasing sequence and for any $x\in C$, $x^{\star}$ a minimizer of $f$, $D_{\omega}(x^{\star},x)\le R^2/2$, then
+    If furthermore $\alpha_t$ is some non-negative non-decreasing sequence, and for some $x\in C$, $D_{\omega}(x,x^{(1)})\ldots,D_{\omega}(x,x^{(T)})\le R^2/2$, then
     \begin{equation*}
-        \sum_{t=0}^{T-1}\alpha_t\eta_t\left(f(x^{(t)})-f(x)\right)\le \frac{\alpha_{T-1}R^2}{2}+\sum_{t=0}^{T-1}\frac{\alpha_t\eta_t^2}{2}\|\partial f(x^{(t)})\|_*^2.
+        \sum_{t=1}^{T}\alpha_t\eta_t\left(f(x^{(t)})-f(x)\right)\le \frac{\alpha_{T}R^2}{2}+\sum_{t=1}^{T}\frac{\alpha_t\eta_t^2}{2}\|\partial f(x^{(t)})\|_*^2.
     \end{equation*}
 \end{theorem}
 
 \paragraph{Dual Averaging}
-There is another related process called dual averaging. Here it is only required that $\omega$ is $1$-strongly closed convex. It starts with $x^{(0)*}=0$ and $x^{(0)}=\nabla\omega^*(0)=\arg\min_{x\in C}\omega(x)$. At step $t$, it performs the following update:
+There is another related process called dual averaging. Here it is only required that $\omega$ is $1$-strongly closed convex. It starts with $x^{(1)*}=0$ and $x^{(1)}=\nabla\omega^*(0)=\arg\min_{x\in C}\omega(x)$. At step $t$, it performs the following update:
 \begin{equation}\label{DAUpdate}
     \begin{split}
         x^{(t+1)*} & =x^{(t)*}-\lambda_t\partial f(x^{(t)}), \\
         x^{(t+1)} & =\nabla\omega^*\left(\frac{x^{(t+1)*}}{\alpha_{t+1}}\right)=\arg\max_{x\in C}\left(\langle x^{(t+1)*},x\rangle-\alpha_{t+1}\omega(x)\right),
     \end{split}
 \end{equation}
-where $\alpha_t$ is some non-negative non-decreasing sequence with $\alpha_0=0$.
+where $\alpha_t$ is some non-negative non-decreasing sequence with $\alpha_1=1$.
 \begin{remark}
-    One can compare \eqref{DAUpdate} and \eqref{MDUpdateAlt} when $\alpha_t=1$. The only difference is how we get $x^{(t+1)*}$.
+    One can compare \eqref{DAUpdate} and \eqref{MDUpdateAlt} with $\alpha_t=1$. The only difference is how we get $x^{(t+1)*}$.
 \end{remark}
 
 The following ideas come from \cite{N09}. The second part of \eqref{DAUpdate} can also be written as for $t\ge1$,
 \begin{equation*}
     x^{(t)*}\in\partial(\alpha_t\omega)(x^{(t)}),\quad x^{(t)}=\nabla(\alpha_t\omega)^*(x^{(t)*}).
 \end{equation*}
-For $\alpha\ge0$, let $G_{\alpha}(x^*)=\max_{x\in C}\left(\langle x^*,x-x^{(0)}\rangle-\alpha_t\left(\omega(x)-\omega(x^{(0)})\right)\right)$. Note that $G_{\alpha}$ is non-negative, non-increasing in $\alpha$, $1/\alpha$-strongly smooth, and furthermore for $t\ge0$,
+For $\alpha>0$, let $G_{\alpha}(x^*)=\max_{x\in C}\left(\langle x^*,x-x^{(1)}\rangle-\alpha\left(\omega(x)-\omega(x^{(1)})\right)\right)$. Note that $G_{\alpha}$ is non-negative, non-increasing in $\alpha$, $1/\alpha$-strongly smooth, and furthermore for $t\ge1$,
 \begin{equation*}
-    x^{(t)}-x^{(0)}=\nabla G_{\alpha_t}(x^{(t)*}).
+    x^{(t)}-x^{(1)}=\nabla G_{\alpha_t}(x^{(t)*}).
 \end{equation*}
 $G_{\alpha}$ is the key potential function in the analysis of dual averaging.
 \begin{theorem}
     For any $x\in C$ and $T\ge1$, we can guarantee that
     \begin{equation*}
-            \sum_{t=0}^{T-1}\lambda_t\left(f(x^{(t)})-f(x)\right)\le\alpha_T\omega(x)-\alpha_T\omega(x^{(0)})+\sum_{t=0}^{T-1}\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2.
+            \sum_{t=1}^{T}\lambda_t\left(f(x^{(t)})-f(x)\right)\le\alpha_{T+1}\omega(x)-\alpha_{T+1}\omega(x^{(1)})+\sum_{t=1}^{T}\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2.
     \end{equation*}
 \end{theorem}
 \begin{proof}
     First of all,
     \begin{align*}
-        \sum_{t=0}^{T-1}\lambda_t\left(f(x^{(t)})-f(x)\right) & =\langle x^{(T)*},x-x^{(0)}\rangle+\sum_{t=0}^{T-1}\langle\lambda_t\partial f(x^{(t)}),x^{(t)}-x^{(0)}\rangle.
+        \sum_{t=1}^{T}\lambda_t\left(f(x^{(t)})-f(x)\right) & \le\langle x^{(T+1)*},x-x^{(1)}\rangle+\sum_{t=1}^{T}\langle\lambda_t\partial f(x^{(t)}),x^{(t)}-x^{(1)}\rangle.
     \end{align*}
     Then
     \begin{align*}
-        \sum_{t=0}^{T-1}\langle\lambda_t\partial f(x^{(t)}),x^{(t)}-x^{(0)}\rangle & =\sum_{t=0}^{T-1}\langle x^{(t)^*}-x^{(t+1)*},x^{(t)}-x^{(0)}\rangle \\
-         & =\sum_{t=0}^{T-1}\langle x^{(t)^*}-x^{(t+1)*},\nabla G_{\alpha_t}(x^{(t)*})\rangle \\
-         & \le \sum_{t=0}^{T-1}\left(G_{\alpha_t}(x^{(t)*})-G_{\alpha_t}(x^{(t+1)*})+\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2\right) \\
-         & \le \sum_{t=0}^{T-1}\left(G_{\alpha_t}(x^{(t)*})-G_{\alpha_{t+1}}(x^{(t+1)*})+\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2\right) \\
-         & =-G_{\alpha_T}(x^{(T)*})+\sum_{t=0}^{T-1}\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2.
+        \sum_{t=1}^{T}\langle\lambda_t\partial f(x^{(t)}),x^{(t)}-x^{(1)}\rangle & =\sum_{t=1}^{T}\langle x^{(t)^*}-x^{(t+1)*},x^{(t)}-x^{(1)}\rangle \\
+         & =\sum_{t=1}^{T}\langle x^{(t)^*}-x^{(t+1)*},\nabla G_{\alpha_t}(x^{(t)*})\rangle \\
+         & \le \sum_{t=1}^{T}\left(G_{\alpha_t}(x^{(t)*})-G_{\alpha_t}(x^{(t+1)*})+\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2\right) \\
+         & \le \sum_{t=1}^{T}\left(G_{\alpha_t}(x^{(t)*})-G_{\alpha_{t+1}}(x^{(t+1)*})+\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2\right) \\
+         & =-G_{\alpha_{T+1}}(x^{(T+1)*})+\sum_{t=1}^{T}\frac{\lambda_t^2}{2\alpha_t}\|\partial f(x^{(t)})\|_*^2.
     \end{align*}
     Furthermore,
     \begin{align*}
-        \langle x^{(T)*},x-x^{(0)}\rangle-G_{\alpha_T}(x^{(T)*}) & =\alpha_T\omega(x)-\alpha_T\omega(x^{(0)}) \\
-         & \quad-\left(\alpha_T\omega(x)-\alpha_T\omega(x^{(T)})-\langle x^{(T)*},x-x^{(T)}\rangle\right) \\
-         & \le\alpha_T\omega(x)-\alpha_T\omega(x^{(0)}).
+         & \ \langle x^{(T+1)*},x-x^{(1)}\rangle-G_{\alpha_{T+1}}(x^{(T+1)*}) \\
+        \le &\ \langle x^{(T+1)*},x-x^{(1)}\rangle-\del{\langle x^{(T+1)*},x-x^{(1)}\rangle-\alpha_{T+1}\del{\omega(x)-\omega(x^{(1)})}} \\
+        \le & \ \alpha_{T+1}\omega(x)-\alpha_{T+1}\omega(x^{(1)}).
     \end{align*}
 \end{proof}
 
-\subsection{Online Setting}
-Both mirror descent and dual averaging can be extended to the online setting naturally.
+\subsection{Online and Stochastic Setting}
+Both mirror descent and dual averaging can be extended to the online setting, and thus the on-expectation setting.
 
-\subsection{Stochastic Setting}
-Both mirror descent and dual averaging can be extended to the case where we only have an unbiased estimator (or even biased estimator) of $\partial f(x)$, assuming we can control the variance (and bias). Below we illustrate the idea for mirror descent.
+We may even be able to solve the optimization problem with only biased estimator of $\partial f(x)$, assuming we can control the variance and bias. Below we illustrate the idea for mirror descent.
 
 Suppose at step $t$, suppose we can get $g^{(t)}=\nabla f(x^{(t)})+\xi^{(t)}$, where $\mathbb{E}[\xi^{(t)}]$ may or may not be $0$. If we do the calculations again, we will get
 \begin{equation*}
@@ -2057,13 +2056,13 @@ Now suppose $f$ is $\beta$-strongly smooth and convex w.r.t. $\|\cdot\|$. If we 
 \begin{theorem}
     Suppose $f$ is $\beta$-strongly smooth and convex, set $\eta_t=\frac{1}{\beta}$, mirror descent ensures that for any $x\in C$ and $T\ge1$,
     \begin{equation*}
-        f(x^{(T)})-f(x)\le\frac{1}{T}\sum_{t=1}^{T}\left(f(x^{(t)})-f(x)\right)\le \frac{\beta\left(D_{\omega}(x,x^{(0)})-D_{\omega}(x,x^{(T)})\right)}{T}.
+        f(x^{(T+1)})-f(x)\le\frac{1}{T}\sum_{t=2}^{T+1}\left(f(x^{(t)})-f(x)\right)\le \frac{\beta\left(D_{\omega}(x,x^{(1)})-D_{\omega}(x,x^{(T+1)})\right)}{T}.
     \end{equation*}
 \end{theorem}
 
 Both mirror descent and dual averaging can be accelerated; see my course project for UIUC CS 598 MJT F17.
 
-Neither mirror descent or dual averaging for smooth functions can be extended to online or stochastic case. However, smoothness can help reduce the variance in the stochastic case, using the usual stochastic analysis.
+Neither mirror descent or dual averaging for smooth functions can be extended to online or stochastic case. However, smoothness can help reduce the variance in the stochastic case, using common stochastic analysis.
 
 \chapter{Coordinate Descent}
 In \textbf{coordinate descent}, each step one only optimize along one coordinate or a subset of coordinates. For simplicity, suppose at each step only one coordinate is considered, and all coordinates take value in $\mathbb{R}$. Then formally speaking, at each step we first pick a coordinate $i_t$, and do the following update
@@ -2191,8 +2190,7 @@ where $\eta_t=\frac{2}{t+2}$.
     In contrast to gradient descent method, in Frank-Wolfe algorithm at step $t$ there may be more than one choice for $x^{(t+1)}$. Actually our proof work only if the algorithm makes the worst choice at each step.
 \end{remark}
 
-%\begin{comment}
-\chapter{Online Convex Optimization}
+\chapter{Online Convex Optimization}\label{chp:onlineStochOpt}
 \section{Greedy Algorithms}
 In this section, we describe some heuristic greedy algorithms for the online convex optimization problem. One can see that these greedy algorithms can achieve good bounds, but the computational cost per step may be large.
 
@@ -2283,112 +2281,7 @@ Thus we can get a specific version of Theorem \ref{followRegLeaderthm}:
 
 One reason we are interested in online linear optimization is that each step of the Follow-the-Regularized-Leader algorithm requires solving one optimization problem, which can be expensive in general. We can avoid this, if we can query subgradients, by reducing an online convex optimization problem to an online linear optimization problem. One such algorithm will be in the online mirror descent section.
 
-\section{Online Gradient Descent}
-The Mirror Descent method can also be applied to online convex optimization. Here for convenience we only present online gradient descent. Assume $U=C$, and let $D$ denote the diameter of $C$. At step $t$, after observing $f_t$, we choose an arbitrary $g_t(x^{(t)})\in\partial f_t(x^{(t)})$, and update $x^{(t)}$ to $x^{(t+1)}$ in the following way:
-\begin{equation}\label{onlineSubgradUpdate}
-    x^{(t+1)}=\Pi_C(x^{(t)}-\eta_tg_t(x^{(t)})).
-\end{equation}
-
-We assume that for all $1\le t\le T$ and $x\in C$, $\partial f_t(x)$ is non-empty and bounded by a universal constant. One sufficient condition is that for all $1\le t\le T$, $f_t$ is $\lambda$-Lipschitz continuous. We can prove the following guarantee:
-\begin{theorem}
-    Assume for all $1\le t\le T$, $f_t$ is $\lambda$-Lipschitz continuous. Then with
-    \begin{itemize}
-        \item $\eta_t=\frac{D}{\lambda\sqrt{T}}$, we have
-        \begin{equation}
-            \mathrm{Regret}_C(T)\le D\lambda\sqrt{T}.
-        \end{equation}
-        \item $\eta_t=\frac{D}{\lambda\sqrt{t}}$, we have
-        \begin{equation}
-            \mathrm{Regret}_C(T)\le \frac{3}{2}D\lambda\sqrt{T}.
-        \end{equation}
-    \end{itemize}
-\end{theorem}
-
-For strongly convex objective functions, we can achieve logarithmic regret.
-\begin{theorem}
-    Suppose for all $1\le t\le T$, $f_t$ is $\lambda$-Lipschitz continuous and $\alpha$-strongly convex. Then with $\eta_t=\frac{1}{\alpha t}$, we have
-    \begin{equation}
-        \mathrm{Regret}_C(T)\le \frac{\lambda^2(\ln T+1)}{2\alpha}.
-    \end{equation}
-\end{theorem}
-
-\section{Online Dual Averaging}
-Recall that if we can query subgradients, the general online gradient descent problem can be reduced to online linear optimization problem, which in turn can be solved by Follow-the-Regularized-Leader algorithm. At step $t$ we compute $x^{(t)}=\arg\min_{x\in C}(R(x)+\sum_{\tau=1}^{t-1}\langle x,z^{(\tau)}\rangle)=\arg\max_{x\in C}(\langle x,-\sum_{\tau=1}^{t-1}z^{(\tau)}\rangle-R(x))$. Thus if we set $g(y)=\arg\max_{x\in C}(\langle y,x\rangle-R(x))$, then our operations at step $t$ can be described as ($y^{(1)}=0$)
-\begin{enumerate}
-    \item $x^{(t)}=g(y^{(t)})$,
-    \item $y^{(t+1)}=y^{(t)}-z^{(t)}$, where $z^{(t)}\in\partial f_t(x^{(t)})$.
-\end{enumerate}
-
-Let $R$ to be a $\frac{1}{\eta}$-strongly convex function over $C$, and apply Theorem \ref{followRegLeaderLipst}, we get that for any $u\in C$,
-\begin{equation}
-    \mathrm{Regret}_u(T)\ge R(u)-R(x^{(1)})+\eta \sum_{t=1}^{T}\|z^{(t)}\|_*^2.
-\end{equation}
-
-Below we apply convex conjugates and get a slightly better result.
-\begin{theorem}\label{onlineDABound1}
-    We have for any $u\in C$,
-    \begin{equation}
-        \sum_{t=1}^{T}\langle x^{(t)}-u,z^{(t)}\rangle\le R(u)-R(x^{(1)})+\sum_{t=1}^{T}D_{R^*}(y^{(t+1)}\Vert y^{(t)}),
-    \end{equation}
-    and equality holds for $u=\arg\min_{u'\in C}R(u')-\langle u',y^{(T+1)}\rangle$.
-\end{theorem}
-\begin{proof}
-    Note that at step $t$, $x^{(t)}=g(y^{(t)})=\nabla R^*(y^{(t)})$, and $y^{(t)}=-\sum_{\tau=1}^{t-1}z^{(t)}$. Then for all $1\le t\le T$, we have
-    \begin{equation}
-        \begin{array}{rcl}
-            \langle x^{(t)},z^{(t)}\rangle & = & \langle x^{(t)},y^{(t)}-y^{(t+1)}\rangle \\
-             & = & D_{R^*}(y^{(t+1)}||y^{(t)})+R^*(y^{(t)})-R^*(y^{(t+1)}).
-        \end{array}
-    \end{equation}
-    Also, $R^*(y^{(1)})=R^*(0)=-\min_{x\in C}R(x)=-R(x^{(1)})$, and $\langle u,y^{(T+1)}\rangle\le R(u)+R^*(y^{(T+1)})$.
-\end{proof}
-\begin{theorem}\label{onlineDABound2}
-    Suppose $R$ is $\frac{1}{\eta}$-strongly convex w.r.t. norm $\|\cdot\|$. Then online mirror descent guarantees that
-    \begin{equation}
-        \sum_{t=1}^{T}\langle x^{(t)}-u,z^{(t)}\rangle\le R(u)-R(x^{(1)})+\frac{\eta}{2}\sum_{t=1}^{T}\|z^{(t)}\|_*^2.
-    \end{equation}
-\end{theorem}
-\begin{proof}
-    This comes from Theorem \ref{onlineDABound1} and the duality of strong convexity and strong smoothness.
-\end{proof}
-\begin{remark}
-    Note that Theorem \ref{onlineDABound1} and \ref{onlineDABound2} are still true even if $z^{(t)}$ is not chosen as the subgradient of $f_t$.
-\end{remark}
-
-\section{Online Stochastic Convex Optimization}
-The previous algorithms require the computation of $\partial f_t(x^{(t)})$ at step $t$. In this section, it is assumed that at step $t$, only an estimate of the subgradient can be computed. Formally, at step $t$, we will be given $z^{(t)}$ such that
-\begin{equation}
-    \hat{z}^{(t)}=\mathbb{E}[z^{(t)}|z^{(1)},\ldots,z^{(t-1)}]\in\partial f_t(x^{(t)}).
-\end{equation}
-The previous algorithms still work as long as the variance of the estimated subgradients is not too large.
-
-\begin{theorem}
-    Assume that for all $1\le t\le T$ and all $z^{(1)},\ldots,z^{(t-1)}$, we have $\mathbb{E}[\|z^{(t)}\|_2^2|z^{(1)},\ldots,z^{(t-1)}]\le\lambda^2$, and the diamemter of $C$ is $D$. Then if online gradient descent is run with
-    \begin{itemize}
-        \item $\eta_t=\frac{D}{\lambda\sqrt{T}}$, we have
-        \begin{equation}
-            \mathbb{E}[\mathrm{Regret}_C(T)]\le D\lambda\sqrt{T}.
-        \end{equation}
-        \item $\eta_t=\frac{D}{\lambda\sqrt{t}}$, we have
-        \begin{equation}
-            \mathbb{E}[\mathrm{Regret}_C(T)]\le \frac{3}{2}D\lambda\sqrt{T}.
-        \end{equation}
-    \end{itemize}
-\end{theorem}
-\begin{theorem}
-    Suppose for all $1\le t\le T$, $f_t$ is $\alpha$-strongly convex, and for all $z^{(1)},\ldots,z^{(t-1)}$, $\mathbb{E}[\|z^{(t)}\|_2^2|z^{(1)},\ldots,z^{(t-1)}]\le\lambda^2$. Then if online gradient descent is run with $\eta_t=\frac{1}{\alpha t}$, we have
-    \begin{equation}
-        \mathrm{Regret}_C(T)\le \frac{\lambda^2(\ln T+1)}{2\alpha}.
-    \end{equation}
-\end{theorem}
-\begin{theorem}
-    Suppose $R$ is $\frac{1}{\eta}$-strongly convex w.r.t. norm $\|\cdot\|$. Then online mirror descent guarantees that
-    \begin{equation}
-        \mathbb{E}[\mathrm{Regret}_u(T)]\le R(u)-R(x^{(1)})+\frac{\eta}{2}\sum_{t=1}^{T}\mathbb{E}[\|z^{(t)}\|_*^2].
-    \end{equation}
-\end{theorem}
-
-\subsection{Bandit Online Convex Optimization and the Multi-Armed Bandit Problem}
+\section{Bandit Online Convex Optimization and the Multi-Armed Bandit Problem}
 In the bandit online convex optimization problem, at step $t$, after $x^{(t)}$ is chosen, only the cost at $x^{(t)}$, $f_t(x^{(t)})$, is revealed. In other words, we cannot compute the subgradient directly. The idea is to construct an unbiased estimator of the subgradient using the revealed information, then invoke algorithm for online stochastic convex optimization.
 
 Here we consider a simple example, the adversarial multi-armed bandit problem. The key feature of the multi-armed bandit problem is that only the loss of the pulled arm is given to us, not the whole loss vector, which is naturally the gradient. However, as we are allowed to make use of randomization, we can construct an unbiased estimator of the loss vector.
@@ -2403,7 +2296,6 @@ The overall bound of the multi-armed bandit problem is thus $\frac{\ln n}{\eta}+
 \begin{remark}
     In fact a better bound of $\sqrt{2Tn\ln n}$ when $\eta=\sqrt{\frac{2\ln n}{nT}}$ can be shown. Also, we can get an anytime algorithm if $T$ is not known in advance. Please refer to \cite{BC12}.
 \end{remark}
-%\end{comment}
 
 \chapter{Smoothing Techniques}
 In this chapter, we try to minimize a non-smooth convex closed proper function $f$ over $\mathbb{R}^n$. (However, notice that the effective domain may not be $\mathbb{R}^n$ and may even be bounded.) Subgradient descent may take too much time. One possible way is to approximate $f$ using some smooth function $f_{\mu}$, and then invoke algorithms for smooth convex functions.
