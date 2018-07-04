@@ -486,9 +486,7 @@ and the \textbf{pseudo-regret}
 \begin{equation}\label{pseudoRegret}
     \overline{\mathrm{Regret}(T)}=\max_{1\le i\le K}\mathbb{E}\sbr{\sum_{t=1}^{T}X_{i,t}-\sum_{t=1}^{T}X_{I_t,t}}.
 \end{equation}
-It can be seen that $\overline{\mathrm{Regret}(T)}\le \mathbb{E}[\mathrm{Regret}(T)]$.
-
-Different assumptions can be made on the nature of rewards. There are three fundamental formalizations of the bandit problem, with different assumptions on the reward process: \textbf{stochastic bandits}, \textbf{adversarial bandits}, and \textbf{Markovian bandits}. (Those frameworks are pretty general and can be extended to other machine learning problems.) Efficient algorithms have been designed for each case: The UCB algorithm for the stochastic case, the Exp3 randomized algorithm for the adversarial case, and the Gittins indices for the Markovian case.
+It can be seen that $\overline{\mathrm{Regret}(T)}\le \mathbb{E}[\mathrm{Regret}(T)]$. (Those two notions are equivalent for oblivious deterministic adversary, but not equivalent in the stochastic model, non-oblivious adversarial model, etc.)
 
 \chapter{Stochastic Bandits}
 In the stochastic bandit problem, the known parameters are the number of arms $K(\ge2)$, and possibly the number of steps $T(\ge K)$. The unknown parameters are $K$ distributions $\nu_1,\ldots,\nu_K$ on $[0,1]$. It is assumed that if arm $i$ is played at any time, a reward is sampled from $\nu_i$. For any $1\le i\le K$, let $\mu_i=\mathbb{E}[\nu_i]$, $\mu^*=\max_{1\le i\le K}\mu_i$, and $i^*\in\arg\max_{1\le i\le K}\mu_i$. Then the pseudo-regret becomes
@@ -629,34 +627,10 @@ Also, in \cite{KKM12} it is claimed that the empirical performance of Thompson s
 \end{comment}
 
 \chapter{Adversarial Bandits}
-In bandit problems, of course we allow the algorithm to learn from past revealed reward. However, it is unclear how the reward process is to the algorithm. In adversarial bandit problem, we hold a pessimistic view of the reward process, which will lead us to a worse but safer guarantee.
-
-Here "adversary" may have different meanings in different settings. If the forecaster is deterministic, then adversary means that any possible reward sequence should be considered. This interpretation still applies if the forecaster is randomized and the reward is oblivious. However, when the forecaster is randomized, we may further allow non-oblivious, or adaptive reward (where the definition of regret in fact becomes ambiguous). In fact the first and the third are both too hard ???
-
 In the adversarial bandit problem, the known parameter are the number of arms $K(\ge2)$, and possibly the number of steps $T(\ge K)$. At each step $t$, the player will choose an arm $i_t$ to play, possibly with the help of some external randomness. At the same time, some adversary will decide a reward vector $X_t=(X_{1,t},\ldots,X_{K,t})\in[0,1]^K$ (or a loss vector $\ell_t=(\ell_{1,t},\ldots,\ell_{K,t})\in[0,1]^K$). Then $X_{i_t,t}$ (or $\ell_{i_t,t}$) is revealed to the player.
 
-Note that if oblivious reward is considered, then expected regret and pseudo-regret in fact coincide. However, if randomization is not allowed to the forecaster, then sub-linear regret is impossible. Thus only randomized learning algorithm is of interest.
-
 \section{The Exp3 Algorithm}
-We describe the exponential weights for exploration and exploitation (Exp3) algorithm.
-
-The parameter of Exp3 is a non-increasing sequence of real numbers $(\eta_t)_{t\ge1}$. Initially, let $p_1$ be the uniform distribution over $\{1,\ldots,K\}$, and for any $1\le i\le K$, let $\widetilde{L}_{i,0}=0$.
-
-At step $t$, we draw $i_t\sim p_t$, and compute $\widetilde{\ell}_{i,t}=\frac{\ell_{i,t}}{p_{i,t}}\mathds{1}_{i_t=i}$ and update $\widetilde{L}_{i,t}=\widetilde{L}_{i,t-1}+\widetilde{\ell}_{i,t}$. The distribution $p_{t+1}$ is computed as follows
-\begin{equation}
-    p_{i,t+1}=\frac{e^{-\eta_t\widetilde{L}_{i,t}}}{\sum_{k=1}^{K}e^{-\eta_t\widetilde{L}_{k,t}}}.
-\end{equation}
-
-\begin{theorem}[\cite{BC12} Theorem 3.1]
-    If $\eta_t=\sqrt{\frac{2\ln K}{TK}}$, then we have
-    \begin{equation}
-        \overline{\mathrm{Regret}(T)}\le\sqrt{2TK\ln K},
-    \end{equation}
-    while if $\eta_t=\sqrt{\frac{\ln K}{tK}}$, then we have
-    \begin{equation}
-        \overline{\mathrm{Regret}(T)}\le2\sqrt{TK\ln K}.
-    \end{equation}
-\end{theorem}
+The Exps algorithm is basically the dual averaging algorithm, with a refined analysis. Please refer to the optimization note.
 
 \bibliography{Notes_on_Machine_Learning}
 \bibliographystyle{plainnat}
