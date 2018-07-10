@@ -2051,7 +2051,11 @@ $G_{\alpha}$ is the key potential function in the analysis of dual averaging.
 \end{remark}
 
 \begin{example}
-    Though stated in a very general form, mirror descent is basically only used in the $\ell_2$ and $\ell_1$ case. In the $\ell_2$ case, mirror descent corresponds to the common gradient descent while dual averaging corresponds to gradient descent with lazy projection. In the $\ell_1$ case, if in mirror descent we start with uniform distribution, then the two algorithms actually are the same; for convenience the dual averaging version is usually preferred, and is usually called the \textbf{Follow-the-Regularized-Leader} algorithm. Here give a stronger bound for this case, which is extracted from \cite{S11} Theorem 2.22.
+    Though stated in a very general form, mirror descent is basically only used in the $\ell_2$ and $\ell_1$ case.
+
+    In the $\ell_2$ case, mirror descent corresponds to the common gradient descent while dual averaging corresponds to gradient descent with lazy projection.
+
+    In the $\ell_1$ case, mirror descent and dual averaging are very similar: They both accumulate gradients in the dual space, and then translate to the primal space (the probability simplex space) using a softmax mapping. The difference is that mirror descent can choose an arbitrary initial distribution but only a fixed softmax mapping, while dual averaging always starts with the uniform distribution but can choose different softmax mapping (corresponding to $\alpha_t$) later on. In particular, the dual averaging version is also called the \textbf{Follow-the-Regularized-Leader} algorithm, which allows a tighter regret bound (extracted from \cite{S11} Theorem 2.22). This bound also leads to the EXP3 algorithm for online bandits.
 \end{example}
 \begin{theorem}\label{thm:DALocalNorm}
     Suppose for any $t\ge1$ and any $1\le i\le n$, $\partial f(x^{(t)})_i\ge0$. Then for any $x\in C$ and $T\ge1$,
@@ -2118,7 +2122,7 @@ Now suppose $f$ is $\beta$-strongly smooth and convex w.r.t. $\|\cdot\|$. If we 
 
 Both mirror descent and dual averaging can be accelerated; see my course project for UIUC CS 598 MJT F17.
 
-Neither mirror descent or dual averaging for smooth functions can be extended to online or stochastic case. However, smoothness can help reduce the variance in the stochastic case, using common stochastic analysis.
+Extension to online or stochastic case seems impossible. However, smoothness can help reduce the variance in the stochastic case, using common stochastic analysis.
 
 \chapter{Coordinate Descent}
 In \textbf{coordinate descent}, each step one only optimize along one coordinate or a subset of coordinates. For simplicity, suppose at each step only one coordinate is considered, and all coordinates take value in $\mathbb{R}$. Then formally speaking, at each step we first pick a coordinate $i_t$, and do the following update
